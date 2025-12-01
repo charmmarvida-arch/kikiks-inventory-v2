@@ -13,5 +13,7 @@ export const DEPLOYMENT_FEATURES = [
     'Export Functionality',
     'Mobile PDF Fix (Download Button)',
     'HTML Order Summary',
-    'UI Refinements (Modal & Text)'
+    'UI Refinements (Modal & Text)',
+    'Modal Table Cleanup (No SKU, Margins)',
+    'SKU Text Removed Completely'
 ];

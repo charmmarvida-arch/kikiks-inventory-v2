@@ -443,11 +443,10 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
                             </div>
 
                             {/* Modal Content: Table */}
-                            <div className="flex-1 overflow-y-auto p-0">
+                            <div className="flex-1 overflow-y-auto p-4">
                                 <table className="w-full text-left border-collapse">
                                     <thead className="bg-gray-50 sticky top-0 z-10 shadow-sm">
                                         <tr>
-                                            <th className="p-2 md:p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">SKU</th>
                                             <th className="p-2 md:p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Description</th>
                                             <th className="p-2 md:p-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Price</th>
                                             <th className="p-2 md:p-4 text-xs font-bold text-gray-500 uppercase tracking-wider w-32 text-center">Quantity</th>
@@ -463,8 +462,9 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
 
                                             return (
                                                 <tr key={item.sku} className={`hover:bg-gray-50 transition-colors ${isSelected ? 'bg-blue-50/50' : ''}`}>
-                                                    <td className="p-2 md:p-4 font-mono text-sm text-gray-600">{item.sku}</td>
-                                                    <td className="p-2 md:p-4 font-medium text-gray-800">{item.description}</td>
+                                                    <td className="p-2 md:p-4 font-medium text-gray-800">
+                                                        <div>{item.description}</div>
+                                                    </td>
                                                     <td className="p-2 md:p-4 text-right text-gray-600">₱{price.toLocaleString()}</td>
                                                     <td className="p-2 md:p-4">
                                                         <input
@@ -485,7 +485,7 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
                                         })}
                                         {modalItems.length === 0 && (
                                             <tr>
-                                                <td colSpan="5" className="p-10 text-center text-gray-400">
+                                                <td colSpan="4" className="p-10 text-center text-gray-400">
                                                     No items found.
                                                 </td>
                                             </tr>
