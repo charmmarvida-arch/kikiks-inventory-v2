@@ -1,0 +1,76 @@
+import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import Layout from './components/Layout';
+import { InventoryProvider } from './context/InventoryContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import InventoryTable from './components/InventoryTable';
+import StockIn from './components/StockIn';
+import Login from './components/Login';
+import RegisterAccount from './components/RegisterAccount';
+
+import Dashboard from './components/Dashboard';
+
+import LocationDashboard from './components/LocationDashboard';
+import TransferLocation from './components/TransferLocation';
+import ResellerOrderRedesigned from './components/ResellerOrderRedesigned';
+import OrderPdfView from './components/OrderPdfView';
+import ResellerOrderList from './components/ResellerOrderList';
+import OrderHistory from './components/OrderHistory';
+import SettingsSku from './components/SettingsSku';
+import FTFManufacturing from './components/FTFManufacturing';
+import AdminKey from './components/AdminKey';
+
+
+// Protected Route Wrapper
+const RequireAuth = ({ children }) => {
+  const { user, loading } = useAuth();
+  const location = useLocation();
+
+  if (loading) {
+    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>Loading...</div>;
+  }
+
+  if (!user) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  return children;
+};
+
+function App() {
+  return (
+    <AuthProvider>
+      <InventoryProvider>
+        <BrowserRouter>
+          <Routes>
+            {/* Public Routes */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/public-order" element={<ResellerOrderRedesigned isPublic={true} />} />
+            <Route path="/order-pdf/:orderId" element={<OrderPdfView />} />
+
+            {/* Protected Routes */}
+            <Route path="/" element={
+              <RequireAuth>
+                <Layout />
+              </RequireAuth>
+            }>
+              <Route index element={<Dashboard />} />
+              <Route path="dashboard/ftf-manufacturing" element={<FTFManufacturing />} />
+              <Route path="dashboard/:location" element={<LocationDashboard />} />
+              <Route path="stock-in" element={<StockIn />} />
+              <Route path="transfer" element={<TransferLocation />} />
+              <Route path="reseller-order" element={<ResellerOrderRedesigned />} />
+              <Route path="reseller-orders-list" element={<ResellerOrderList />} />
+              <Route path="order-history" element={<OrderHistory />} />
+              <Route path="settings/sku-addition" element={<SettingsSku />} />
+              <Route path="settings/admin-key" element={<AdminKey />} />
+              <Route path="settings/register" element={<RegisterAccount />} />
+            </Route>
+          </Routes>
+        </BrowserRouter>
+      </InventoryProvider>
+    </AuthProvider>
+  );
+}
+
+export default App;
