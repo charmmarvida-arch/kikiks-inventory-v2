@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useInventory } from '../context/InventoryContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import {
     Settings, Search, ShoppingCart,
     Coffee, IceCream, Droplet, Box, Grid,
@@ -26,12 +26,25 @@ const CATEGORIES = [
 ];
 
 const ResellerOrderRedesigned = ({ isPublic = false }) => {
-    const { inventory, resellers, addResellerOrder, resellerZones, resellerPrices, zonePrices } = useInventory();
+    const { inventory, resellers, addResellerOrder, updateResellerOrder, resellerOrders, resellerZones, resellerPrices, zonePrices } = useInventory();
     const navigate = useNavigate();
+    const { orderId } = useParams();
 
     // --- State ---
     const [selectedResellerId, setSelectedResellerId] = useState('');
     const [address, setAddress] = useState('');
+
+    // Load Order for Editing
+    useEffect(() => {
+        if (orderId && resellerOrders.length > 0) {
+            const orderToEdit = resellerOrders.find(o => o.id === orderId);
+            if (orderToEdit) {
+                setSelectedResellerId(orderToEdit.resellerId);
+                setAddress(orderToEdit.address || '');
+                setCart(orderToEdit.items || {});
+            }
+        }
+    }, [orderId, resellerOrders]);
 
     // Cart State: { 'SKU-123': 50, 'SKU-456': 10 }
     const [cart, setCart] = useState({});
@@ -172,13 +185,21 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
         };
 
         // Save to DB
-        const newOrderId = crypto.randomUUID();
-        orderData.id = newOrderId;
-
-        await addResellerOrder(orderData);
-
-        // Navigate
-        navigate(`/order-pdf/${newOrderId}`);
+        if (orderId) {
+            // Update Existing Order
+            await updateResellerOrder(orderId, {
+                ...orderData,
+                id: orderId, // Ensure ID is preserved
+                status: 'Pending' // Reset status to Pending on edit? Or keep existing? Usually reset if re-submitting. Let's keep it simple.
+            });
+            navigate(`/order-pdf/${orderId}`);
+        } else {
+            // Create New Order
+            const newOrderId = crypto.randomUUID();
+            orderData.id = newOrderId;
+            await addResellerOrder(orderData);
+            navigate(`/order-pdf/${newOrderId}`);
+        }
     };
 
     const handleSettingsClick = () => {
@@ -201,7 +222,7 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
             <div className="bg-white border-b border-gray-200 px-6 py-4 shadow-sm z-10">
                 <div className="flex justify-between items-center mb-4">
                     <div>
-                        <h2 className="text-2xl font-bold text-[#510813]">Create Reseller Order</h2>
+                        <h2 className="text-2xl font-bold text-[#510813]">{orderId ? 'Edit Reseller Order' : 'Create Reseller Order'}</h2>
                     </div>
                     {!isPublic && (
                         <button onClick={handleSettingsClick} className="p-2 hover:bg-gray-100 rounded-full text-gray-600 transition-colors">
@@ -305,7 +326,7 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
                         }}
                     >
                         <FileText size={18} />
-                        Submit Order
+                        {orderId ? 'Update Order' : 'Submit Order'}
                     </button>
                 </div>
 
@@ -412,7 +433,7 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
                                 }`}
                         >
                             <FileText size={20} />
-                            Submit Order
+                            {orderId ? 'Update Order' : 'Submit Order'}
                         </button>
                     </div>
                 </div>

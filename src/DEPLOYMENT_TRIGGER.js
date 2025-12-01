@@ -18,5 +18,7 @@ export const DEPLOYMENT_FEATURES = [
     'SKU Text Removed Completely',
     'Brand Color Palette Applied (Cream, Merlot, etc.)',
     'Background Refinement (White Page, Colorful Cards)',
-    'Modal Table: Centered Hyphen for Zero Totals'
+    'Modal Table: Centered Hyphen for Zero Totals',
+    'Fixed Order Edit Functionality',
+    'Verified Order Delete Functionality'
 ];

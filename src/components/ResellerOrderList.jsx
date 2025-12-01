@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useInventory } from '../context/InventoryContext';
 import { Eye, X, Edit2, Trash2 } from 'lucide-react';
 import { generatePackingList, generateCOA } from '../utils/pdfGenerator';
 
 const ResellerOrderList = () => {
     const { resellerOrders, updateResellerOrderStatus, updateResellerOrder, inventory, resellerPrices, deleteResellerOrder } = useInventory();
+    const navigate = useNavigate();
     const [selectedOrder, setSelectedOrder] = useState(null);
     const [showCOAModal, setShowCOAModal] = useState(false);
     const [selectedCOAOrder, setSelectedCOAOrder] = useState(null);
@@ -23,8 +25,7 @@ const ResellerOrderList = () => {
     };
 
     const handleEditOrder = (order) => {
-        // TODO: Implement edit functionality
-        alert(`Edit functionality for order ${order.id} will be implemented`);
+        navigate(`/reseller-order/edit/${order.id}`);
     };
 
     const handleDeleteOrder = async (order) => {

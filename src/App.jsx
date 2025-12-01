@@ -60,6 +60,7 @@ function App() {
               <Route path="stock-in" element={<StockIn />} />
               <Route path="transfer" element={<TransferLocation />} />
               <Route path="reseller-order" element={<ResellerOrderRedesigned />} />
+              <Route path="reseller-order/edit/:orderId" element={<ResellerOrderRedesigned />} />
               <Route path="reseller-orders-list" element={<ResellerOrderList />} />
               <Route path="order-history" element={<OrderHistory />} />
               <Route path="settings/sku-addition" element={<SettingsSku />} />
