@@ -253,7 +253,7 @@ const FTFManufacturing = () => {
                 const priority = { 'FGC': 1, 'FGP': 2, 'FGL': 3, 'FGG': 4, 'FGT': 5 };
                 const getPrefix = (sku) => sku.split('-')[0];
                 const pA = priority[getPrefix(a.sku)] || 99;
-                const pB = priority[getPrefix(b.sku)] | 99;
+                const pB = priority[getPrefix(b.sku)] || 99;
                 if (pA !== pB) return pA - pB;
                 return a.sku.localeCompare(b.sku);
             }
