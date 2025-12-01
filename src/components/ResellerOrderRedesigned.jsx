@@ -196,7 +196,7 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
         : [];
 
     return (
-        <div className="fade-in h-screen flex flex-col bg-[#F3EBD8] overflow-hidden">
+        <div className="fade-in h-screen flex flex-col bg-white overflow-hidden">
             {/* --- Top Bar: Context --- */}
             <div className="bg-white border-b border-gray-200 px-6 py-4 shadow-sm z-10">
                 <div className="flex justify-between items-center mb-4">
@@ -341,7 +341,7 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
 
                 {/* RIGHT: Live Summary (Sidebar) */}
                 <div className="w-96 bg-white border-l border-gray-200 flex flex-col shadow-xl z-20">
-                    <div className="p-4 border-b border-gray-100 bg-[#F3EBD8]/30">
+                    <div className="p-4 border-b border-gray-100 bg-white">
                         <h3 className="font-bold text-[#510813] flex items-center gap-2">
                             <ShoppingCart size={20} />
                             Current Order
@@ -458,7 +458,7 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
                                             <th className="p-2 md:p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Description</th>
                                             <th className="p-2 md:p-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Price</th>
                                             <th className="p-2 md:p-4 text-xs font-bold text-gray-500 uppercase tracking-wider w-32 text-center">Quantity</th>
-                                            <th className="p-2 md:p-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Total</th>
+                                            <th className="p-2 md:p-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Total</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-100">
@@ -485,7 +485,7 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
                                                             style={{ fontSize: '16px' }}
                                                         />
                                                     </td>
-                                                    <td className="p-2 md:p-4 text-right font-bold text-gray-800">
+                                                    <td className={`p-2 md:p-4 font-bold text-gray-800 ${total > 0 ? 'text-right' : 'text-center'}`}>
                                                         {total > 0 ? `₱${total.toLocaleString()}` : '-'}
                                                     </td>
                                                 </tr>
@@ -546,7 +546,7 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
 
                         <div className="flex-1 overflow-y-auto p-6">
                             {/* Reseller Info */}
-                            <div className="mb-6 p-4 bg-[#F3EBD8] rounded-xl border border-[#510813]/10">
+                            <div className="mb-6 p-4 bg-gray-50 rounded-xl border border-[#510813]/10">
                                 <div className="text-xs font-bold text-[#510813] uppercase mb-1">Bill To</div>
                                 <div className="font-bold text-[#510813] text-lg">{selectedReseller?.name}</div>
                                 <div className="text-sm text-gray-600">{currentZone?.name}</div>

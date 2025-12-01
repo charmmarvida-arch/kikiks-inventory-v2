@@ -16,5 +16,7 @@ export const DEPLOYMENT_FEATURES = [
     'UI Refinements (Modal & Text)',
     'Modal Table Cleanup (No SKU, Margins)',
     'SKU Text Removed Completely',
-    'Brand Color Palette Applied (Cream, Merlot, etc.)'
+    'Brand Color Palette Applied (Cream, Merlot, etc.)',
+    'Background Refinement (White Page, Colorful Cards)',
+    'Modal Table: Centered Hyphen for Zero Totals'
 ];
