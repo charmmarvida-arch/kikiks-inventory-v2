@@ -411,7 +411,7 @@ const FTFManufacturing = () => {
 
             {/* Inventory Table */}
             <div className="form-card p-0 overflow-hidden">
-                <div className="table-container" style={{ maxHeight: 'calc(100vh - 500px)', overflowY: 'auto' }}>
+                <div className="table-container">
                     <table className="inventory-table">
                         <thead style={{ position: 'sticky', top: 0, zIndex: 10, backgroundColor: 'white' }}>
                             <tr>
