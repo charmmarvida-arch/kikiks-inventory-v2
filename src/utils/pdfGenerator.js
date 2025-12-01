@@ -370,37 +370,39 @@ export const generateCOA = async (order, bestBeforeDates, inventory) => {
             .filter(([sku, qty]) => sku.startsWith(prefix) && qty > 0)
             .map(([sku, qty]) => {
                 const itemDef = inventory.find(i => i.sku === sku);
-                const bestBefore = bestBeforeDates[sku] || '';
 
-                // Calculate production date (3 months before best before)
-                let productionDate = '';
-                if (bestBefore) {
-                    const bbDate = new Date(bestBefore);
-                    const prodDate = new Date(bbDate);
-                    prodDate.setMonth(prodDate.getMonth() - 3);
-                    // Format as MMDDYY
-                    const mm = String(prodDate.getMonth() + 1).padStart(2, '0');
-                    const dd = String(prodDate.getDate()).padStart(2, '0');
-                    const yy = String(prodDate.getFullYear()).slice(-2);
-                    productionDate = `${mm}${dd}${yy}`;
-                }
+                // Handle multiple dates (ensure it's an array)
+                const dates = Array.isArray(bestBeforeDates[sku]) ? bestBeforeDates[sku] : [bestBeforeDates[sku] || ''];
 
-                // Format best before date as MMDDYY too
-                let bestBeforeFormatted = '';
-                if (bestBefore) {
-                    const bbDate = new Date(bestBefore);
-                    const mm = String(bbDate.getMonth() + 1).padStart(2, '0');
-                    const dd = String(bbDate.getDate()).padStart(2, '0');
-                    const yy = String(bbDate.getFullYear()).slice(-2);
-                    bestBeforeFormatted = `${mm}${dd}${yy}`;
-                }
+                // Calculate production dates and format best before dates
+                const productionDates = [];
+                const formattedBestBeforeDates = [];
+
+                dates.forEach(dateStr => {
+                    if (dateStr) {
+                        // Best Before
+                        const bbDate = new Date(dateStr);
+                        const mm = String(bbDate.getMonth() + 1).padStart(2, '0');
+                        const dd = String(bbDate.getDate()).padStart(2, '0');
+                        const yy = String(bbDate.getFullYear()).slice(-2);
+                        formattedBestBeforeDates.push(`${mm}${dd}${yy}`);
+
+                        // Production Date (3 months prior)
+                        const prodDate = new Date(bbDate);
+                        prodDate.setMonth(prodDate.getMonth() - 3);
+                        const pMm = String(prodDate.getMonth() + 1).padStart(2, '0');
+                        const pDd = String(prodDate.getDate()).padStart(2, '0');
+                        const pYy = String(prodDate.getFullYear()).slice(-2);
+                        productionDates.push(`${pMm}${pDd}${pYy}`);
+                    }
+                });
 
                 return {
                     sku,
                     description: itemDef ? itemDef.description : sku,
                     qty,
-                    productionDate,
-                    bestBeforeFormatted,
+                    productionDate: productionDates.join('\n'),
+                    bestBeforeFormatted: formattedBestBeforeDates.join('\n'),
                     sensory: coaInfo.sensory[itemDef?.description] || 'N/A'
                 };
             });

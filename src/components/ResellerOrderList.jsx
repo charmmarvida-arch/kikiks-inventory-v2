@@ -54,7 +54,7 @@ const ResellerOrderList = () => {
             const initialDates = {};
             Object.keys(order.items).forEach(sku => {
                 if (order.items[sku] > 0) {
-                    initialDates[sku] = '';
+                    initialDates[sku] = ['']; // Initialize as array with one empty string
                 }
             });
             setBestBeforeDates(initialDates);
@@ -428,16 +428,51 @@ const ResellerOrderList = () => {
                                     <tbody>
                                         {Object.entries(selectedCOAOrder.items).map(([sku, qty]) => {
                                             if (qty > 0) {
+                                                // Ensure dates is an array
+                                                const dates = Array.isArray(bestBeforeDates[sku]) ? bestBeforeDates[sku] : [''];
+
                                                 return (
-                                                    <tr key={sku}>
-                                                        <td className="py-2">{getProductDescription(sku)}</td>
+                                                    <tr key={sku} className="border-b border-gray-50 last:border-0">
+                                                        <td className="py-2 align-top pt-3">{getProductDescription(sku)}</td>
                                                         <td className="py-2">
-                                                            <input
-                                                                type="date"
-                                                                className="premium-input w-full"
-                                                                value={bestBeforeDates[sku] || ''}
-                                                                onChange={(e) => handleDateChange(sku, e.target.value)}
-                                                            />
+                                                            <div className="flex flex-col gap-2">
+                                                                {dates.map((date, index) => (
+                                                                    <div key={index} className="flex gap-2 items-center">
+                                                                        <input
+                                                                            type="date"
+                                                                            className="premium-input w-full"
+                                                                            value={date}
+                                                                            onChange={(e) => {
+                                                                                const newDates = [...dates];
+                                                                                newDates[index] = e.target.value;
+                                                                                handleDateChange(sku, newDates);
+                                                                            }}
+                                                                        />
+                                                                        {/* Only show remove button if more than 1 date */}
+                                                                        {dates.length > 1 && (
+                                                                            <button
+                                                                                onClick={() => {
+                                                                                    const newDates = dates.filter((_, i) => i !== index);
+                                                                                    handleDateChange(sku, newDates);
+                                                                                }}
+                                                                                className="text-red-500 hover:bg-red-50 p-1 rounded"
+                                                                                title="Remove date"
+                                                                            >
+                                                                                <X size={16} />
+                                                                            </button>
+                                                                        )}
+                                                                    </div>
+                                                                ))}
+                                                                <button
+                                                                    onClick={() => {
+                                                                        const newDates = [...dates, ''];
+                                                                        handleDateChange(sku, newDates);
+                                                                    }}
+                                                                    className="text-xs text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1 mt-1 w-fit"
+                                                                >
+                                                                    + Add Another Date
+                                                                </button>
+                                                            </div>
                                                         </td>
                                                     </tr>
                                                 );
