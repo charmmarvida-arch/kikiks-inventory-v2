@@ -134,6 +134,14 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
         if (!isMinOrderMet) return alert(`Minimum order of ₱${minOrderAmount.toLocaleString()} not met.`);
         if (Object.keys(cart).length === 0) return alert('Cart is empty');
 
+        // Validation: Cups (FGC) must be divisible by 10
+        const fgcItems = Object.entries(cart).filter(([sku]) => sku.startsWith('FGC'));
+        for (const [sku, qty] of fgcItems) {
+            if (qty % 10 !== 0) {
+                return alert(`Order for ${sku} must be in multiples of 10 (e.g., 10, 20, 30). Current: ${qty}`);
+            }
+        }
+
         setIsConfirmOpen(true);
     };
 
