@@ -506,9 +506,20 @@ const ResellerOrderList = () => {
                     <div className="modal-content large-modal" style={{ width: '90%', height: '90vh', display: 'flex', flexDirection: 'column' }} onClick={e => e.stopPropagation()}>
                         <div className="modal-header">
                             <h3 className="modal-title">{previewTitle}</h3>
-                            <button className="close-btn" onClick={() => setShowPreviewModal(false)}>
-                                <X size={24} />
-                            </button>
+                            <div className="flex gap-2">
+                                <a
+                                    href={previewUrl}
+                                    download={`${previewTitle.replace(/\s+/g, '_')}.pdf`}
+                                    className="icon-btn text-primary"
+                                    title="Download PDF"
+                                    style={{ padding: '4px 8px', height: 'auto', fontSize: '0.8rem' }}
+                                >
+                                    Download PDF
+                                </a>
+                                <button className="close-btn" onClick={() => setShowPreviewModal(false)}>
+                                    <X size={24} />
+                                </button>
+                            </div>
                         </div>
                         <div className="modal-body" style={{ flex: 1, padding: 0, overflow: 'hidden' }}>
                             <iframe src={previewUrl} style={{ width: '100%', height: '100%', border: 'none' }} title="Document Preview" />
