@@ -194,7 +194,6 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
                 <div className="flex justify-between items-center mb-4">
                     <div>
                         <h2 className="text-2xl font-bold text-gray-800">Create Reseller Order</h2>
-                        <p className="text-sm text-gray-500">New POS Entry System</p>
                     </div>
                     {!isPublic && (
                         <button onClick={handleSettingsClick} className="p-2 hover:bg-gray-100 rounded-full text-gray-600 transition-colors">
@@ -415,11 +414,8 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
             {isModalOpen && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex justify-end">
                     {/* Slide-over Panel (or Modal, user asked for "pop up table on right side", effectively a slide-over or centered modal. Let's do a nice centered modal for "Option A") */}
-                    <div className="fixed inset-0 flex items-center justify-center p-4" onClick={() => setIsModalOpen(false)}>
-                        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden modal-content-mobile" onClick={e => e.stopPropagation()} style={{
-                            transform: window.innerWidth < 768 ? 'scale(0.85)' : 'scale(1)',
-                            transformOrigin: 'center center'
-                        }}>
+                    <div className="fixed inset-0 flex items-center justify-center p-2 md:p-4" onClick={() => setIsModalOpen(false)}>
+                        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden modal-content-mobile" onClick={e => e.stopPropagation()}>
 
                             {/* Modal Header */}
                             <div className={`p-6 border-b border-gray-100 flex justify-between items-center ${CATEGORIES.find(c => c.id === activeCategory)?.color.split(' ')[0] || 'bg-gray-50'}`}>
@@ -451,11 +447,11 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
                                 <table className="w-full text-left border-collapse">
                                     <thead className="bg-gray-50 sticky top-0 z-10 shadow-sm">
                                         <tr>
-                                            <th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">SKU</th>
-                                            <th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Description</th>
-                                            <th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Price</th>
-                                            <th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider w-32 text-center">Quantity</th>
-                                            <th className="p-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Total</th>
+                                            <th className="p-2 md:p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">SKU</th>
+                                            <th className="p-2 md:p-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Description</th>
+                                            <th className="p-2 md:p-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Price</th>
+                                            <th className="p-2 md:p-4 text-xs font-bold text-gray-500 uppercase tracking-wider w-32 text-center">Quantity</th>
+                                            <th className="p-2 md:p-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Total</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-100">
@@ -467,10 +463,10 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
 
                                             return (
                                                 <tr key={item.sku} className={`hover:bg-gray-50 transition-colors ${isSelected ? 'bg-blue-50/50' : ''}`}>
-                                                    <td className="p-4 font-mono text-sm text-gray-600">{item.sku}</td>
-                                                    <td className="p-4 font-medium text-gray-800">{item.description}</td>
-                                                    <td className="p-4 text-right text-gray-600">₱{price.toLocaleString()}</td>
-                                                    <td className="p-4">
+                                                    <td className="p-2 md:p-4 font-mono text-sm text-gray-600">{item.sku}</td>
+                                                    <td className="p-2 md:p-4 font-medium text-gray-800">{item.description}</td>
+                                                    <td className="p-2 md:p-4 text-right text-gray-600">₱{price.toLocaleString()}</td>
+                                                    <td className="p-2 md:p-4">
                                                         <input
                                                             type="number"
                                                             min="0"
@@ -481,7 +477,7 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
                                                             style={{ fontSize: '16px' }}
                                                         />
                                                     </td>
-                                                    <td className="p-4 text-right font-bold text-gray-800">
+                                                    <td className="p-2 md:p-4 text-right font-bold text-gray-800">
                                                         {total > 0 ? `₱${total.toLocaleString()}` : '-'}
                                                     </td>
                                                 </tr>
