@@ -9,12 +9,20 @@ import {
 import ResellerSettingsModal from './ResellerSettingsModal';
 
 // Category Configuration with Icons and Colors
+// Brand Palette:
+// Cream: #F3EBD8 (Background)
+// Merlot: #510813 (Text/Headings)
+// Cinnabar: #E5562E (Buttons/Gallons)
+// Citrus: #F49306 (Cups)
+// Bittersweet: #FF5A5F (Pints)
+// Lush: #888625 (Liters)
+
 const CATEGORIES = [
-    { id: 'FGC', label: 'Cups', icon: Coffee, color: 'bg-orange-100 text-orange-600', border: 'border-orange-200' },
-    { id: 'FGP', label: 'Pints', icon: IceCream, color: 'bg-pink-100 text-pink-600', border: 'border-pink-200' },
-    { id: 'FGL', label: 'Liters', icon: Droplet, color: 'bg-blue-100 text-blue-600', border: 'border-blue-200' },
-    { id: 'FGG', label: 'Gallons', icon: Box, color: 'bg-purple-100 text-purple-600', border: 'border-purple-200' },
-    { id: 'FGT', label: 'Trays', icon: Grid, color: 'bg-green-100 text-green-600', border: 'border-green-200' }
+    { id: 'FGC', label: 'Cups', icon: Coffee, color: 'bg-[#F49306]/10 text-[#F49306]', border: 'border-[#F49306]/20', iconColor: 'text-[#F49306]' },
+    { id: 'FGP', label: 'Pints', icon: IceCream, color: 'bg-[#FF5A5F]/10 text-[#FF5A5F]', border: 'border-[#FF5A5F]/20', iconColor: 'text-[#FF5A5F]' },
+    { id: 'FGL', label: 'Liters', icon: Droplet, color: 'bg-[#888625]/10 text-[#888625]', border: 'border-[#888625]/20', iconColor: 'text-[#888625]' },
+    { id: 'FGG', label: 'Gallons', icon: Box, color: 'bg-[#E5562E]/10 text-[#E5562E]', border: 'border-[#E5562E]/20', iconColor: 'text-[#E5562E]' },
+    { id: 'FGT', label: 'Trays', icon: Grid, color: 'bg-[#510813]/10 text-[#510813]', border: 'border-[#510813]/20', iconColor: 'text-[#510813]' }
 ];
 
 const ResellerOrderRedesigned = ({ isPublic = false }) => {
@@ -188,12 +196,12 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
         : [];
 
     return (
-        <div className="fade-in h-screen flex flex-col bg-gray-50 overflow-hidden">
+        <div className="fade-in h-screen flex flex-col bg-[#F3EBD8] overflow-hidden">
             {/* --- Top Bar: Context --- */}
             <div className="bg-white border-b border-gray-200 px-6 py-4 shadow-sm z-10">
                 <div className="flex justify-between items-center mb-4">
                     <div>
-                        <h2 className="text-2xl font-bold text-gray-800">Create Reseller Order</h2>
+                        <h2 className="text-2xl font-bold text-[#510813]">Create Reseller Order</h2>
                     </div>
                     {!isPublic && (
                         <button onClick={handleSettingsClick} className="p-2 hover:bg-gray-100 rounded-full text-gray-600 transition-colors">
@@ -209,7 +217,7 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
                         <select
                             value={selectedResellerId}
                             onChange={handleResellerChange}
-                            className="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none font-medium text-gray-700"
+                            className="w-full p-2.5 bg-white/50 border border-[#510813]/10 rounded-lg focus:ring-2 focus:ring-[#E5562E] focus:border-[#E5562E] outline-none font-medium text-[#510813]"
                         >
                             <option value="">Select Reseller...</option>
                             {resellers.map(r => (
@@ -303,7 +311,7 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
 
                 {/* LEFT: Category Menu */}
                 <div className="flex-1 p-6 overflow-y-auto">
-                    <h3 className="text-lg font-bold text-gray-700 mb-4">Product Categories</h3>
+                    <h3 className="text-lg font-bold text-[#510813] mb-4">Product Categories</h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                         {CATEGORIES.filter(cat => {
                             const visibleSKUs = inventory.filter(item =>
@@ -314,7 +322,7 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
                             <button
                                 key={cat.id}
                                 onClick={() => handleCategoryClick(cat.id)}
-                                className={`relative group p-6 rounded-xl border-2 transition-all duration-200 hover:shadow-md text-left flex flex-col justify-between h-40 ${cat.color} ${cat.border} hover:-translate-y-1`}
+                                className={`relative group p-6 rounded-xl border-2 transition-all duration-200 hover:shadow-md text-left flex flex-col justify-between h-40 ${cat.color} ${cat.border} hover:-translate-y-1 bg-white`}
                             >
                                 <div className="flex justify-between items-start">
                                     <cat.icon size={32} className="opacity-80" />
@@ -333,8 +341,8 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
 
                 {/* RIGHT: Live Summary (Sidebar) */}
                 <div className="w-96 bg-white border-l border-gray-200 flex flex-col shadow-xl z-20">
-                    <div className="p-4 border-b border-gray-100 bg-gray-50">
-                        <h3 className="font-bold text-gray-800 flex items-center gap-2">
+                    <div className="p-4 border-b border-gray-100 bg-[#F3EBD8]/30">
+                        <h3 className="font-bold text-[#510813] flex items-center gap-2">
                             <ShoppingCart size={20} />
                             Current Order
                         </h3>
@@ -361,7 +369,7 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
                                         <div className="flex items-center gap-3">
                                             <cat.icon size={20} className="opacity-70" />
                                             <div>
-                                                <div className="font-bold text-gray-800">{cat.label}</div>
+                                                <div className="font-bold text-[#510813]">{cat.label}</div>
                                                 <div className="text-xs opacity-70">{totalQty} items</div>
                                             </div>
                                         </div>
@@ -380,8 +388,8 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
                             <span>{Object.values(cart).reduce((a, b) => a + b, 0)}</span>
                         </div>
                         <div className="flex justify-between items-center mb-4">
-                            <span className="text-lg font-bold text-gray-800">Grand Total</span>
-                            <span className="text-2xl font-black text-primary">₱{cartTotal.toLocaleString()}</span>
+                            <span className="text-lg font-bold text-[#510813]">Grand Total</span>
+                            <span className="text-2xl font-black text-[#E5562E]">₱{cartTotal.toLocaleString()}</span>
                         </div>
 
                         {/* Min Order Warning */}
@@ -420,7 +428,7 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
                             {/* Modal Header */}
                             <div className={`p-6 border-b border-gray-100 flex justify-between items-center ${CATEGORIES.find(c => c.id === activeCategory)?.color.split(' ')[0] || 'bg-gray-50'}`}>
                                 <div>
-                                    <h3 className="text-2xl font-bold text-gray-800">
+                                    <h3 className="text-2xl font-bold text-[#510813]">
                                         Select {CATEGORIES.find(c => c.id === activeCategory)?.label}
                                     </h3>
                                     <p className="text-sm opacity-70">Enter quantities below</p>
@@ -433,7 +441,7 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
                                             placeholder="Search..."
                                             value={searchTerm}
                                             onChange={e => setSearchTerm(e.target.value)}
-                                            className="pl-10 pr-4 py-2 rounded-full border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+                                            className="pl-10 pr-4 py-2 rounded-full border border-gray-200 focus:ring-2 focus:ring-[#E5562E] outline-none text-sm"
                                         />
                                     </div>
                                     <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-black/10 rounded-full transition-colors">
@@ -461,8 +469,8 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
                                             const isSelected = qty > 0;
 
                                             return (
-                                                <tr key={item.sku} className={`hover:bg-gray-50 transition-colors ${isSelected ? 'bg-blue-50/50' : ''}`}>
-                                                    <td className="p-2 md:p-4 font-medium text-gray-800">
+                                                <tr key={item.sku} className={`hover:bg-[#F3EBD8]/50 transition-colors ${isSelected ? 'bg-[#F3EBD8]' : ''}`}>
+                                                    <td className="p-2 md:p-4 font-medium text-[#510813]">
                                                         <div>{item.description}</div>
                                                     </td>
                                                     <td className="p-2 md:p-4 text-right text-gray-600">₱{price.toLocaleString()}</td>
@@ -472,7 +480,7 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
                                                             min="0"
                                                             value={tempQuantities[item.sku] === undefined ? '' : tempQuantities[item.sku]}
                                                             onChange={(e) => handleModalQuantityChange(item.sku, e.target.value)}
-                                                            className={`w-full p-2 text-center border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none font-bold ${isSelected ? 'border-blue-300 bg-white' : 'border-gray-200 bg-gray-50'}`}
+                                                            className={`w-full p-2 text-center border rounded-lg focus:ring-2 focus:ring-[#E5562E] outline-none font-bold ${isSelected ? 'border-[#E5562E] bg-white' : 'border-gray-200 bg-gray-50'}`}
                                                             placeholder="0"
                                                             style={{ fontSize: '16px' }}
                                                         />
@@ -497,7 +505,7 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
                             {/* Modal Footer */}
                             <div className="p-4 border-t border-gray-200 bg-gray-50 flex justify-between items-center">
                                 <div className="text-sm text-gray-500">
-                                    Total for this category: <span className="font-bold text-gray-800">₱{
+                                    Total for this category: <span className="font-bold text-[#510813]">₱{
                                         modalItems.reduce((sum, item) => sum + ((tempQuantities[item.sku] || 0) * getPrice(item.sku)), 0).toLocaleString()
                                     }</span>
                                 </div>
@@ -510,7 +518,7 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
                                     </button>
                                     <button
                                         onClick={handleSaveModal}
-                                        className="px-8 py-2.5 rounded-lg bg-blue-600 text-white font-bold shadow-lg hover:bg-blue-700 transition-all flex items-center gap-2"
+                                        className="px-8 py-2.5 rounded-lg bg-[#E5562E] text-white font-bold shadow-lg hover:bg-[#d4451d] transition-all flex items-center gap-2"
                                     >
                                         <Save size={18} />
                                         Save & Close
@@ -538,9 +546,9 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
 
                         <div className="flex-1 overflow-y-auto p-6">
                             {/* Reseller Info */}
-                            <div className="mb-6 p-4 bg-blue-50 rounded-xl border border-blue-100">
-                                <div className="text-xs font-bold text-blue-600 uppercase mb-1">Bill To</div>
-                                <div className="font-bold text-gray-800 text-lg">{selectedReseller?.name}</div>
+                            <div className="mb-6 p-4 bg-[#F3EBD8] rounded-xl border border-[#510813]/10">
+                                <div className="text-xs font-bold text-[#510813] uppercase mb-1">Bill To</div>
+                                <div className="font-bold text-[#510813] text-lg">{selectedReseller?.name}</div>
                                 <div className="text-sm text-gray-600">{currentZone?.name}</div>
                                 <div className="text-sm text-gray-600">{address || 'No address provided'}</div>
                             </div>
@@ -569,7 +577,7 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
                         <div className="p-6 border-t border-gray-100 bg-gray-50 rounded-b-2xl">
                             <div className="flex justify-between items-center mb-6">
                                 <span className="text-lg font-bold text-gray-600">Total Amount</span>
-                                <span className="text-3xl font-black text-primary">₱{cartTotal.toLocaleString()}</span>
+                                <span className="text-3xl font-black text-[#E5562E]">₱{cartTotal.toLocaleString()}</span>
                             </div>
                             <div className="flex gap-3">
                                 <button

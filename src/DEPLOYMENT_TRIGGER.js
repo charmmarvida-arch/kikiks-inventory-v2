@@ -15,5 +15,6 @@ export const DEPLOYMENT_FEATURES = [
     'HTML Order Summary',
     'UI Refinements (Modal & Text)',
     'Modal Table Cleanup (No SKU, Margins)',
-    'SKU Text Removed Completely'
+    'SKU Text Removed Completely',
+    'Brand Color Palette Applied (Cream, Merlot, etc.)'
 ];
