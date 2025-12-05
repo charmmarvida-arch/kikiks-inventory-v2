@@ -40,11 +40,12 @@ const INITIAL_INVENTORY = [
 
 export const InventoryProvider = ({ children }) => {
     const [inventory, setInventory] = useState([]);
+    const [legazpiInventory, setLegazpiInventory] = useState([]); // Legazpi Storage Inventory
     const [history, setHistory] = useState([]); // Stock In History - We might need a table for this later
     const [resellers, setResellers] = useState([]);
     const [resellerOrders, setResellerOrders] = useState([]);
     const [transferOrders, setTransferOrders] = useState([]);
-    const [kikiksLocations, setKikiksLocations] = useState(['FTF Manufacturing', 'SM Sorsogon', 'SM Legazpi', 'SM Daet', 'Legazpi Storage']);
+    const [kikiksLocations, setKikiksLocations] = useState(['SM Sorsogon', 'SM Legazpi', 'SM Daet']); // Removed Legazpi Storage
     const [locationSRPs, setLocationSRPs] = useState({});
     const [resellerPrices, setResellerPrices] = useState({});
     const [zonePrices, setZonePrices] = useState({}); // { [zoneId]: { 'FGC': 23, ... } }
@@ -75,6 +76,18 @@ export const InventoryProvider = ({ children }) => {
                 // Seed if empty
                 const { error: seedError } = await supabase.from('inventory').insert(INITIAL_INVENTORY);
                 if (!seedError) setInventory(INITIAL_INVENTORY.map(i => ({ ...i, isVisible: true })));
+            }
+
+            // 1b. Legazpi Storage Inventory
+            const { data: legazpiData, error: legazpiError } = await supabase
+                .from('legazpi_storage_inventory')
+                .select('*')
+                .order('product_name', { ascending: true });
+
+            if (legazpiError) {
+                console.error('Error fetching Legazpi inventory:', legazpiError);
+            } else if (legazpiData) {
+                setLegazpiInventory(legazpiData);
             }
 
             // 2. Reseller Zones
@@ -181,8 +194,8 @@ export const InventoryProvider = ({ children }) => {
     useEffect(() => {
         fetchData();
 
-        // Realtime Subscription for Inventory Updates
-        const subscription = supabase
+        // Realtime Subscription for FTF Manufacturing Inventory
+        const ftfSubscription = supabase
             .channel('public:inventory')
             .on('postgres_changes', { event: '*', schema: 'public', table: 'inventory' }, (payload) => {
                 if (payload.eventType === 'UPDATE') {
@@ -195,8 +208,23 @@ export const InventoryProvider = ({ children }) => {
             })
             .subscribe();
 
+        // Realtime Subscription for Legazpi Storage Inventory
+        const legazpiSubscription = supabase
+            .channel('public:legazpi_storage_inventory')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'legazpi_storage_inventory' }, (payload) => {
+                if (payload.eventType === 'UPDATE') {
+                    setLegazpiInventory(prev => prev.map(item => item.id === payload.new.id ? payload.new : item));
+                } else if (payload.eventType === 'INSERT') {
+                    setLegazpiInventory(prev => [...prev, payload.new]);
+                } else if (payload.eventType === 'DELETE') {
+                    setLegazpiInventory(prev => prev.filter(item => item.id !== payload.old.id));
+                }
+            })
+            .subscribe();
+
         return () => {
-            supabase.removeChannel(subscription);
+            supabase.removeChannel(ftfSubscription);
+            supabase.removeChannel(legazpiSubscription);
         };
     }, []);
 
@@ -579,6 +607,93 @@ export const InventoryProvider = ({ children }) => {
         await supabase.from('inventory').update({ is_visible_in_reseller_order: isVisible }).eq('sku', sku);
     };
 
+    // ============================================================
+    // LEGAZPI STORAGE INVENTORY METHODS
+    // ============================================================
+
+    const addLegazpiProduct = async (product) => {
+        const newProduct = {
+            product_name: product.product_name,
+            flavor: product.flavor,
+            quantity: Number(product.quantity) || 0,
+            unit: product.unit
+        };
+
+        const { data, error } = await supabase
+            .from('legazpi_storage_inventory')
+            .insert(newProduct)
+            .select()
+            .single();
+
+        if (error) {
+            console.error('Error adding Legazpi product:', error);
+            alert('Failed to add product: ' + error.message);
+            return;
+        }
+
+        setLegazpiInventory(prev => [...prev, data]);
+    };
+
+    const updateLegazpiProduct = async (id, updates) => {
+        // Optimistic update
+        setLegazpiInventory(prev => prev.map(item =>
+            item.id === id ? { ...item, ...updates } : item
+        ));
+
+        const { error } = await supabase
+            .from('legazpi_storage_inventory')
+            .update(updates)
+            .eq('id', id);
+
+        if (error) {
+            console.error('Error updating Legazpi product:', error);
+            alert('Failed to update product: ' + error.message);
+            // Refresh to restore consistency
+            await fetchData();
+        }
+    };
+
+    const deleteLegazpiProduct = async (id) => {
+        // Optimistic update
+        setLegazpiInventory(prev => prev.filter(item => item.id !== id));
+
+        const { error } = await supabase
+            .from('legazpi_storage_inventory')
+            .delete()
+            .eq('id', id);
+
+        if (error) {
+            console.error('Error deleting Legazpi product:', error);
+            alert('Failed to delete product: ' + error.message);
+            // Refresh to restore consistency
+            await fetchData();
+        }
+    };
+
+    const addLegazpiStock = async (id, quantity) => {
+        // Optimistic Update
+        setLegazpiInventory(prev => prev.map(item =>
+            item.id === id
+                ? { ...item, quantity: Number(item.quantity) + Number(quantity) }
+                : item
+        ));
+
+        // DB Update
+        const { data: currentItem } = await supabase
+            .from('legazpi_storage_inventory')
+            .select('quantity')
+            .eq('id', id)
+            .single();
+
+        if (currentItem) {
+            const newQty = Number(currentItem.quantity) + Number(quantity);
+            await supabase
+                .from('legazpi_storage_inventory')
+                .update({ quantity: newQty })
+                .eq('id', id);
+        }
+    };
+
     // Zone Management
     const addResellerZone = async (zone) => {
         const { data, error } = await supabase.from('reseller_zones').insert(zone).select().single();
@@ -627,6 +742,7 @@ export const InventoryProvider = ({ children }) => {
     return (
         <InventoryContext.Provider value={{
             inventory, addStock,
+            legazpiInventory, addLegazpiProduct, updateLegazpiProduct, deleteLegazpiProduct, addLegazpiStock,
             history, addHistory,
             resellers, addReseller, updateReseller, deleteReseller,
             resellerOrders, addResellerOrder, updateResellerOrderStatus, updateResellerOrder, deleteResellerOrder,

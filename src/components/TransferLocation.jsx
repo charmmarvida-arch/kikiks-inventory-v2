@@ -1,206 +1,280 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useInventory } from '../context/InventoryContext';
-import { Settings, Plus, X, Save, Trash2, Edit2, Search, Tag, Check } from 'lucide-react';
+import { Settings, X, Save, Package, Coffee, Droplet, Box as BoxIcon } from 'lucide-react';
+
+const CATEGORIES = [
+    { id: 'FGC', name: 'Cups', icon: Coffee, color: '#ff6b6b' },
+    { id: 'FGP', name: 'Pints', icon: Droplet, color: '#4ecdc4' },
+    { id: 'FGL', name: 'Liters', icon: Droplet, color: '#45b7d1' },
+    { id: 'FGG', name: 'Gallons', icon: BoxIcon, color: '#96ceb4' },
+    { id: 'FGT', name: 'Trays', icon: Package, color: '#ffeaa7' }
+];
+
+const WAREHOUSE_LOCATIONS = ['FTF Manufacturing', 'Legazpi Storage'];
 
 const TransferLocation = () => {
     const {
         inventory,
+        legazpiInventory,
         kikiksLocations,
-        addKikiksLocation,
-        updateKikiksLocation,
-        deleteKikiksLocation,
         locationSRPs,
-        updateLocationSRP,
         updateLocationCategoryPrices,
-        addTransferOrder
+        addTransferOrder,
+        addStock,
+        addLegazpiStock
     } = useInventory();
 
     // Form State
-    const [selectedLocation, setSelectedLocation] = useState('');
-    const [searchTerm, setSearchTerm] = useState('');
+    const [fromLocation, setFromLocation] = useState('FTF Manufacturing');
+    const [toLocation, setToLocation] = useState('');
 
     // Order State
     const [quantities, setQuantities] = useState({});
-    const [focusedSku, setFocusedSku] = useState(null);
+    const [selectedCategory, setSelectedCategory] = useState(null);
 
-    // Settings Modal State
+    // Settings Modal
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-    const [newLocationName, setNewLocationName] = useState('');
-    const [showPinModal, setShowPinModal] = useState(false);
-    const [pinInput, setPinInput] = useState('');
-
-    // Renaming State
-    const [renamingLocation, setRenamingLocation] = useState(null);
-    const [tempRenameName, setTempRenameName] = useState('');
-
-    // Price Editing State in Settings
     const [editingPriceLocation, setEditingPriceLocation] = useState('');
     const [tempPrices, setTempPrices] = useState({});
+
+    // Get source inventory based on FROM location
+    const sourceInventory = useMemo(() => {
+        if (fromLocation === 'FTF Manufacturing') {
+            return inventory;
+        } else if (fromLocation === 'Legazpi Storage') {
+            return legazpiInventory.map(item => ({
+                sku: `${item.product_name}-${item.flavor || 'Default'}`,
+                description: `${item.product_name} ${item.flavor || ''}`.trim(),
+                quantity: item.quantity,
+                uom: item.unit,
+                id: item.id
+            }));
+        }
+        return [];
+    }, [fromLocation, inventory, legazpiInventory]);
+
+    // Get price for a product based on TO location
+    const getPrice = (sku) => {
+        if (!toLocation) return 0;
+
+        // Warehouses have no pricing
+        if (WAREHOUSE_LOCATIONS.includes(toLocation)) return 0;
+
+        // Get price from location SRPs
+        return locationSRPs[toLocation]?.[sku] || 0;
+    };
+
+    // Check if TO location is a branch (has pricing)
+    const isBranch = toLocation && !WAREHOUSE_LOCATIONS.includes(toLocation);
+
+    // Group products by category
+    const productsByCategory = useMemo(() => {
+        const grouped = {};
+        CATEGORIES.forEach(cat => {
+            grouped[cat.id] = sourceInventory.filter(item =>
+                item.sku?.startsWith(cat.id) || item.description?.includes(cat.name.slice(0, -1))
+            );
+        });
+        return grouped;
+    }, [sourceInventory]);
+
+    // Calculate category totals
+    const categoryTotals = useMemo(() => {
+        const totals = {};
+        CATEGORIES.forEach(cat => {
+            const products = productsByCategory[cat.id] || [];
+            const qty = products.reduce((sum, product) => {
+                return sum + (quantities[product.sku] || 0);
+            }, 0);
+            const value = products.reduce((sum, product) => {
+                const q = quantities[product.sku] || 0;
+                const price = getPrice(product.sku);
+                return sum + (q * price);
+            }, 0);
+            totals[cat.id] = { qty, value };
+        });
+        return totals;
+    }, [quantities, productsByCategory, toLocation, locationSRPs]);
+
+    // Calculate grand totals
+    const grandTotals = useMemo(() => {
+        let totalQty = 0;
+        let totalValue = 0;
+        let totalItems = 0;
+
+        Object.entries(quantities).forEach(([sku, qty]) => {
+            if (qty > 0) {
+                totalItems++;
+                totalQty += qty;
+                totalValue += qty * getPrice(sku);
+            }
+        });
+
+        return { totalItems, totalQty, totalValue };
+    }, [quantities, toLocation, locationSRPs]);
 
     const handleQuantityChange = (sku, value) => {
         setQuantities(prev => ({
             ...prev,
-            [sku]: value === '' ? '' : parseInt(value) || 0
+            [sku]: value === '' ? 0 : parseInt(value) || 0
         }));
     };
 
-    const getPrice = (location, sku) => {
-        if (!location) return 0;
-        return locationSRPs[location]?.[sku] || 0;
+    const handleCategoryClick = (categoryId) => {
+        setSelectedCategory(categoryId);
     };
 
-    const calculateTotal = () => {
-        return inventory.reduce((total, item) => {
-            const qty = quantities[item.sku] || 0;
-            const price = getPrice(selectedLocation, item.sku);
-            return total + (qty * price);
-        }, 0);
+    const closeModal = () => {
+        setSelectedCategory(null);
     };
-
-    const currentTotal = calculateTotal();
 
     const handleSettingsClick = () => {
-        setShowPinModal(true);
-        setPinInput('');
+        setIsSettingsOpen(true);
     };
 
-    const handlePinSubmit = () => {
-        if (pinInput === "1234") {
-            setShowPinModal(false);
-            setIsSettingsOpen(true);
-            setPinInput('');
-        } else {
-            alert("Incorrect Password");
-            setPinInput('');
-        }
-    };
-
-    const handleAddLocation = (e) => {
-        e.preventDefault();
-        if (newLocationName) {
-            addKikiksLocation(newLocationName);
-            setNewLocationName('');
-        }
-    };
-
-    const startRenaming = (loc) => {
-        setRenamingLocation(loc);
-        setTempRenameName(loc);
-    };
-
-    const saveRename = async () => {
-        if (tempRenameName && tempRenameName !== renamingLocation) {
-            await updateKikiksLocation(renamingLocation, tempRenameName);
-        }
-        setRenamingLocation(null);
-        setTempRenameName('');
-    };
-
-    const cancelRename = () => {
-        setRenamingLocation(null);
-        setTempRenameName('');
-    };
-
-    const handlePriceChange = (sku, value) => {
-        setTempPrices(prev => ({ ...prev, [sku]: value }));
+    const handlePriceChange = (prefix, value) => {
+        setTempPrices(prev => ({ ...prev, [prefix]: value }));
     };
 
     const savePrices = () => {
         if (editingPriceLocation) {
-            Object.entries(tempPrices).forEach(([sku, price]) => {
-                updateLocationSRP(editingPriceLocation, sku, price);
-            });
+            updateLocationCategoryPrices(editingPriceLocation, tempPrices);
             alert(`Prices updated for ${editingPriceLocation}`);
-            setTempPrices({});
         }
     };
 
-    // Filter and Sort inventory
-    const filteredInventory = inventory.filter(item => {
-        // Search filter
-        const matchesSearch = item.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            item.description.toLowerCase().includes(searchTerm.toLowerCase());
-
-        if (!matchesSearch) return false;
-
-        // Location filter
-        if (!selectedLocation) return true;
-        if (item.locations && item.locations.length > 0) {
-            return item.locations.includes(selectedLocation);
+    const handleSubmitTransfer = async () => {
+        if (!fromLocation) {
+            alert('Please select a FROM location');
+            return;
         }
-        return true;
-    }).sort((a, b) => {
-        const priority = { 'FGC': 1, 'FGP': 2, 'FGL': 3, 'FGG': 4, 'FGT': 5, 'FT': 5 };
-        const getPrefix = (sku) => sku.split('-')[0];
-        const pA = priority[getPrefix(a.sku)] || 99;
-        const pB = priority[getPrefix(b.sku)] || 99;
-        if (pA !== pB) return pA - pB;
-        return a.sku.localeCompare(b.sku);
-    });
-
-    const handleSubmitOrder = async () => {
-        if (!selectedLocation) {
-            alert("Please select a location.");
+        if (!toLocation) {
+            alert('Please select a TO location');
+            return;
+        }
+        if (fromLocation === toLocation) {
+            alert('FROM and TO locations cannot be the same');
             return;
         }
 
-        const orderItems = {};
+        const transferItems = {};
         let hasItems = false;
 
-        inventory.forEach(item => {
-            const qty = quantities[item.sku] || 0;
+        Object.entries(quantities).forEach(([sku, qty]) => {
             if (qty > 0) {
-                orderItems[item.sku] = qty;
+                transferItems[sku] = qty;
                 hasItems = true;
             }
         });
 
         if (!hasItems) {
-            alert("Please add at least one item to the transfer.");
+            alert('Please add at least one item to transfer');
             return;
         }
 
-        const newOrder = {
-            resellerName: selectedLocation, // Using location as reseller name for consistency
-            location: selectedLocation,
-            items: orderItems,
-            totalAmount: currentTotal,
-            status: 'Pending',
-            type: 'Transfer'
-        };
+        try {
+            // Create transfer order
+            const newOrder = {
+                from_location: fromLocation,
+                to_location: toLocation,
+                location: toLocation, // For compatibility
+                items: transferItems,
+                totalAmount: grandTotals.totalValue,
+                status: 'Completed',
+                type: 'Transfer'
+            };
 
-        await addTransferOrder(newOrder);
-        alert("Transfer Order Submitted Successfully!");
+            await addTransferOrder(newOrder);
 
-        // Reset
-        setQuantities({});
-        setSelectedLocation('');
+            // Update inventories
+            // Deduct from FROM location
+            for (const [sku, qty] of Object.entries(transferItems)) {
+                if (fromLocation === 'FTF Manufacturing') {
+                    await addStock(sku, -qty);
+                } else if (fromLocation === 'Legazpi Storage') {
+                    const product = legazpiInventory.find(p =>
+                        `${p.product_name}-${p.flavor || 'Default'}` === sku
+                    );
+                    if (product) {
+                        await addLegazpiStock(product.id, -qty);
+                    }
+                }
+            }
+
+            // Add to TO location if it's a warehouse
+            if (toLocation === 'FTF Manufacturing') {
+                for (const [sku, qty] of Object.entries(transferItems)) {
+                    await addStock(sku, qty);
+                }
+            } else if (toLocation === 'Legazpi Storage') {
+                for (const [sku, qty] of Object.entries(transferItems)) {
+                    const product = legazpiInventory.find(p =>
+                        `${p.product_name}-${p.flavor || 'Default'}` === sku
+                    );
+                    if (product) {
+                        await addLegazpiStock(product.id, qty);
+                    }
+                }
+            }
+
+            alert('Transfer submitted successfully!');
+
+            // Reset
+            setQuantities({});
+            setToLocation('');
+        } catch (error) {
+            console.error('Transfer error:', error);
+            alert('Failed to submit transfer: ' + error.message);
+        }
     };
+
+    // Get available TO locations (exclude FROM location)
+    const toLocationOptions = useMemo(() => {
+        const allLocations = [...WAREHOUSE_LOCATIONS, ...kikiksLocations];
+        return allLocations.filter(loc => loc !== fromLocation);
+    }, [fromLocation, kikiksLocations]);
 
     return (
         <div className="fade-in">
-            <div className="header-section" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            {/* Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                 <div>
-                    <h2 className="page-title">Transfer Location</h2>
-                    <p className="page-subtitle">Create stock transfer to company locations</p>
+                    <h2 className="page-title" style={{ marginBottom: '0.25rem' }}>Transfer Location</h2>
+                    <p className="page-subtitle">Transfer stock between locations</p>
                 </div>
-                <button onClick={handleSettingsClick} className="icon-btn" title="Location Settings">
+                <button onClick={handleSettingsClick} className="icon-btn text-primary" title="Location Settings">
                     <Settings size={20} />
                 </button>
             </div>
 
-            {/* Header Info Card */}
-            <div className="form-card">
-                <div className="form-grid two-cols">
+            {/* Transfer Info Card */}
+            <div className="form-card mb-4">
+                <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr 200px', gap: '1rem' }}>
                     <div className="form-group">
-                        <label>Kikiks Location</label>
+                        <label>Transfer FROM</label>
                         <select
-                            value={selectedLocation}
-                            onChange={(e) => setSelectedLocation(e.target.value)}
+                            value={fromLocation}
+                            onChange={(e) => {
+                                setFromLocation(e.target.value);
+                                setQuantities({}); // Clear quantities when changing FROM
+                            }}
+                            className="premium-input"
+                        >
+                            {WAREHOUSE_LOCATIONS.map(loc => (
+                                <option key={loc} value={loc}>{loc}</option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div className="form-group">
+                        <label>Transfer TO</label>
+                        <select
+                            value={toLocation}
+                            onChange={(e) => setToLocation(e.target.value)}
                             className="premium-input"
                         >
                             <option value="">Select Location</option>
-                            {kikiksLocations.map(loc => (
+                            {toLocationOptions.map(loc => (
                                 <option key={loc} value={loc}>{loc}</option>
                             ))}
                         </select>
@@ -215,175 +289,168 @@ const TransferLocation = () => {
                 </div>
             </div>
 
-            {/* Main Content: Split View */}
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem', alignItems: 'flex-start' }}>
+            {/* Main Content Area */}
+            <div style={{ display: 'flex', gap: '1.5rem' }}>
+                {/* Left: Product Categories */}
+                <div style={{ flex: 1 }}>
+                    <h3 className="text-lg font-semibold mb-4">Product Categories</h3>
+                    <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+                        gap: '1rem'
+                    }}>
+                        {CATEGORIES.map(category => {
+                            const Icon = category.icon;
+                            const totals = categoryTotals[category.id] || { qty: 0, value: 0 };
 
-                {/* LEFT: Product List */}
-                <div style={{ flex: '1 1 600px', minWidth: '300px' }}>
-                    <div className="form-card" style={{ padding: '0', overflow: 'hidden', display: 'flex', flexDirection: 'column', height: '600px' }}>
-                        <div style={{ padding: '1rem', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#fff' }}>
-                            <h3 className="card-heading" style={{ fontSize: '1rem', marginBottom: 0, border: 'none', padding: 0 }}>Select Products</h3>
-                            <div style={{ position: 'relative' }}>
-                                <Search size={14} style={{ position: 'absolute', left: '8px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
-                                <input
-                                    type="text"
-                                    placeholder="Search products..."
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
+                            return (
+                                <div
+                                    key={category.id}
+                                    onClick={() => handleCategoryClick(category.id)}
+                                    className="form-card"
                                     style={{
-                                        padding: '0.3rem 0.6rem 0.3rem 2rem',
-                                        fontSize: '0.8rem',
-                                        border: '1px solid var(--border-color)',
-                                        borderRadius: 'var(--radius-md)',
-                                        outline: 'none',
-                                        width: '200px'
+                                        padding: '1.5rem',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s',
+                                        borderLeft: `4px solid ${category.color}`,
+                                        ':hover': { transform: 'translateY(-2px)', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }
                                     }}
-                                />
-                            </div>
-                        </div>
-
-                        <div className="table-container" style={{ flex: 1, overflowY: 'auto', margin: 0, borderRadius: 0, border: 'none' }}>
-                            <table className="inventory-table">
-                                <thead style={{ position: 'sticky', top: 0, zIndex: 10 }}>
-                                    <tr>
-                                        <th style={{ width: '120px' }}>SKU</th>
-                                        <th>Description</th>
-                                        <th style={{ width: '80px' }}>UOM</th>
-                                        <th style={{ width: '100px' }}>Quantity</th>
-                                        <th style={{ width: '100px', textAlign: 'right' }}>Price</th>
-                                        <th style={{ width: '100px', textAlign: 'right' }}>Total</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {filteredInventory.map(item => {
-                                        const price = getPrice(selectedLocation, item.sku);
-                                        const qty = quantities[item.sku] || 0;
-                                        const total = qty * price;
-                                        const isSelected = qty > 0;
-
-                                        return (
-                                            <tr key={item.sku} style={{ backgroundColor: isSelected ? 'var(--primary-subtle)' : 'inherit' }}>
-                                                <td className="font-medium">{item.sku}</td>
-                                                <td>{item.description}</td>
-                                                <td>{item.uom}</td>
-                                                <td>
-                                                    <div style={{ position: 'relative', display: 'inline-block', width: '100%' }}>
-                                                        <input
-                                                            type="number"
-                                                            min="0"
-                                                            value={quantities[item.sku] || ''}
-                                                            onChange={(e) => handleQuantityChange(item.sku, e.target.value)}
-                                                            placeholder="0"
-                                                            className="premium-input"
-                                                            style={{
-                                                                padding: '0.25rem 0.5rem',
-                                                                height: '32px',
-                                                                borderColor: isSelected ? 'var(--primary)' : 'var(--border-color)',
-                                                                width: '100%'
-                                                            }}
-                                                        />
-                                                        <span
-                                                            style={{
-                                                                position: 'absolute',
-                                                                right: '5px',
-                                                                top: '50%',
-                                                                transform: 'translateY(-50%)',
-                                                                fontSize: '0.7rem',
-                                                                color: 'var(--text-secondary)',
-                                                                backgroundColor: 'rgba(0,0,0,0.05)',
-                                                                padding: '2px 6px',
-                                                                borderRadius: '4px',
-                                                                pointerEvents: 'none',
-                                                                opacity: 0.7
-                                                            }}
-                                                            title="Current Stock"
-                                                        >
-                                                            {item.quantity}
-                                                        </span>
-                                                    </div>
-                                                </td>
-                                                <td className="text-right">₱{price.toLocaleString()}</td>
-                                                <td className="text-right font-bold">
-                                                    {total > 0 ? `₱${total.toLocaleString()}` : '-'}
-                                                </td>
-                                            </tr>
-                                        );
-                                    })}
-                                </tbody>
-                            </table>
-                        </div>
+                                >
+                                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '0.75rem' }}>
+                                        <Icon size={24} style={{ color: category.color, marginRight: '0.5rem' }} />
+                                        <h4 style={{ fontSize: '1.1rem', fontWeight: '600', margin: 0 }}>{category.name}</h4>
+                                    </div>
+                                    <div style={{ fontSize: '1.5rem', fontWeight: '700', color: category.color }}>
+                                        {totals.qty} qty
+                                    </div>
+                                    {isBranch && (
+                                        <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
+                                            ₱{totals.value.toLocaleString()}
+                                        </div>
+                                    )}
+                                    <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
+                                        Click to add items
+                                    </div>
+                                </div>
+                            );
+                        })}
                     </div>
                 </div>
 
-                {/* RIGHT: Order Summary */}
-                <div style={{ flex: '0 0 350px', position: 'sticky', top: '1rem' }}>
-                    <div className="form-card">
-                        <h3 className="card-heading">Transfer Summary</h3>
+                {/* Right: Transfer Summary */}
+                <div style={{ width: '300px' }}>
+                    <div className="form-card" style={{ position: 'sticky', top: '1rem' }}>
+                        <h3 className="text-lg font-semibold mb-4">Transfer Summary</h3>
 
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        {toLocation && (
+                            <div style={{ marginBottom: '1rem', padding: '0.75rem', background: 'var(--gray-50)', borderRadius: 'var(--radius-md)' }}>
+                                <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Transfer TO:</div>
+                                <div style={{ fontWeight: '600' }}>{toLocation}</div>
+                            </div>
+                        )}
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.5rem' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                 <span style={{ color: 'var(--text-secondary)' }}>Total Items</span>
-                                <span className="font-medium">
-                                    {Object.values(quantities).reduce((a, b) => a + (b > 0 ? 1 : 0), 0)}
-                                </span>
+                                <span className="font-medium">{grandTotals.totalItems}</span>
                             </div>
-
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                 <span style={{ color: 'var(--text-secondary)' }}>Total Quantity</span>
-                                <span className="font-medium">
-                                    {Object.values(quantities).reduce((a, b) => a + (parseInt(b) || 0), 0)}
-                                </span>
+                                <span className="font-medium">{grandTotals.totalQty}</span>
                             </div>
-
-                            <div style={{ borderTop: '1px solid var(--border-color)', margin: '0.5rem 0' }}></div>
-
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <span style={{ fontSize: '1.1rem', fontWeight: '600' }}>Total Value</span>
-                                <span style={{ fontSize: '1.5rem', fontWeight: '700', color: 'var(--primary)' }}>
-                                    ₱{currentTotal.toLocaleString()}
-                                </span>
-                            </div>
-
-                            <button
-                                onClick={handleSubmitOrder}
-                                className="submit-btn"
-                                style={{ width: '100%', marginTop: '1rem', justifyContent: 'center' }}
-                            >
-                                <Save size={18} />
-                                Submit Transfer
-                            </button>
+                            {isBranch && (
+                                <>
+                                    <div style={{ borderTop: '1px solid var(--border-color)', margin: '0.5rem 0' }}></div>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.1rem' }}>
+                                        <span style={{ fontWeight: '600' }}>Total Value</span>
+                                        <span style={{ fontWeight: '700', color: 'var(--primary)' }}>
+                                            ₱{grandTotals.totalValue.toLocaleString()}
+                                        </span>
+                                    </div>
+                                </>
+                            )}
                         </div>
+
+                        <button
+                            onClick={handleSubmitTransfer}
+                            className="submit-btn"
+                            style={{ width: '100%', justifyContent: 'center' }}
+                            disabled={!toLocation || grandTotals.totalQty === 0}
+                        >
+                            <Save size={18} style={{ marginRight: '0.5rem' }} />
+                            Submit Transfer
+                        </button>
                     </div>
                 </div>
-
             </div>
 
-            {/* PIN Modal */}
-            {showPinModal && (
-                <div className="modal-overlay" onClick={() => setShowPinModal(false)}>
-                    <div className="modal-content" style={{ maxWidth: '400px' }} onClick={e => e.stopPropagation()}>
+            {/* Category Modal */}
+            {selectedCategory && (
+                <div className="modal-overlay" onClick={closeModal}>
+                    <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '600px' }}>
                         <div className="modal-header">
-                            <h3 className="modal-title">Enter Admin Password</h3>
-                            <button className="close-btn" onClick={() => setShowPinModal(false)}>
+                            <h2 className="modal-title">
+                                Select {CATEGORIES.find(c => c.id === selectedCategory)?.name} to Transfer
+                            </h2>
+                            <button className="close-btn" onClick={closeModal}>
                                 <X size={24} />
                             </button>
                         </div>
                         <div className="modal-body">
-                            <input
-                                type="password"
-                                value={pinInput}
-                                onChange={(e) => setPinInput(e.target.value)}
-                                onKeyPress={(e) => e.key === 'Enter' && handlePinSubmit()}
-                                placeholder="Enter PIN"
-                                className="premium-input"
-                                autoFocus
-                            />
-                            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
-                                <button onClick={() => setShowPinModal(false)} className="icon-btn" style={{ flex: 1 }}>
-                                    Cancel
-                                </button>
-                                <button onClick={handlePinSubmit} className="submit-btn" style={{ flex: 1 }}>
-                                    Submit
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                {productsByCategory[selectedCategory]?.map(product => {
+                                    const price = getPrice(product.sku);
+                                    const qty = quantities[product.sku] || 0;
+
+                                    return (
+                                        <div
+                                            key={product.sku}
+                                            style={{
+                                                display: 'grid',
+                                                gridTemplateColumns: isBranch ? '2fr 100px 100px 120px' : '2fr 100px 120px',
+                                                gap: '1rem',
+                                                alignItems: 'center',
+                                                padding: '0.75rem',
+                                                background: qty > 0 ? 'var(--primary-subtle)' : 'var(--gray-50)',
+                                                borderRadius: 'var(--radius-md)',
+                                                border: qty > 0 ? '2px solid var(--primary)' : '1px solid var(--border-color)'
+                                            }}
+                                        >
+                                            <div>
+                                                <div style={{ fontWeight: '600' }}>{product.description}</div>
+                                                <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                                                    Stock: {product.quantity}
+                                                </div>
+                                            </div>
+
+                                            {isBranch && (
+                                                <div style={{ textAlign: 'right', fontWeight: '600' }}>
+                                                    ₱{price}
+                                                </div>
+                                            )}
+
+                                            <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', textAlign: 'right' }}>
+                                                Avail: {product.quantity}
+                                            </div>
+
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                max={product.quantity}
+                                                value={quantities[product.sku] || ''}
+                                                onChange={(e) => handleQuantityChange(product.sku, e.target.value)}
+                                                placeholder="0"
+                                                className="premium-input"
+                                                style={{ textAlign: 'center' }}
+                                            />
+                                        </div>
+                                    );
+                                })}
+                            </div>
+
+                            <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+                                <button onClick={closeModal} className="icon-btn" style={{ padding: '0.5rem 1.5rem' }}>
+                                    Done
                                 </button>
                             </div>
                         </div>
@@ -396,156 +463,101 @@ const TransferLocation = () => {
                 <div className="modal-overlay" onClick={() => setIsSettingsOpen(false)}>
                     <div className="modal-content large-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '900px', height: '600px', display: 'flex', flexDirection: 'column' }}>
                         <div className="modal-header">
-                            <h2 className="modal-title">Location Settings</h2>
+                            <h2 className="modal-title">Location Pricing Settings</h2>
                             <button className="close-btn" onClick={() => setIsSettingsOpen(false)}>
                                 <X size={24} />
                             </button>
                         </div>
                         <div className="modal-body" style={{ flex: 1, padding: 0, overflow: 'hidden', display: 'flex' }}>
-
-                            {/* LEFT PANEL: Locations List */}
-                            <div style={{ width: '300px', borderRight: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', backgroundColor: '#f8f9fa' }}>
-                                <div style={{ padding: '1rem', borderBottom: '1px solid var(--border-color)' }}>
-                                    <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Locations</h3>
-                                    <form onSubmit={handleAddLocation} className="flex gap-2">
-                                        <input
-                                            type="text"
-                                            value={newLocationName}
-                                            onChange={(e) => setNewLocationName(e.target.value)}
-                                            placeholder="New Location Name"
-                                            className="premium-input flex-1 text-sm"
-                                            required
-                                        />
-                                        <button type="submit" className="icon-btn bg-primary text-white hover:bg-primary-dark">
-                                            <Plus size={18} />
-                                        </button>
-                                    </form>
-                                </div>
-
-                                <div className="flex-1 overflow-y-auto">
+                            {/* LEFT: Locations List */}
+                            <div style={{ width: '300px', borderRight: '1px solid var(--border-color)', backgroundColor: '#f8f9fa', overflowY: 'auto' }}>
+                                <div style={{ padding: '1rem' }}>
+                                    <h3 style={{ fontSize: '0.85rem', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
+                                        BRANCH LOCATIONS
+                                    </h3>
                                     {kikiksLocations.map(loc => (
                                         <div
                                             key={loc}
                                             onClick={() => {
                                                 setEditingPriceLocation(loc);
-                                                // Initialize temp prices based on first item found for each category
-                                                // or just 0 if not found.
-                                                // We need to find ONE item of each prefix to get the current price.
                                                 const currentPrices = {};
-                                                ['FGC', 'FGP', 'FGL', 'FGG', 'FGT'].forEach(prefix => {
-                                                    // Find an item with this prefix
-                                                    const item = inventory.find(i => i.sku.startsWith(prefix));
-                                                    if (item) {
-                                                        currentPrices[prefix] = locationSRPs[loc]?.[item.sku] || 0;
-                                                    } else {
-                                                        currentPrices[prefix] = 0;
-                                                    }
+                                                CATEGORIES.forEach(cat => {
+                                                    const product = inventory.find(i => i.sku.startsWith(cat.id));
+                                                    currentPrices[cat.id] = product ? (locationSRPs[loc]?.[product.sku] || 0) : 0;
                                                 });
                                                 setTempPrices(currentPrices);
                                             }}
-                                            className={`p-3 border-b border-gray-100 cursor-pointer flex justify-between items-center hover:bg-gray-100 transition-colors ${editingPriceLocation === loc ? 'bg-white border-l-4 border-l-primary shadow-sm' : ''}`}
+                                            style={{
+                                                padding: '0.75rem',
+                                                marginBottom: '0.5rem',
+                                                borderRadius: 'var(--radius-md)',
+                                                cursor: 'pointer',
+                                                background: editingPriceLocation === loc ? 'white' : 'transparent',
+                                                borderLeft: editingPriceLocation === loc ? '4px solid var(--primary)' : '4px solid transparent',
+                                                fontWeight: editingPriceLocation === loc ? '600' : '400',
+                                                color: editingPriceLocation === loc ? 'var(--primary)' : 'var(--text-primary)'
+                                            }}
                                         >
-                                            {renamingLocation === loc ? (
-                                                <div className="flex gap-1 flex-1 mr-2" onClick={e => e.stopPropagation()}>
-                                                    <input
-                                                        type="text"
-                                                        value={tempRenameName}
-                                                        onChange={(e) => setTempRenameName(e.target.value)}
-                                                        className="premium-input py-1 px-2 text-sm w-full"
-                                                        autoFocus
-                                                    />
-                                                    <button onClick={saveRename} className="icon-btn text-green-600"><Check size={14} /></button>
-                                                    <button onClick={cancelRename} className="icon-btn text-red-600"><X size={14} /></button>
-                                                </div>
-                                            ) : (
-                                                <span className={`font-medium ${editingPriceLocation === loc ? 'text-primary' : 'text-gray-700'}`}>{loc}</span>
-                                            )}
-
-                                            {!renamingLocation && (
-                                                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    <button
-                                                        onClick={(e) => { e.stopPropagation(); startRenaming(loc); }}
-                                                        className="icon-btn small-btn text-blue-600 hover:bg-blue-50"
-                                                        title="Rename"
-                                                    >
-                                                        <Edit2 size={14} />
-                                                    </button>
-                                                    <button
-                                                        onClick={(e) => { e.stopPropagation(); deleteKikiksLocation(loc); }}
-                                                        className="icon-btn small-btn text-red-600 hover:bg-red-50"
-                                                        title="Delete"
-                                                    >
-                                                        <Trash2 size={14} />
-                                                    </button>
-                                                </div>
-                                            )}
+                                            {loc}
                                         </div>
                                     ))}
                                 </div>
                             </div>
 
-                            {/* RIGHT PANEL: Configuration */}
-                            <div style={{ flex: 1, padding: '2rem', overflowY: 'auto', backgroundColor: '#fff' }}>
+                            {/* RIGHT: Price Configuration */}
+                            <div style={{ flex: 1, padding: '2rem', overflowY: 'auto' }}>
                                 {editingPriceLocation ? (
-                                    <div className="max-w-md mx-auto">
-                                        <div className="mb-6 pb-4 border-b border-gray-100">
-                                            <h3 className="text-xl font-bold text-gray-800 mb-1">{editingPriceLocation}</h3>
-                                            <p className="text-gray-500 text-sm">Configure pricing for this location</p>
+                                    <div>
+                                        <h3 style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '0.5rem' }}>
+                                            {editingPriceLocation}
+                                        </h3>
+                                        <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>
+                                            Configure pricing for this location
+                                        </p>
+
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                            {CATEGORIES.map(cat => (
+                                                <div
+                                                    key={cat.id}
+                                                    style={{
+                                                        display: 'flex',
+                                                        justifyContent: 'space-between',
+                                                        alignItems: 'center',
+                                                        padding: '1rem',
+                                                        background: 'var(--gray-50)',
+                                                        borderRadius: 'var(--radius-md)',
+                                                        border: '1px solid var(--border-color)'
+                                                    }}
+                                                >
+                                                    <label style={{ fontWeight: '600' }}>
+                                                        {cat.name} ({cat.id})
+                                                    </label>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                        <span style={{ color: 'var(--text-secondary)' }}>₱</span>
+                                                        <input
+                                                            type="number"
+                                                            value={tempPrices[cat.id] || 0}
+                                                            onChange={(e) => handlePriceChange(cat.id, e.target.value)}
+                                                            className="premium-input"
+                                                            style={{ width: '120px', textAlign: 'right', fontWeight: '700' }}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            ))}
                                         </div>
 
-                                        <div className="space-y-6">
-                                            <div>
-                                                <h4 className="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                                                    <Tag size={16} /> Product Pricing
-                                                </h4>
-                                                <div className="grid gap-4">
-                                                    {[
-                                                        { key: 'FGC', label: 'Cup (FGC)' },
-                                                        { key: 'FGP', label: 'Pint (FGP)' },
-                                                        { key: 'FGL', label: 'Liter (FGL)' },
-                                                        { key: 'FGG', label: 'Gallon (FGG)' },
-                                                        { key: 'FGT', label: 'Tray (FGT)' }
-                                                    ].map(({ key, label }) => (
-                                                        <div key={key} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100">
-                                                            <label className="font-medium text-gray-700">{label}</label>
-                                                            <div className="flex items-center gap-2">
-                                                                <span className="text-gray-400 font-medium">₱</span>
-                                                                <input
-                                                                    type="number"
-                                                                    value={tempPrices[key] || 0}
-                                                                    onChange={(e) => handlePriceChange(key, e.target.value)}
-                                                                    className="premium-input text-right font-bold text-gray-900"
-                                                                    style={{ width: '100px' }}
-                                                                />
-                                                            </div>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </div>
-
-                                            <div className="pt-4 flex justify-end">
-                                                <button
-                                                    onClick={() => {
-                                                        // Use the new bulk update function
-                                                        updateLocationCategoryPrices(editingPriceLocation, tempPrices);
-                                                        alert(`Prices updated for ${editingPriceLocation}`);
-                                                    }}
-                                                    className="submit-btn"
-                                                    style={{ paddingLeft: '2rem', paddingRight: '2rem' }}
-                                                >
-                                                    <Save size={18} className="mr-2" />
-                                                    Save Changes
-                                                </button>
-                                            </div>
+                                        <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'flex-end' }}>
+                                            <button onClick={savePrices} className="submit-btn">
+                                                <Save size={18} style={{ marginRight: '0.5rem' }} />
+                                                Save Changes
+                                            </button>
                                         </div>
                                     </div>
                                 ) : (
-                                    <div className="h-full flex flex-col items-center justify-center text-gray-400">
-                                        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                                            <Settings size={32} />
-                                        </div>
-                                        <p className="text-lg font-medium">Select a location to configure</p>
-                                        <p className="text-sm">Choose a location from the list on the left</p>
+                                    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)' }}>
+                                        <Settings size={48} style={{ marginBottom: '1rem', opacity: 0.5 }} />
+                                        <p style={{ fontSize: '1.1rem', fontWeight: '600' }}>Select a location to configure</p>
+                                        <p style={{ fontSize: '0.9rem' }}>Choose a branch location from the list</p>
                                     </div>
                                 )}
                             </div>

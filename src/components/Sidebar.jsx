@@ -74,6 +74,7 @@ const Sidebar = ({ isOpen, onClose }) => {
 
           {hasPermission('ftf_manufacturing') && (
             <div className="nav-item">
+              <div className="nav-section-label">FTF Manufacturing & Warehouse</div>
               <NavLink
                 to="/dashboard/ftf-manufacturing"
                 className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
@@ -81,6 +82,14 @@ const Sidebar = ({ isOpen, onClose }) => {
               >
                 <span className="nav-icon"><Package size={20} /></span>
                 FTF Manufacturing
+              </NavLink>
+              <NavLink
+                to="/dashboard/legazpi-storage"
+                className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+                onClick={onClose}
+              >
+                <span className="nav-icon"><Package size={20} /></span>
+                Legazpi Storage
               </NavLink>
             </div>
           )}
