@@ -18,23 +18,23 @@ const LegazpiStorage = () => {
 
     // New product form
     const [newProduct, setNewProduct] = useState({
+        sku: '',
         product_name: '',
-        flavor: '',
         quantity: 0,
         unit: 'PCS'
     });
 
     const handleAddProduct = async () => {
-        if (!newProduct.product_name) {
-            alert('Please enter product name');
+        if (!newProduct.sku || !newProduct.product_name) {
+            alert('Please enter SKU and Product Description');
             return;
         }
 
         await addLegazpiProduct(newProduct);
         setAddingProduct(false);
         setNewProduct({
+            sku: '',
             product_name: '',
-            flavor: '',
             quantity: 0,
             unit: 'PCS'
         });
@@ -219,56 +219,48 @@ const LegazpiStorage = () => {
                                 const currentPrefix = item.sku?.split('-')[0];
                                 const previousItem = index > 0 ? filteredAndSortedInventory[index - 1] : null;
                                 const previousPrefix = previousItem?.sku?.split('-')[0];
-                                const showSpacer = index > 0 && currentPrefix !== previousPrefix;
+                                const showBorder = index > 0 && currentPrefix !== previousPrefix;
 
                                 return (
-                                    <React.Fragment key={item.id}>
-                                        {/* Spacer row between different SKU categories */}
-                                        {showSpacer && (
-                                            <tr style={{ height: '1px', backgroundColor: 'transparent' }}>
-                                                <td colSpan="6" style={{ padding: 0, borderBottom: 'none' }}></td>
-                                            </tr>
-                                        )}
-
-                                        <tr style={{
-                                            borderLeft: `4px solid ${getStockStatusColor(item.quantity)}`,
-                                            transition: 'all 0.2s'
-                                        }}>
-                                            <td>
-                                                <div style={{
-                                                    width: '8px',
-                                                    height: '8px',
-                                                    borderRadius: '50%',
-                                                    backgroundColor: getStockStatusColor(item.quantity),
-                                                    margin: '0 auto'
-                                                }}></div>
-                                            </td>
-                                            <td className="font-medium">{item.sku || '-'}</td>
-                                            <td>{description}</td>
-                                            <td>{item.unit}</td>
-                                            <td className="font-bold text-lg" style={{ color: getStockStatusColor(item.quantity) }}>
-                                                {item.quantity?.toLocaleString() || 0}
-                                            </td>
-                                            <td>
-                                                <div className="flex gap-2">
-                                                    <button
-                                                        onClick={() => startEdit(item)}
-                                                        className="icon-btn text-primary small-btn"
-                                                        title="Edit Product"
-                                                    >
-                                                        <Edit2 size={16} />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleDelete(item.id, item.product_name)}
-                                                        className="icon-btn text-danger small-btn"
-                                                        title="Delete Product"
-                                                    >
-                                                        <Trash2 size={16} />
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    </React.Fragment>
+                                    <tr key={item.id} style={{
+                                        borderLeft: `4px solid ${getStockStatusColor(item.quantity)}`,
+                                        borderTop: showBorder ? '1px solid #e5e7eb' : undefined,
+                                        transition: 'all 0.2s'
+                                    }}>
+                                        <td>
+                                            <div style={{
+                                                width: '8px',
+                                                height: '8px',
+                                                borderRadius: '50%',
+                                                backgroundColor: getStockStatusColor(item.quantity),
+                                                margin: '0 auto'
+                                            }}></div>
+                                        </td>
+                                        <td className="font-medium">{item.sku || '-'}</td>
+                                        <td>{description}</td>
+                                        <td>{item.unit}</td>
+                                        <td className="font-bold text-lg" style={{ color: getStockStatusColor(item.quantity) }}>
+                                            {item.quantity?.toLocaleString() || 0}
+                                        </td>
+                                        <td>
+                                            <div className="flex gap-2">
+                                                <button
+                                                    onClick={() => startEdit(item)}
+                                                    className="icon-btn text-primary small-btn"
+                                                    title="Edit Product"
+                                                >
+                                                    <Edit2 size={16} />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDelete(item.id, item.product_name)}
+                                                    className="icon-btn text-danger small-btn"
+                                                    title="Delete Product"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
                                 );
                             })}
                         </tbody>
@@ -288,35 +280,28 @@ const LegazpiStorage = () => {
                         </div>
                         <div className="modal-body">
                             <div className="mb-4">
-                                <label className="text-sm text-secondary mb-1">Product Name *</label>
+                                <label className="text-sm text-secondary mb-1">SKU *</label>
                                 <input
                                     type="text"
-                                    value={newProduct.product_name}
-                                    onChange={(e) => setNewProduct({ ...newProduct, product_name: e.target.value })}
+                                    placeholder="e.g., FGC-001"
+                                    value={newProduct.sku}
+                                    onChange={(e) => setNewProduct({ ...newProduct, sku: e.target.value })}
                                     className="premium-input"
                                     autoFocus
                                 />
                             </div>
                             <div className="mb-4">
-                                <label className="text-sm text-secondary mb-1">Flavor</label>
+                                <label className="text-sm text-secondary mb-1">Product Description *</label>
                                 <input
                                     type="text"
-                                    value={newProduct.flavor}
-                                    onChange={(e) => setNewProduct({ ...newProduct, flavor: e.target.value })}
+                                    placeholder="e.g., Cafe Mocha Cup"
+                                    value={newProduct.product_name}
+                                    onChange={(e) => setNewProduct({ ...newProduct, product_name: e.target.value })}
                                     className="premium-input"
                                 />
                             </div>
                             <div className="mb-4">
-                                <label className="text-sm text-secondary mb-1">Initial Quantity</label>
-                                <input
-                                    type="number"
-                                    value={newProduct.quantity}
-                                    onChange={(e) => setNewProduct({ ...newProduct, quantity: parseInt(e.target.value) || 0 })}
-                                    className="premium-input"
-                                />
-                            </div>
-                            <div className="mb-4">
-                                <label className="text-sm text-secondary mb-1">Unit</label>
+                                <label className="text-sm text-secondary mb-1">UOM (Unit of Measure)</label>
                                 <select
                                     value={newProduct.unit}
                                     onChange={(e) => setNewProduct({ ...newProduct, unit: e.target.value })}
@@ -327,6 +312,15 @@ const LegazpiStorage = () => {
                                     <option value="KG">KG</option>
                                     <option value="LITER">LITER</option>
                                 </select>
+                            </div>
+                            <div className="mb-4">
+                                <label className="text-sm text-secondary mb-1">Initial Quantity</label>
+                                <input
+                                    type="number"
+                                    value={newProduct.quantity}
+                                    onChange={(e) => setNewProduct({ ...newProduct, quantity: parseInt(e.target.value) || 0 })}
+                                    className="premium-input"
+                                />
                             </div>
                             <div className="flex gap-3">
                                 <button onClick={handleAddProduct} className="submit-btn flex-1">
