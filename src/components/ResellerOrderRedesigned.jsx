@@ -34,6 +34,12 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
     const [selectedResellerId, setSelectedResellerId] = useState('');
     const [address, setAddress] = useState('');
 
+    // Auto-Save State
+    const [lastSaved, setLastSaved] = useState(null);
+    const [showDraftNotification, setShowDraftNotification] = useState(false);
+    const [isDraftRestored, setIsDraftRestored] = useState(false);
+    const DRAFT_KEY = 'kikiks-order-draft';
+
     // Load Order for Editing
     useEffect(() => {
         if (orderId && resellerOrders.length > 0) {
@@ -45,6 +51,29 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
             }
         }
     }, [orderId, resellerOrders]);
+
+    // Auto-Restore Draft on Mount
+    useEffect(() => {
+        if (!orderId) {
+            const savedDraft = localStorage.getItem(DRAFT_KEY);
+            if (savedDraft) {
+                try {
+                    const draft = JSON.parse(savedDraft);
+                    if (draft.cart && Object.keys(draft.cart).length > 0) {
+                        setCart(draft.cart);
+                        setSelectedResellerId(draft.selectedResellerId || '');
+                        setAddress(draft.address || '');
+                        setIsDraftRestored(true);
+                        setShowDraftNotification(true);
+                        setTimeout(() => setShowDraftNotification(false), 5000);
+                    }
+                } catch (error) {
+                    console.error('Error restoring draft:', error);
+                    localStorage.removeItem(DRAFT_KEY);
+                }
+            }
+        }
+    }, [orderId]);
 
     // Cart State: { 'SKU-123': 50, 'SKU-456': 10 }
     const [cart, setCart] = useState({});
@@ -63,6 +92,33 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
 
     // Mobile sidebar state
     const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+
+    // Auto-Save to localStorage
+    useEffect(() => {
+        if (!orderId && (Object.keys(cart).length > 0 || selectedResellerId || address)) {
+            const draft = {
+                cart,
+                selectedResellerId,
+                address,
+                timestamp: new Date().toISOString()
+            };
+            localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+            setLastSaved(new Date());
+        }
+    }, [cart, selectedResellerId, address, orderId]);
+
+    // Browser Navigation Warning
+    useEffect(() => {
+        const handleBeforeUnload = (e) => {
+            if (!orderId && Object.keys(cart).length > 0) {
+                e.preventDefault();
+                e.returnValue = '';
+                return '';
+            }
+        };
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+    }, [cart, orderId]);
 
     // --- Derived Data ---
     const selectedReseller = resellers.find(r => String(r.id) === String(selectedResellerId));
@@ -198,7 +254,22 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
             const newOrderId = crypto.randomUUID();
             orderData.id = newOrderId;
             await addResellerOrder(orderData);
+
+            // Clear draft after successful submission
+            localStorage.removeItem(DRAFT_KEY);
+
             navigate(`/order-pdf/${newOrderId}`);
+        }
+    };
+
+    const handleClearDraft = () => {
+        if (window.confirm('Are you sure you want to clear the current draft? This action cannot be undone.')) {
+            setCart({});
+            setSelectedResellerId('');
+            setAddress('');
+            localStorage.removeItem(DRAFT_KEY);
+            setIsDraftRestored(false);
+            setLastSaved(null);
         }
     };
 
@@ -218,17 +289,46 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
 
     return (
         <div className="fade-in h-screen flex flex-col bg-white overflow-hidden">
+            {/* Draft Notification */}
+            {showDraftNotification && isDraftRestored && (
+                <div className="fixed top-4 right-4 z-50 bg-green-600 text-white px-6 py-3 rounded-lg shadow-xl flex items-center gap-3 animate-in slide-in-from-right">
+                    <div className="flex-1">
+                        <div className="font-bold">Draft Restored</div>
+                        <div className="text-xs opacity-90">Your previous order has been recovered</div>
+                    </div>
+                    <button onClick={() => setShowDraftNotification(false)} className="p-1 hover:bg-white/20 rounded">
+                        <X size={16} />
+                    </button>
+                </div>
+            )}
+
             {/* --- Top Bar: Context --- */}
             <div className="bg-white border-b border-gray-200 px-6 py-4 shadow-sm z-10">
                 <div className="flex justify-between items-center mb-4">
                     <div>
                         <h2 className="text-2xl font-bold text-[#510813]">{orderId ? 'Edit Reseller Order' : 'Create Reseller Order'}</h2>
+                        {!orderId && lastSaved && (
+                            <p className="text-xs text-gray-500 mt-1">
+                                Draft saved at {lastSaved.toLocaleTimeString()}
+                            </p>
+                        )}
                     </div>
-                    {!isPublic && (
-                        <button onClick={handleSettingsClick} className="p-2 hover:bg-gray-100 rounded-full text-gray-600 transition-colors">
-                            <Settings size={24} />
-                        </button>
-                    )}
+                    <div className="flex items-center gap-2">
+                        {!orderId && (isDraftRestored || Object.keys(cart).length > 0) && (
+                            <button
+                                onClick={handleClearDraft}
+                                className="px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors flex items-center gap-2"
+                            >
+                                <Trash2 size={16} />
+                                Clear Draft
+                            </button>
+                        )}
+                        {!isPublic && (
+                            <button onClick={handleSettingsClick} className="p-2 hover:bg-gray-100 rounded-full text-gray-600 transition-colors">
+                                <Settings size={24} />
+                            </button>
+                        )}
+                    </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

@@ -26,6 +26,8 @@ const TransferLocation = () => {
     // Settings Modal State
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [newLocationName, setNewLocationName] = useState('');
+    const [showPinModal, setShowPinModal] = useState(false);
+    const [pinInput, setPinInput] = useState('');
 
     // Renaming State
     const [renamingLocation, setRenamingLocation] = useState(null);
@@ -58,11 +60,18 @@ const TransferLocation = () => {
     const currentTotal = calculateTotal();
 
     const handleSettingsClick = () => {
-        const password = prompt("Enter Admin Password:");
-        if (password === "1234") {
+        setShowPinModal(true);
+        setPinInput('');
+    };
+
+    const handlePinSubmit = () => {
+        if (pinInput === "1234") {
+            setShowPinModal(false);
             setIsSettingsOpen(true);
-        } else if (password !== null) {
+            setPinInput('');
+        } else {
             alert("Incorrect Password");
+            setPinInput('');
         }
     };
 
@@ -348,6 +357,39 @@ const TransferLocation = () => {
                 </div>
 
             </div>
+
+            {/* PIN Modal */}
+            {showPinModal && (
+                <div className="modal-overlay" onClick={() => setShowPinModal(false)}>
+                    <div className="modal-content" style={{ maxWidth: '400px' }} onClick={e => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <h3 className="modal-title">Enter Admin Password</h3>
+                            <button className="close-btn" onClick={() => setShowPinModal(false)}>
+                                <X size={24} />
+                            </button>
+                        </div>
+                        <div className="modal-body">
+                            <input
+                                type="password"
+                                value={pinInput}
+                                onChange={(e) => setPinInput(e.target.value)}
+                                onKeyPress={(e) => e.key === 'Enter' && handlePinSubmit()}
+                                placeholder="Enter PIN"
+                                className="premium-input"
+                                autoFocus
+                            />
+                            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
+                                <button onClick={() => setShowPinModal(false)} className="icon-btn" style={{ flex: 1 }}>
+                                    Cancel
+                                </button>
+                                <button onClick={handlePinSubmit} className="submit-btn" style={{ flex: 1 }}>
+                                    Submit
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Settings Modal */}
             {isSettingsOpen && (

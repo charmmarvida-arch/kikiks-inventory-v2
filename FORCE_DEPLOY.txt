@@ -3,10 +3,11 @@
 This file triggers a new deployment.
 
 Changes:
-- FTF Manufacturing moved to standalone position
-- Complete UI redesign
-- Settings modal with 6 tabs
-- All new features implemented
+- Implemented Auto-Save for Order Form
+- Added localStorage persistence for drafts
+- Added "Draft Restored" notification
+- Added browser navigation warning
+- Added "Clear Draft" functionality
 
-Version: 2.0.0
-Date: 2025-12-01
+Version: 2.1.0
+Date: 2025-12-02

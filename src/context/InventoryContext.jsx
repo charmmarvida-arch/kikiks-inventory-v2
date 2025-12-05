@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
+import { sendOrderNotification } from '../utils/discordNotifications';
 
 const InventoryContext = createContext();
 
@@ -125,6 +126,7 @@ export const InventoryProvider = ({ children }) => {
                     date: order.date,
                     status: order.status,
                     isDeducted: order.is_deducted,
+                    hasPackingList: order.has_packing_list, // Add document tracking
                     type: 'Transfer'
                 }));
                 setTransferOrders(mappedTransfers);
@@ -261,6 +263,9 @@ export const InventoryProvider = ({ children }) => {
             console.error("Error saving reseller order:", error);
             alert(`Failed to save order to database: ${error.message} \n\nPlease check your internet connection or contact support.`);
             // Optional: Revert local state if critical
+        } else {
+            // Send Discord notification on successful order
+            await sendOrderNotification(newOrder);
         }
     };
 
@@ -382,6 +387,53 @@ export const InventoryProvider = ({ children }) => {
 
         setTransferOrders(prev => prev.map(o => o.id === id ? updatedOrder : o));
         await supabase.from('transfer_orders').update({ status: newStatus, is_deducted: updatedOrder.isDeducted }).eq('id', id);
+    };
+
+    const deleteTransferOrder = async (id) => {
+        // Find the order to check if stock was deducted
+        const order = transferOrders.find(o => o.id === id);
+        if (!order) return;
+
+        // Return stock to FTF Manufacturing if it was deducted
+        if (order.isDeducted) {
+            for (const [sku, qty] of Object.entries(order.items)) {
+                await addStock(sku, qty); // Add stock back
+            }
+        }
+
+        // Update local state
+        setTransferOrders(prev => prev.filter(o => o.id !== id));
+
+        // Delete from database
+        const { error } = await supabase
+            .from('transfer_orders')
+            .delete()
+            .eq('id', id);
+
+        if (error) {
+            console.error("Error deleting transfer order:", error);
+            alert(`Failed to delete transfer order: ${error.message}`);
+            // Refresh to restore consistency
+            await fetchData();
+        }
+    };
+
+    const updateTransferOrder = async (id, updates) => {
+        // Optimistic Update
+        setTransferOrders(prev => prev.map(o => o.id === id ? { ...o, ...updates } : o));
+
+        // Map camelCase updates to snake_case for DB
+        const dbUpdates = {};
+        if (updates.hasPackingList !== undefined) dbUpdates.has_packing_list = updates.hasPackingList;
+        if (updates.status !== undefined) dbUpdates.status = updates.status;
+
+        if (Object.keys(dbUpdates).length > 0) {
+            const { error } = await supabase.from('transfer_orders').update(dbUpdates).eq('id', id);
+            if (error) {
+                console.error("Error updating transfer order:", error);
+                alert(`Error updating transfer order: ${error.message}`);
+            }
+        }
     };
 
     // Location Management
@@ -578,7 +630,7 @@ export const InventoryProvider = ({ children }) => {
             history, addHistory,
             resellers, addReseller, updateReseller, deleteReseller,
             resellerOrders, addResellerOrder, updateResellerOrderStatus, updateResellerOrder, deleteResellerOrder,
-            transferOrders, addTransferOrder, updateTransferOrderStatus,
+            transferOrders, addTransferOrder, updateTransferOrderStatus, deleteTransferOrder, updateTransferOrder,
             kikiksLocations, addKikiksLocation, updateKikiksLocation, deleteKikiksLocation,
             locationSRPs, updateLocationSRP, updateLocationCategoryPrices,
             resellerPrices,

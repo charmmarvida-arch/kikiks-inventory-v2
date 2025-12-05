@@ -1,12 +1,25 @@
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useInventory } from '../context/InventoryContext';
-import { Eye, X } from 'lucide-react';
+import { Eye, X, Edit2, Trash2 } from 'lucide-react';
+import { generatePackingList } from '../utils/pdfGenerator';
 
 const LocationDashboard = () => {
     const { location } = useParams();
-    const { transferOrders, updateTransferOrderStatus, inventory } = useInventory();
+    const {
+        transferOrders,
+        updateTransferOrderStatus,
+        deleteTransferOrder,
+        updateTransferOrder,
+        inventory,
+        locationSRPs
+    } = useInventory();
     const [selectedOrder, setSelectedOrder] = useState(null);
+
+    // Preview Modal State
+    const [previewUrl, setPreviewUrl] = useState(null);
+    const [showPreviewModal, setShowPreviewModal] = useState(false);
+    const [previewTitle, setPreviewTitle] = useState('');
 
     // Filter orders for this location
     // We use loose matching to handle potential URL encoding or case differences
@@ -21,6 +34,62 @@ const LocationDashboard = () => {
 
     const handleStatusChange = (id, newStatus) => {
         updateTransferOrderStatus(id, newStatus);
+    };
+
+    // Packing List Handlers
+    const handleCreatePackingList = async (order) => {
+        try {
+            // Format order to match expected structure (similar to reseller order)
+            const formattedOrder = {
+                ...order,
+                resellerName: order.location, // Use location as "reseller" name
+                address: '' // Transfer orders don't have addresses
+            };
+            await generatePackingList(formattedOrder, inventory, locationSRPs[order.location] || {});
+            // Update DB
+            await updateTransferOrder(order.id, { hasPackingList: true });
+        } catch (error) {
+            console.error("Error creating packing list:", error);
+            alert("Failed to create packing list.");
+        }
+    };
+
+    const handleViewPackingList = async (order) => {
+        try {
+            const formattedOrder = {
+                ...order,
+                resellerName: order.location,
+                address: '',
+                returnBlob: true
+            };
+            const url = await generatePackingList(formattedOrder, inventory, locationSRPs[order.location] || {});
+            setPreviewUrl(url);
+            setPreviewTitle(`Packing List - ${order.location}`);
+            setShowPreviewModal(true);
+        } catch (error) {
+            console.error("Error viewing packing list:", error);
+            alert("Failed to view packing list.");
+        }
+    };
+
+    const handleEditOrder = (order) => {
+        // TODO: Implement edit functionality
+        // For now, just show an alert
+        alert(`Edit functionality for order ${order.id} will be implemented soon.`);
+    };
+
+    const handleDeleteOrder = async (order) => {
+        const confirmMessage = `Are you sure you want to delete this transfer order for ${order.location}?\n\nThis will return the stock to FTF Manufacturing.`;
+
+        if (window.confirm(confirmMessage)) {
+            try {
+                await deleteTransferOrder(order.id);
+                alert('Transfer order deleted successfully. Stock has been returned to inventory.');
+            } catch (error) {
+                console.error('Error deleting transfer order:', error);
+                alert('Failed to delete transfer order.');
+            }
+        }
     };
 
     return (
@@ -39,13 +108,15 @@ const LocationDashboard = () => {
                             <th>Category</th>
                             <th>Total Amount</th>
                             <th className="text-center">Details</th>
+                            <th className="text-center">Packing List & Total Bill</th>
                             <th className="text-center">Status</th>
+                            <th className="text-center">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         {sortedOrders.length === 0 ? (
                             <tr>
-                                <td colSpan={6} className="empty-state">
+                                <td colSpan={8} className="empty-state">
                                     No transactions found for this location.
                                 </td>
                             </tr>
@@ -64,6 +135,24 @@ const LocationDashboard = () => {
                                         >
                                             <Eye size={16} /> View
                                         </button>
+                                    </td>
+                                    {/* Packing List Column */}
+                                    <td className="text-center">
+                                        {order.hasPackingList ? (
+                                            <button
+                                                className="text-btn text-primary font-medium text-sm inline-flex items-center gap-1"
+                                                onClick={() => handleViewPackingList(order)}
+                                            >
+                                                <Eye size={14} /> View
+                                            </button>
+                                        ) : (
+                                            <button
+                                                className="text-btn text-secondary underline text-sm"
+                                                onClick={() => handleCreatePackingList(order)}
+                                            >
+                                                Create
+                                            </button>
+                                        )}
                                     </td>
                                     <td className="text-center">
                                         <div className="status-select-wrapper">
@@ -85,6 +174,27 @@ const LocationDashboard = () => {
                                                 <option value="Completed">Completed</option>
                                                 <option value="Cancelled">Cancelled</option>
                                             </select>
+                                        </div>
+                                    </td>
+                                    {/* Actions Column */}
+                                    <td className="text-center">
+                                        <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
+                                            <button
+                                                onClick={() => handleEditOrder(order)}
+                                                className="icon-btn p-1"
+                                                title="Edit Order"
+                                                style={{ width: 'auto', minWidth: 'unset' }}
+                                            >
+                                                <Edit2 size={16} />
+                                            </button>
+                                            <button
+                                                onClick={() => handleDeleteOrder(order)}
+                                                className="icon-btn p-1 text-danger"
+                                                title="Delete Order"
+                                                style={{ width: 'auto', minWidth: 'unset' }}
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>
@@ -148,6 +258,34 @@ const LocationDashboard = () => {
                                     </tbody>
                                 </table>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* PDF Preview Modal */}
+            {showPreviewModal && (
+                <div className="modal-overlay" onClick={() => setShowPreviewModal(false)}>
+                    <div className="modal-content large-modal" style={{ width: '90%', height: '90vh', display: 'flex', flexDirection: 'column' }} onClick={e => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <h3 className="modal-title">{previewTitle}</h3>
+                            <div className="flex gap-2">
+                                <a
+                                    href={previewUrl}
+                                    download={`${previewTitle.replace(/\s+/g, '_')}.pdf`}
+                                    className="icon-btn text-primary"
+                                    title="Download PDF"
+                                    style={{ padding: '4px 8px', height: 'auto', fontSize: '0.8rem' }}
+                                >
+                                    Download PDF
+                                </a>
+                                <button className="close-btn" onClick={() => setShowPreviewModal(false)}>
+                                    <X size={24} />
+                                </button>
+                            </div>
+                        </div>
+                        <div className="modal-body" style={{ flex: 1, padding: 0, overflow: 'hidden' }}>
+                            <iframe src={previewUrl} style={{ width: '100%', height: '100%', border: 'none' }} title="Document Preview" />
                         </div>
                     </div>
                 </div>
