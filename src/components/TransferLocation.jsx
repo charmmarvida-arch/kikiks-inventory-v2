@@ -412,7 +412,7 @@ const TransferLocation = () => {
                     <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '600px' }}>
                         <div className="modal-header">
                             <h2 className="modal-title">
-                                Select {CATEGORIES.find(c => c.id === selectedCategory)?.name} to Transfer
+                                Select {visibleCategories.find(c => c.id === selectedCategory)?.name} to Transfer
                             </h2>
                             <button className="close-btn" onClick={closeModal}>
                                 <X size={24} />
