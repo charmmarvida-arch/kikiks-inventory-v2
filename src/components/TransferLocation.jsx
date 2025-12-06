@@ -12,6 +12,7 @@ const MAIN_CATEGORIES = [
 
 const OTHERS_CATEGORY = { id: 'OTHERS', name: 'Others', icon: Package, color: '#a8a8a8' };
 
+// Warehouse locations (no pricing required)
 const WAREHOUSE_LOCATIONS = ['FTF Manufacturing', 'Legazpi Storage'];
 
 const TransferLocation = () => {
