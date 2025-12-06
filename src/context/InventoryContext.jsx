@@ -383,7 +383,7 @@ export const InventoryProvider = ({ children }) => {
         console.log('=== SAVING TRANSFER TO DATABASE ===');
         console.log('DB Order:', JSON.stringify(dbOrder, null, 2));
 
-        const { data, error } = await supabase.from('transfer_orders').insert(dbOrder);
+        const { data, error } = await supabase.from('transfer_orders').insert(dbOrder).select();
 
         if (error) {
             console.error("❌ Error saving transfer order:", error);
@@ -391,6 +391,13 @@ export const InventoryProvider = ({ children }) => {
             alert("Failed to save transfer order: " + error.message);
         } else {
             console.log('✅ Transfer saved successfully!', data);
+        }
+
+        // Deduct stock immediately after successful save
+        if (!error) {
+            for (const [sku, qty] of Object.entries(newOrder.items)) {
+                await addStock(sku, -qty);
+            }
         }
     };
 
