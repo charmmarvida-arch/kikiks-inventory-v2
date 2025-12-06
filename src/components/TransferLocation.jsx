@@ -140,16 +140,16 @@ import React, { useState, useEffect, useMemo } from 'react';
                             inline: false
                         },
                         { name: '📋 Items Transferred', value: itemsList || 'None', inline: false },
-                        { name: '📊 Total Quantity', value: grandTotals.totalQty.toString(), inline: true }
+                        { name: '📊 Total Quantity', value: Object.values(orderData.items).reduce((sum, qty) => sum + qty, 0).toString(), inline: true }
                     ],
                     footer: { text: 'Kikiks Inventory System' },
                     timestamp: new Date().toISOString()
                 };
 
-                if (isBranch && orderData.totalAmount > 0) {
+                if (isBranch && orderData.total_amount > 0) {
                     embed.fields.push({
                         name: '💰 Total Value',
-                        value: `₱${orderData.totalAmount.toFixed(2)}`,
+                        value: `₱${orderData.total_amount.toFixed(2)}`,
                         inline: true
                     });
                 }
