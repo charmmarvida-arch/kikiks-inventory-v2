@@ -264,7 +264,7 @@ const TransferLocation = () => {
                 destination: toLocation,
                 items: transferItems,
                 total_amount: grandTotals.totalValue,
-                status: 'Completed',
+                status: 'Unread',
                 type: 'Transfer'
             };
 

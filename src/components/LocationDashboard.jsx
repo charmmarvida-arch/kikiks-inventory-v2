@@ -21,6 +21,10 @@ const LocationDashboard = () => {
     const [showPreviewModal, setShowPreviewModal] = useState(false);
     const [previewTitle, setPreviewTitle] = useState('');
 
+    // Edit Modal State
+    const [editingOrder, setEditingOrder] = useState(null);
+    const [showEditModal, setShowEditModal] = useState(false);
+
     // Filter and sort orders for this location
     const filteredOrders = transferOrders.filter(order => {
         const orderLocation = order.destination;
@@ -41,10 +45,10 @@ const LocationDashboard = () => {
             // Format order to match expected structure (similar to reseller order)
             const formattedOrder = {
                 ...order,
-                resellerName: order.location, // Use location as "reseller" name
-                address: '' // Transfer orders don't have addresses
+                resellerName: order.destination,
+                address: ''
             };
-            await generatePackingList(formattedOrder, inventory, locationSRPs[order.location] || {});
+            await generatePackingList(formattedOrder, inventory, locationSRPs[order.destination] || {});
             // Update DB
             await updateTransferOrder(order.id, { hasPackingList: true });
         } catch (error) {
@@ -57,13 +61,13 @@ const LocationDashboard = () => {
         try {
             const formattedOrder = {
                 ...order,
-                resellerName: order.location,
+                resellerName: order.destination,
                 address: '',
                 returnBlob: true
             };
-            const url = await generatePackingList(formattedOrder, inventory, locationSRPs[order.location] || {});
+            const url = await generatePackingList(formattedOrder, inventory, locationSRPs[order.destination] || {});
             setPreviewUrl(url);
-            setPreviewTitle(`Packing List - ${order.location}`);
+            setPreviewTitle(`Packing List - ${order.destination}`);
             setShowPreviewModal(true);
         } catch (error) {
             console.error("Error viewing packing list:", error);
@@ -72,9 +76,27 @@ const LocationDashboard = () => {
     };
 
     const handleEditOrder = (order) => {
-        // TODO: Implement edit functionality
-        // For now, just show an alert
-        alert(`Edit functionality for order ${order.id} will be implemented soon.`);
+        setEditingOrder(order);
+        setShowEditModal(true);
+    };
+
+    const handleSaveEdit = async () => {
+        if (!editingOrder) return;
+
+        try {
+            // Update the order in database
+            await updateTransferOrder(editingOrder.id, {
+                items: editingOrder.items,
+                total_amount: editingOrder.total_amount
+            });
+
+            alert('Transfer updated successfully!');
+            setShowEditModal(false);
+            setEditingOrder(null);
+        } catch (error) {
+            console.error('Error updating transfer:', error);
+            alert('Failed to update transfer: ' + error.message);
+        }
     };
 
     const handleDeleteOrder = async (order) => {
@@ -170,7 +192,8 @@ const LocationDashboard = () => {
                                                     fontSize: '0.75rem'
                                                 }}
                                             >
-                                                <option value="Pending">Pending</option>
+                                                <option value="Unread">Unread</option>
+                                                <option value="Processing">Processing</option>
                                                 <option value="In Transit">In Transit</option>
                                                 <option value="Completed">Completed</option>
                                                 <option value="Cancelled">Cancelled</option>
@@ -291,6 +314,89 @@ const LocationDashboard = () => {
                         </div>
                         <div className="modal-body" style={{ flex: 1, padding: 0, overflow: 'hidden' }}>
                             <iframe src={previewUrl} style={{ width: '100%', height: '100%', border: 'none' }} title="Document Preview" />
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Edit Transfer Modal */}
+            {showEditModal && editingOrder && (
+                <div className="modal-overlay" onClick={() => setShowEditModal(false)}>
+                    <div className="modal-content medium-modal" onClick={e => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <h3 className="modal-title">Edit Transfer Order</h3>
+                            <button className="close-btn" onClick={() => setShowEditModal(false)}>
+                                <X size={24} />
+                            </button>
+                        </div>
+                        <div className="modal-body">
+                            <div className="grid grid-cols-2 gap-4 mb-4">
+                                <div>
+                                    <p className="text-sm text-gray-500">FROM Location</p>
+                                    <p className="font-medium">{editingOrder.from_location || 'FTF Manufacturing'}</p>
+                                </div>
+                                <div>
+                                    <p className="text-sm text-gray-500">TO Location</p>
+                                    <p className="font-medium">{editingOrder.destination}</p>
+                                </div>
+                            </div>
+
+                            <h4 className="font-semibold mb-2 text-sm uppercase tracking-wider text-gray-500">Edit Items</h4>
+                            <div className="bg-gray-50 rounded-lg p-3">
+                                <table className="w-full text-sm">
+                                    <thead>
+                                        <tr className="text-left text-gray-500 border-b border-gray-200">
+                                            <th className="pb-2">Item</th>
+                                            <th className="pb-2 text-right">Quantity</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {Object.entries(editingOrder.items).map(([sku, qty]) => (
+                                            <tr key={sku} className="border-b border-gray-100 last:border-0">
+                                                <td className="py-2">
+                                                    <span className="font-medium text-gray-700">{sku}</span>
+                                                    <span className="block text-xs text-gray-500">
+                                                        {inventory.find(i => i.sku === sku)?.description}
+                                                    </span>
+                                                </td>
+                                                <td className="py-2 text-right">
+                                                    <input
+                                                        type="number"
+                                                        min="0"
+                                                        value={qty}
+                                                        onChange={(e) => {
+                                                            const newQty = parseInt(e.target.value) || 0;
+                                                            setEditingOrder({
+                                                                ...editingOrder,
+                                                                items: {
+                                                                    ...editingOrder.items,
+                                                                    [sku]: newQty
+                                                                }
+                                                            });
+                                                        }}
+                                                        className="w-20 px-2 py-1 border rounded text-right"
+                                                    />
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div className="mt-4 flex gap-2 justify-end">
+                                <button
+                                    onClick={() => setShowEditModal(false)}
+                                    className="px-4 py-2 border rounded hover:bg-gray-50"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleSaveEdit}
+                                    className="submit-btn px-4 py-2"
+                                >
+                                    Save Changes
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
