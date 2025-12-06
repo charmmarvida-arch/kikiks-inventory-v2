@@ -18,8 +18,10 @@ const Login = () => {
         if (hostname.includes('order') || hostname.includes('reseller')) {
             navigate('/public-order');
         }
+        if (hostname.includes('transfer')) {
+            navigate('/transfer');
+        }
     }, [navigate]);
-
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
