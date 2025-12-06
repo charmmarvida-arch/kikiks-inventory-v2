@@ -27,6 +27,19 @@ const TransferLocation = () => {
         addStock,
         addLegazpiStock } = useInventory();
 
+    // State declarations
+    const [fromLocation, setFromLocation] = useState('FTF Manufacturing');
+    const [toLocation, setToLocation] = useState('');
+    const [editingOrder, setEditingOrder] = useState(null);
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [quantities, setQuantities] = useState({});
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [showToast, setShowToast] = useState(false);
+    const [selectedCategory, setSelectedCategory] = useState(null);
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    const [editingPriceLocation, setEditingPriceLocation] = useState(null);
+    const [tempPrices, setTempPrices] = useState({});
+
     // Get source inventory based on FROM location
     const sourceInventory = useMemo(() => {
         if (fromLocation === 'FTF Manufacturing') {
