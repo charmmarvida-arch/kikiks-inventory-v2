@@ -503,7 +503,7 @@ const TransferLocation = () => {
                                             onClick={() => {
                                                 setEditingPriceLocation(loc);
                                                 const currentPrices = {};
-                                                CATEGORIES.forEach(cat => {
+                                                MAIN_CATEGORIES.forEach(cat => {
                                                     const product = inventory.find(i => i.sku.startsWith(cat.id));
                                                     currentPrices[cat.id] = product ? (locationSRPs[loc]?.[product.sku] || 0) : 0;
                                                 });
