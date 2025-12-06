@@ -363,32 +363,29 @@ export const InventoryProvider = ({ children }) => {
     };
 
     const addTransferOrder = async (order) => {
-        const newOrder = { ...order, id: order.id || crypto.randomUUID() };
+        const newOrder = { ...order, id: order.id || crypto.randomUUID(), date: order.date || new Date().toISOString() };
         // Mark as deducted immediately in local state
         newOrder.isDeducted = true;
 
         setTransferOrders(prev => [newOrder, ...prev]);
 
-        // 1. Deduct Stock Immediately
-        for (const [sku, qty] of Object.entries(newOrder.items)) {
-            await addStock(sku, -qty);
-        }
-
+        // Build DB order with correct column names
         const dbOrder = {
             id: newOrder.id,
-            location_name: newOrder.location, // DB column is location_name in schema
+            from_location: newOrder.from_location,
+            destination: newOrder.destination,
             items: newOrder.items,
-            total_amount: newOrder.totalAmount,
+            total_amount: newOrder.total_amount,
             date: newOrder.date,
             status: newOrder.status,
-            is_deducted: true // Mark as deducted in DB
+            type: newOrder.type || 'Transfer',
+            is_deducted: true
         };
 
         const { error } = await supabase.from('transfer_orders').insert(dbOrder);
         if (error) {
             console.error("Error saving transfer order:", error);
             alert("Failed to save transfer order.");
-            // TODO: Revert stock deduction if DB fails?
         }
     };
 
