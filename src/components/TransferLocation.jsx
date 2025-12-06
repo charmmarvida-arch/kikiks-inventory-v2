@@ -355,7 +355,11 @@ const TransferLocation = () => {
 
             {/* Transfer Info Card */}
             <div className="form-card mb-4">
-                <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr 200px', gap: '1rem' }}>
+                <div className="form-grid" style={{
+                    gridTemplateColumns: '1fr 1fr 200px',
+                    gap: '1rem',
+                    '@media (max-width: 768px)': { gridTemplateColumns: '1fr' }
+                }}>
                     <div className="form-group">
                         <label>Transfer FROM</label>
                         <select
@@ -513,7 +517,7 @@ const TransferLocation = () => {
                                             key={product.sku}
                                             style={{
                                                 display: 'grid',
-                                                gridTemplateColumns: isBranch ? '2fr 100px 100px 120px' : '2fr 100px 120px',
+                                                gridTemplateColumns: window.innerWidth <= 768 ? '2fr 80px 120px' : (isBranch ? '2fr 100px 100px 120px' : '2fr 100px 120px'),
                                                 gap: '1rem',
                                                 alignItems: 'center',
                                                 padding: '0.75rem',
@@ -529,7 +533,7 @@ const TransferLocation = () => {
                                                 </div>
                                             </div>
 
-                                            {isBranch && (
+                                            {isBranch && window.innerWidth > 768 && (
                                                 <div style={{ textAlign: 'right', fontWeight: '600' }}>
                                                     ₱{price}
                                                 </div>
@@ -547,7 +551,7 @@ const TransferLocation = () => {
                                                 onChange={(e) => handleQuantityChange(product.sku, e.target.value)}
                                                 placeholder="0"
                                                 className="premium-input"
-                                                style={{ textAlign: 'center' }}
+                                                style={{ textAlign: 'center', width: '100%' }}
                                             />
                                         </div>
                                     );

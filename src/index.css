@@ -660,6 +660,11 @@ button {
     display: flex;
   }
 
+  /* Transfer Location mobile styles */
+  .form-grid {
+    grid-template-columns: 1fr !important;
+  }
+
   /* Hide desktop table on mobile */
   .desktop-only {
     display: none !important;
