@@ -140,17 +140,19 @@ const Sidebar = ({ isOpen, onClose }) => {
 
           <div className="nav-item">
             <div className="nav-section-label">Kikiks Branches</div>
-            {kikiksLocations.map(location => (
-              <NavLink
-                key={location}
-                to={`/dashboard/${location}`}
-                className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-                onClick={onClose}
-              >
-                <span className="nav-icon"><Store size={20} /></span>
-                {location}
-              </NavLink>
-            ))}
+            {kikiksLocations
+              .filter(location => location !== 'FTF Manufacturing' && location !== 'Legazpi Storage')
+              .map(location => (
+                <NavLink
+                  key={location}
+                  to={`/dashboard/${location}`}
+                  className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+                  onClick={onClose}
+                >
+                  <span className="nav-icon"><Store size={20} /></span>
+                  {location}
+                </NavLink>
+              ))}
           </div>
 
           {hasPermission('settings') && (
