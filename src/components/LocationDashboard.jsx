@@ -16,23 +16,6 @@ const LocationDashboard = () => {
     } = useInventory();
     const [selectedOrder, setSelectedOrder] = useState(null);
 
-    // Preview Modal State
-    const [previewUrl, setPreviewUrl] = useState(null);
-    const [showPreviewModal, setShowPreviewModal] = useState(false);
-    const [previewTitle, setPreviewTitle] = useState('');
-
-    // Filter orders for this location
-    // Support both new format (to_location) and old format (location)
-    const filteredOrders = transferOrders.filter(order => {
-        const orderLocation = order.to_location || order.location;
-        return orderLocation === location ||
-            orderLocation?.toLowerCase() === location.toLowerCase() ||
-            (orderLocation && decodeURIComponent(location) === orderLocation);
-    });
-
-    // Sort by date (newest first)
-    const sortedOrders = [...filteredOrders].sort((a, b) => new Date(b.date) - new Date(a.date));
-
     const handleStatusChange = (id, newStatus) => {
         updateTransferOrderStatus(id, newStatus);
     };
@@ -127,9 +110,9 @@ const LocationDashboard = () => {
                                 <tr key={order.id}>
                                     <td>{new Date(order.date).toLocaleDateString()}</td>
                                     <td className="font-medium">{order.from_location || 'FTF Manufacturing'}</td>
-                                    <td className="font-medium">{order.to_location || order.location}</td>
+                                    <td className="font-medium">{order.destination}</td>
                                     <td>Stock Transfer</td>
-                                    <td className="font-bold text-primary">₱{order.totalAmount.toLocaleString()}</td>
+                                    <td className="font-bold text-primary">₱{order.total_amount?.toLocaleString() || 0}</td>
                                     <td className="text-center">
                                         <button
                                             onClick={() => setSelectedOrder(order)}
@@ -225,7 +208,7 @@ const LocationDashboard = () => {
                                 </div>
                                 <div>
                                     <p className="text-sm text-gray-500">TO Location</p>
-                                    <p className="font-medium">{selectedOrder.to_location || selectedOrder.location}</p>
+                                    <p className="font-medium">{selectedOrder.destination}</p>
                                 </div>
                                 <div>
                                     <p className="text-sm text-gray-500">Type</p>
@@ -237,7 +220,7 @@ const LocationDashboard = () => {
                                 </div>
                                 <div>
                                     <p className="text-sm text-gray-500">Total Amount</p>
-                                    <p className="font-bold text-primary">₱{selectedOrder.totalAmount.toLocaleString()}</p>
+                                    <p className="font-bold text-primary">₱{selectedOrder.total_amount?.toLocaleString() || 0}</p>
                                 </div>
                             </div>
 
