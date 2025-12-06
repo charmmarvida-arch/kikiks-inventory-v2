@@ -2,13 +2,15 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useInventory } from '../context/InventoryContext';
 import { Settings, X, Save, Package, Coffee, Droplet, Box as BoxIcon } from 'lucide-react';
 
-const CATEGORIES = [
+const MAIN_CATEGORIES = [
     { id: 'FGC', name: 'Cups', icon: Coffee, color: '#ff6b6b' },
     { id: 'FGP', name: 'Pints', icon: Droplet, color: '#4ecdc4' },
     { id: 'FGL', name: 'Liters', icon: Droplet, color: '#45b7d1' },
     { id: 'FGG', name: 'Gallons', icon: BoxIcon, color: '#96ceb4' },
     { id: 'FGT', name: 'Trays', icon: Package, color: '#ffeaa7' }
 ];
+
+const OTHERS_CATEGORY = { id: 'OTHERS', name: 'Others', icon: Package, color: '#a8a8a8' };
 
 const WAREHOUSE_LOCATIONS = ['FTF Manufacturing', 'Legazpi Storage'];
 
@@ -70,18 +72,37 @@ const TransferLocation = () => {
     // Group products by category
     const productsByCategory = useMemo(() => {
         const grouped = {};
-        CATEGORIES.forEach(cat => {
+        const mainCategoryPrefixes = MAIN_CATEGORIES.map(cat => cat.id);
+
+        // Group products by main categories
+        MAIN_CATEGORIES.forEach(cat => {
             grouped[cat.id] = sourceInventory.filter(item =>
                 item.sku?.startsWith(cat.id) || item.description?.includes(cat.name.slice(0, -1))
             );
         });
+
+        // Find products that don't match any main category
+        grouped['OTHERS'] = sourceInventory.filter(item => {
+            const sku = item.sku || '';
+            return !mainCategoryPrefixes.some(prefix => sku.startsWith(prefix));
+        });
+
         return grouped;
     }, [sourceInventory]);
+
+    // Get visible categories (main + others if it has products)
+    const visibleCategories = useMemo(() => {
+        const categories = [...MAIN_CATEGORIES];
+        if (productsByCategory['OTHERS']?.length > 0) {
+            categories.push(OTHERS_CATEGORY);
+        }
+        return categories;
+    }, [productsByCategory]);
 
     // Calculate category totals
     const categoryTotals = useMemo(() => {
         const totals = {};
-        CATEGORIES.forEach(cat => {
+        visibleCategories.forEach(cat => {
             const products = productsByCategory[cat.id] || [];
             const qty = products.reduce((sum, product) => {
                 return sum + (quantities[product.sku] || 0);
@@ -94,7 +115,7 @@ const TransferLocation = () => {
             totals[cat.id] = { qty, value };
         });
         return totals;
-    }, [quantities, productsByCategory, toLocation, locationSRPs]);
+    }, [quantities, productsByCategory, toLocation, locationSRPs, visibleCategories]);
 
     // Calculate grand totals
     const grandTotals = useMemo(() => {
@@ -299,7 +320,7 @@ const TransferLocation = () => {
                         gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
                         gap: '1rem'
                     }}>
-                        {CATEGORIES.map(category => {
+                        {visibleCategories.map(category => {
                             const Icon = category.icon;
                             const totals = categoryTotals[category.id] || { qty: 0, value: 0 };
 
@@ -516,7 +537,7 @@ const TransferLocation = () => {
                                         </p>
 
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                                            {CATEGORIES.map(cat => (
+                                            {MAIN_CATEGORIES.map(cat => (
                                                 <div
                                                     key={cat.id}
                                                     style={{
