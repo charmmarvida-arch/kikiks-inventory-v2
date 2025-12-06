@@ -16,6 +16,16 @@ const LocationDashboard = () => {
     } = useInventory();
     const [selectedOrder, setSelectedOrder] = useState(null);
 
+    // Filter and sort orders for this location
+    const filteredOrders = transferOrders.filter(order => {
+        const orderLocation = order.destination;
+        return orderLocation === location ||
+            orderLocation?.toLowerCase() === location.toLowerCase() ||
+            (orderLocation && decodeURIComponent(location) === orderLocation);
+    });
+
+    const sortedOrders = [...filteredOrders].sort((a, b) => new Date(b.date) - new Date(a.date));
+
     const handleStatusChange = (id, newStatus) => {
         updateTransferOrderStatus(id, newStatus);
     };
