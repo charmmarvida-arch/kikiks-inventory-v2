@@ -665,6 +665,65 @@ button {
     grid-template-columns: 1fr !important;
   }
 
+  /* Category cards - more compact */
+  .transfer-category-card {
+    padding: 0.75rem !important;
+  }
+
+  .transfer-category-card .category-icon {
+    width: 18px !important;
+    height: 18px !important;
+  }
+
+  .transfer-category-card .category-name {
+    font-size: 0.95rem !important;
+  }
+
+  .transfer-category-card .category-qty {
+    font-size: 1.25rem !important;
+  }
+
+  .transfer-category-card .category-value {
+    font-size: 0.8rem !important;
+  }
+
+  .transfer-category-card .category-hint {
+    display: none !important;
+  }
+
+  /* Modal optimizations */
+  .transfer-modal .modal-content {
+    max-width: 95% !important;
+  }
+
+  .transfer-modal .modal-header {
+    padding: 0.75rem !important;
+  }
+
+  .transfer-modal .modal-body {
+    padding: 0.5rem !important;
+  }
+
+  /* Product items in modal */
+  .transfer-product-item {
+    padding: 0.5rem !important;
+    gap: 0.5rem !important;
+  }
+
+  .transfer-product-item .product-name {
+    font-size: 0.8rem !important;
+  }
+
+  .transfer-product-item .product-sku {
+    font-size: 0.7rem !important;
+  }
+
+  /* Prevent input auto-zoom on mobile */
+  .transfer-modal input[type="number"] {
+    font-size: 16px !important;
+    padding: 0.4rem !important;
+  }
+
   /* Hide desktop table on mobile */
   .desktop-only {
     display: none !important;

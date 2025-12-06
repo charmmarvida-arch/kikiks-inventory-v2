@@ -496,7 +496,7 @@ const TransferLocation = () => {
 
             {/* Category Modal */}
             {selectedCategory && (
-                <div className="modal-overlay" onClick={closeModal}>
+                <div className="modal-overlay transfer-modal" onClick={closeModal}>
                     <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '600px' }}>
                         <div className="modal-header">
                             <h2 className="modal-title">
