@@ -255,10 +255,9 @@ const TransferLocation = () => {
             // Create transfer order
             const newOrder = {
                 from_location: fromLocation,
-                to_location: toLocation,
-                location: toLocation, // For compatibility
+                destination: toLocation,
                 items: transferItems,
-                totalAmount: grandTotals.totalValue,
+                total_amount: grandTotals.totalValue,
                 status: 'Completed',
                 type: 'Transfer'
             };
