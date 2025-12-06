@@ -370,15 +370,6 @@ const LegazpiStorage = () => {
                                 />
                             </div>
                             <div className="mb-4">
-                                <label className="text-sm text-secondary mb-1">Flavor</label>
-                                <input
-                                    type="text"
-                                    value={editingProduct.flavor || ''}
-                                    onChange={(e) => setEditingProduct({ ...editingProduct, flavor: e.target.value })}
-                                    className="premium-input"
-                                />
-                            </div>
-                            <div className="mb-4">
                                 <label className="text-sm text-secondary mb-1">Quantity</label>
                                 <input
                                     type="number"
