@@ -139,8 +139,7 @@ export const InventoryProvider = ({ children }) => {
                     date: order.date,
                     status: order.status,
                     isDeducted: order.is_deducted,
-                    hasPackingList: order.has_packing_list, // Add document tracking
-                    type: 'Transfer'
+                    hasPackingList: order.has_packing_list // Add document tracking
                 }));
                 setTransferOrders(mappedTransfers);
             }
@@ -378,7 +377,6 @@ export const InventoryProvider = ({ children }) => {
             total_amount: newOrder.total_amount,
             date: newOrder.date,
             status: newOrder.status,
-            type: newOrder.type || 'Transfer',
             is_deducted: true
         };
 
