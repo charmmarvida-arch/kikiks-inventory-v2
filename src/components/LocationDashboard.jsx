@@ -22,12 +22,13 @@ const LocationDashboard = () => {
     const [previewTitle, setPreviewTitle] = useState('');
 
     // Filter orders for this location
-    // We use loose matching to handle potential URL encoding or case differences
-    const filteredOrders = transferOrders.filter(order =>
-        order.location === location ||
-        order.location?.toLowerCase() === location.toLowerCase() ||
-        (order.location && decodeURIComponent(location) === order.location)
-    );
+    // Support both new format (to_location) and old format (location)
+    const filteredOrders = transferOrders.filter(order => {
+        const orderLocation = order.to_location || order.location;
+        return orderLocation === location ||
+            orderLocation?.toLowerCase() === location.toLowerCase() ||
+            (orderLocation && decodeURIComponent(location) === orderLocation);
+    });
 
     // Sort by date (newest first)
     const sortedOrders = [...filteredOrders].sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -104,7 +105,8 @@ const LocationDashboard = () => {
                     <thead>
                         <tr>
                             <th>Date</th>
-                            <th>Branch Name</th>
+                            <th>FROM Location</th>
+                            <th>TO Location</th>
                             <th>Category</th>
                             <th>Total Amount</th>
                             <th className="text-center">Details</th>
@@ -116,7 +118,7 @@ const LocationDashboard = () => {
                     <tbody>
                         {sortedOrders.length === 0 ? (
                             <tr>
-                                <td colSpan={8} className="empty-state">
+                                <td colSpan={9} className="empty-state">
                                     No transactions found for this location.
                                 </td>
                             </tr>
@@ -124,7 +126,8 @@ const LocationDashboard = () => {
                             sortedOrders.map(order => (
                                 <tr key={order.id}>
                                     <td>{new Date(order.date).toLocaleDateString()}</td>
-                                    <td className="font-medium">{order.location}</td>
+                                    <td className="font-medium">{order.from_location || 'FTF Manufacturing'}</td>
+                                    <td className="font-medium">{order.to_location || order.location}</td>
                                     <td>Stock Transfer</td>
                                     <td className="font-bold text-primary">₱{order.totalAmount.toLocaleString()}</td>
                                     <td className="text-center">
@@ -217,8 +220,12 @@ const LocationDashboard = () => {
                         <div className="modal-body">
                             <div className="grid grid-cols-2 gap-4 mb-4">
                                 <div>
-                                    <p className="text-sm text-gray-500">Branch Name</p>
-                                    <p className="font-medium">{selectedOrder.location}</p>
+                                    <p className="text-sm text-gray-500">FROM Location</p>
+                                    <p className="font-medium">{selectedOrder.from_location || 'FTF Manufacturing'}</p>
+                                </div>
+                                <div>
+                                    <p className="text-sm text-gray-500">TO Location</p>
+                                    <p className="font-medium">{selectedOrder.to_location || selectedOrder.location}</p>
                                 </div>
                                 <div>
                                     <p className="text-sm text-gray-500">Type</p>
