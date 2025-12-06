@@ -33,6 +33,7 @@ const TransferLocation = () => {
 
     // Order State
     const [quantities, setQuantities] = useState({});
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState(null);
 
     // Settings Modal
@@ -223,6 +224,9 @@ const TransferLocation = () => {
     };
 
     const handleSubmitTransfer = async () => {
+        // Prevent duplicate submissions
+        if (isSubmitting) return;
+
         if (!fromLocation) {
             alert('Please select a FROM location');
             return;
@@ -252,6 +256,8 @@ const TransferLocation = () => {
         }
 
         try {
+            setIsSubmitting(true);
+
             // Create transfer order
             const newOrder = {
                 from_location: fromLocation,
@@ -306,6 +312,8 @@ const TransferLocation = () => {
         } catch (error) {
             console.error('Transfer error:', error);
             alert('Failed to submit transfer: ' + error.message);
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -456,7 +464,7 @@ const TransferLocation = () => {
                             onClick={handleSubmitTransfer}
                             className="submit-btn"
                             style={{ width: '100%', justifyContent: 'center' }}
-                            disabled={!toLocation || grandTotals.totalQty === 0}
+                            disabled={!toLocation || grandTotals.totalQty === 0 || isSubmitting}
                         >
                             <Save size={18} style={{ marginRight: '0.5rem' }} />
                             Submit Transfer
