@@ -16,6 +16,11 @@ const LocationDashboard = () => {
     } = useInventory();
     const [selectedOrder, setSelectedOrder] = useState(null);
 
+    // Preview Modal State
+    const [previewUrl, setPreviewUrl] = useState(null);
+    const [showPreviewModal, setShowPreviewModal] = useState(false);
+    const [previewTitle, setPreviewTitle] = useState('');
+
     // Filter and sort orders for this location
     const filteredOrders = transferOrders.filter(order => {
         const orderLocation = order.destination;
