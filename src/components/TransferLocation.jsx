@@ -70,6 +70,63 @@ const TransferLocation = () => {
     // Check if TO location is a branch (has pricing)
     const isBranch = toLocation && !WAREHOUSE_LOCATIONS.includes(toLocation);
 
+    // Send Discord notification
+    const sendDiscordNotification = async (orderData) => {
+        const webhookUrl = import.meta.env.VITE_DISCORD_TRANSFER_WEBHOOK;
+        if (!webhookUrl) return;
+
+        try {
+            const itemsList = Object.entries(orderData.items).map(([sku, qty]) => {
+                const product = sourceInventory.find(p => p.sku === sku);
+                const price = getPrice(sku);
+                const value = qty * price;
+
+                if (isBranch && price > 0) {
+                    return `• ${product?.description || sku} - Qty: ${qty} (₱${price.toFixed(2)} each = ₱${value.toFixed(2)})`;
+                }
+                return `• ${product?.description || sku} - Qty: ${qty}`;
+            }).join('\n');
+
+            const embed = {
+                title: '📦 New Transfer Location Order',
+                color: 0x4ecdc4,
+                fields: [
+                    { name: '🏭 FROM Location', value: orderData.from_location, inline: true },
+                    { name: '🏪 TO Location', value: orderData.to_location, inline: true },
+                    {
+                        name: '📅 Date',
+                        value: new Date().toLocaleString('en-US', {
+                            timeZone: 'Asia/Manila',
+                            dateStyle: 'medium',
+                            timeStyle: 'short'
+                        }),
+                        inline: false
+                    },
+                    { name: '📋 Items Transferred', value: itemsList || 'None', inline: false },
+                    { name: '📊 Total Quantity', value: grandTotals.totalQty.toString(), inline: true }
+                ],
+                footer: { text: 'Kikiks Inventory System' },
+                timestamp: new Date().toISOString()
+            };
+
+            if (isBranch && orderData.totalAmount > 0) {
+                embed.fields.push({
+                    name: '💰 Total Value',
+                    value: `₱${orderData.totalAmount.toFixed(2)}`,
+                    inline: true
+                });
+            }
+
+            await fetch(webhookUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ embeds: [embed] })
+            });
+        } catch (error) {
+            console.error('Discord notification error:', error);
+        }
+    };
+
     // Group products by category
     const productsByCategory = useMemo(() => {
         const grouped = {};
@@ -207,6 +264,9 @@ const TransferLocation = () => {
             };
 
             await addTransferOrder(newOrder);
+
+            // Send Discord notification
+            sendDiscordNotification(newOrder).catch(console.error);
 
             // Update inventories
             // Deduct from FROM location
