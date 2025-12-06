@@ -133,13 +133,16 @@ export const InventoryProvider = ({ children }) => {
             if (toData) {
                 const mappedTransfers = toData.map(order => ({
                     id: order.id,
-                    location: order.location_name || order.location, // Handle potential naming diff
+                    destination: order.destination, // TO location
+                    from_location: order.from_location, // FROM location
+                    location: order.destination, // Legacy field for compatibility
                     items: order.items,
                     totalAmount: order.total_amount || order.total,
+                    total_amount: order.total_amount,
                     date: order.date,
                     status: order.status,
                     isDeducted: order.is_deducted,
-                    hasPackingList: order.has_packing_list // Add document tracking
+                    hasPackingList: order.has_packing_list
                 }));
                 setTransferOrders(mappedTransfers);
             }
