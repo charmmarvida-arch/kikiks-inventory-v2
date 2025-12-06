@@ -226,48 +226,54 @@ const LegazpiStorage = () => {
                                 const currentPrefix = item.sku?.split('-')[0];
                                 const previousItem = index > 0 ? filteredAndSortedInventory[index - 1] : null;
                                 const previousPrefix = previousItem?.sku?.split('-')[0];
-                                const showBorder = index > 0 && currentPrefix !== previousPrefix;
+                                const showSpacer = index > 0 && currentPrefix !== previousPrefix;
 
                                 return (
-                                    <tr key={item.id} style={{
-                                        borderLeft: `4px solid ${getStockStatusColor(item.quantity)}`,
-                                        borderTop: showBorder ? '1px solid #e5e7eb' : undefined,
-                                        transition: 'all 0.2s'
-                                    }}>
-                                        <td>
-                                            <div style={{
-                                                width: '8px',
-                                                height: '8px',
-                                                borderRadius: '50%',
-                                                backgroundColor: getStockStatusColor(item.quantity),
-                                                margin: '0 auto'
-                                            }}></div>
-                                        </td>
-                                        <td className="font-medium">{item.sku || '-'}</td>
-                                        <td>{description}</td>
-                                        <td>{item.unit}</td>
-                                        <td className="font-bold text-lg" style={{ color: getStockStatusColor(item.quantity) }}>
-                                            {item.quantity?.toLocaleString() || 0}
-                                        </td>
-                                        <td>
-                                            <div className="flex gap-2">
-                                                <button
-                                                    onClick={() => startEdit(item)}
-                                                    className="icon-btn text-primary small-btn"
-                                                    title="Edit Product"
-                                                >
-                                                    <Edit2 size={16} />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDelete(item.id, item.product_name)}
-                                                    className="icon-btn text-danger small-btn"
-                                                    title="Delete Product"
-                                                >
-                                                    <Trash2 size={16} />
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
+                                    <React.Fragment key={item.id}>
+                                        {showSpacer && (
+                                            <tr className="spacer-row">
+                                                <td colSpan={6} style={{ height: '8px', background: 'var(--gray-50)' }}></td>
+                                            </tr>
+                                        )}
+                                        <tr style={{
+                                            borderLeft: `4px solid ${getStockStatusColor(item.quantity)}`,
+                                            transition: 'all 0.2s'
+                                        }}>
+                                            <td>
+                                                <div style={{
+                                                    width: '8px',
+                                                    height: '8px',
+                                                    borderRadius: '50%',
+                                                    backgroundColor: getStockStatusColor(item.quantity),
+                                                    margin: '0 auto'
+                                                }}></div>
+                                            </td>
+                                            <td className="font-medium">{item.sku || '-'}</td>
+                                            <td>{description}</td>
+                                            <td>{item.unit}</td>
+                                            <td className="font-bold text-lg" style={{ color: getStockStatusColor(item.quantity) }}>
+                                                {item.quantity?.toLocaleString() || 0}
+                                            </td>
+                                            <td>
+                                                <div className="flex gap-2">
+                                                    <button
+                                                        onClick={() => startEdit(item)}
+                                                        className="icon-btn text-primary small-btn"
+                                                        title="Edit Product"
+                                                    >
+                                                        <Edit2 size={16} />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDelete(item.id, item.product_name)}
+                                                        className="icon-btn text-danger small-btn"
+                                                        title="Delete Product"
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </React.Fragment>
                                 );
                             })}
                         </tbody>
