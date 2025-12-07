@@ -23,6 +23,21 @@ import LegazpiStorage from './components/LegazpiStorage';
 import AdminKey from './components/AdminKey';
 
 
+// Domain Guard Component
+const MainDomainGuard = ({ children }) => {
+  const hostname = window.location.hostname;
+  // Allow localhost, 127.0.0.1, and the main production domain
+  const isMainDomain = hostname.includes('localhost') ||
+    hostname.includes('127.0.0.1') ||
+    hostname === 'kikiks-orders.vercel.app';
+
+  if (!isMainDomain) {
+    return <Navigate to="/public-transfer" replace />;
+  }
+
+  return children;
+};
+
 // Protected Route Wrapper
 const RequireAuth = ({ children }) => {
   const { user, loading } = useAuth();
@@ -46,16 +61,22 @@ function App() {
         <BrowserRouter>
           <Routes>
             {/* Public Routes */}
-            <Route path="/login" element={<Login />} />
+            <Route path="/login" element={
+              <MainDomainGuard>
+                <Login />
+              </MainDomainGuard>
+            } />
             <Route path="/public-order" element={<ResellerOrderRedesigned isPublic={true} />} />
             <Route path="/public-transfer" element={<TransferLocation isPublic={true} />} />
             <Route path="/order-pdf/:orderId" element={<OrderPdfView />} />
 
             {/* Protected Routes */}
             <Route path="/" element={
-              <RequireAuth>
-                <Layout />
-              </RequireAuth>
+              <MainDomainGuard>
+                <RequireAuth>
+                  <Layout />
+                </RequireAuth>
+              </MainDomainGuard>
             }>
               <Route index element={<Dashboard />} />
               <Route path="dashboard/ftf-manufacturing" element={<FTFManufacturing />} />
