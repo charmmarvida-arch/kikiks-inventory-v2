@@ -94,85 +94,6 @@ const ResellerDashboard = () => {
         });
     }, [resellerOrders, startDate, endDate]);
 
-    // Calculate metrics
-    const metrics = useMemo(() => {
-        // Current period metrics
-        const totalOrders = filteredOrders.length;
-        const activeResellers = new Set(filteredOrders.map(o => o.resellerName)).size;
-        const totalRevenue = filteredOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
-        const encodedCount = filteredOrders.filter(o => o.is_encoded).length;
-        const encodingProgress = totalOrders > 0 ? (encodedCount / totalOrders) * 100 : 0;
-        const pendingEncoding = totalOrders - encodedCount;
-
-        // Year-to-Date calculation
-        const today = new Date();
-        const startOfYear = new Date(today.getFullYear(), 0, 1);
-        const ytdOrders = resellerOrders.filter(order => {
-            const orderDate = new Date(order.date);
-            return orderDate >= startOfYear && orderDate <= today && order.status === 'Completed';
-        });
-        const ytdRevenue = ytdOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
-
-        // Previous year same period for YTD comparison
-        const startOfPrevYear = new Date(today.getFullYear() - 1, 0, 1);
-        const endOfPrevYearSamePeriod = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
-        const prevYtdOrders = resellerOrders.filter(order => {
-            const orderDate = new Date(order.date);
-            return orderDate >= startOfPrevYear && orderDate <= endOfPrevYearSamePeriod && order.status === 'Completed';
-        });
-        const prevYtdRevenue = prevYtdOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
-
-        // Previous period metrics
-        const prevTotalOrders = previousPeriodOrders.length;
-        const prevActiveResellers = new Set(previousPeriodOrders.map(o => o.resellerName)).size;
-        const prevEncodedCount = previousPeriodOrders.filter(o => o.is_encoded).length;
-        const prevEncodingProgress = prevTotalOrders > 0 ? (prevEncodedCount / prevTotalOrders) * 100 : 0;
-
-        // Calculate changes
-        const ordersChange = prevTotalOrders > 0 ? ((totalOrders - prevTotalOrders) / prevTotalOrders) * 100 : 0;
-        const resellersChange = prevActiveResellers > 0 ? ((activeResellers - prevActiveResellers) / prevActiveResellers) * 100 : 0;
-        const ytdChange = prevYtdRevenue > 0 ? ((ytdRevenue - prevYtdRevenue) / prevYtdRevenue) * 100 : 0;
-        const encodingChange = encodingProgress - prevEncodingProgress;
-
-        return {
-            totalOrders,
-            activeResellers,
-            ytdRevenue,
-            encodingProgress,
-            pendingEncoding,
-            ordersChange,
-            resellersChange,
-            ytdChange,
-            encodingChange
-        };
-    }, [filteredOrders, previousPeriodOrders, resellerOrders]);
-
-    // Aggregate orders by reseller
-    const aggregatedData = useMemo(() => {
-        const grouped = {};
-
-        filteredOrders.forEach(order => {
-            const resellerName = order.resellerName;
-            if (!grouped[resellerName]) {
-                grouped[resellerName] = {
-                    resellerName,
-                    totalAmount: 0,
-                    orders: []
-                };
-            }
-            grouped[resellerName].totalAmount += order.totalAmount || 0;
-            grouped[resellerName].orders.push(order);
-        });
-
-        let result = Object.values(grouped);
-        result.sort((a, b) => {
-            return sortDescending
-                ? b.totalAmount - a.totalAmount
-                : a.totalAmount - b.totalAmount;
-        });
-
-        return result;
-    }, [filteredOrders, sortDescending]);
     // Calculate monthly compliance data (rolling cycle)
     const monthlyComplianceData = useMemo(() => {
         const today = new Date();
@@ -267,6 +188,94 @@ const ResellerDashboard = () => {
 
         return result;
     }, [resellerOrders, resellerSettings]);
+
+    // Calculate metrics
+    const metrics = useMemo(() => {
+        // Current period metrics
+        const totalOrders = filteredOrders.length;
+        const activeResellers = new Set(filteredOrders.map(o => o.resellerName)).size;
+        const totalRevenue = filteredOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+        const encodedCount = filteredOrders.filter(o => o.is_encoded).length;
+        const pendingEncoding = totalOrders - encodedCount;
+
+        // Compliance Progress (Replaces Encoding Progress)
+        // Count resellers with 'met' status from rolling cycle
+        const compliantCount = monthlyComplianceData.filter(d => d.status === 'met').length;
+        const totalResellersForCompliance = monthlyComplianceData.length;
+        const complianceRate = totalResellersForCompliance > 0
+            ? (compliantCount / totalResellersForCompliance) * 100
+            : 0;
+
+        // Year-to-Date calculation
+        const today = new Date();
+        const startOfYear = new Date(today.getFullYear(), 0, 1);
+        const ytdOrders = resellerOrders.filter(order => {
+            const orderDate = new Date(order.date);
+            return orderDate >= startOfYear && orderDate <= today && order.status === 'Completed';
+        });
+        const ytdRevenue = ytdOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+
+        // Previous year same period for YTD comparison
+        const startOfPrevYear = new Date(today.getFullYear() - 1, 0, 1);
+        const endOfPrevYearSamePeriod = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
+        const prevYtdOrders = resellerOrders.filter(order => {
+            const orderDate = new Date(order.date);
+            return orderDate >= startOfPrevYear && orderDate <= endOfPrevYearSamePeriod && order.status === 'Completed';
+        });
+        const prevYtdRevenue = prevYtdOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+
+        // Previous period metrics
+        const prevTotalOrders = previousPeriodOrders.length;
+        const prevActiveResellers = new Set(previousPeriodOrders.map(o => o.resellerName)).size;
+
+        // Calculate changes
+        const ordersChange = prevTotalOrders > 0 ? ((totalOrders - prevTotalOrders) / prevTotalOrders) * 100 : 0;
+        const resellersChange = prevActiveResellers > 0 ? ((activeResellers - prevActiveResellers) / prevActiveResellers) * 100 : 0;
+        const ytdChange = prevYtdRevenue > 0 ? ((ytdRevenue - prevYtdRevenue) / prevYtdRevenue) * 100 : 0;
+
+        // Removing Encoding Change as it's no longer tracking encoding
+        const complianceChange = 0; // Placeholder as we don't have historical compliance data easily accessible in this structure without more complex logic
+
+        return {
+            totalOrders,
+            activeResellers,
+            ytdRevenue,
+            complianceRate, // New metric
+            pendingEncoding,
+            ordersChange,
+            resellersChange,
+            ytdChange,
+            complianceChange
+        };
+    }, [filteredOrders, previousPeriodOrders, resellerOrders, monthlyComplianceData]);
+
+    // Aggregate orders by reseller
+    const aggregatedData = useMemo(() => {
+        const grouped = {};
+
+        filteredOrders.forEach(order => {
+            const resellerName = order.resellerName;
+            if (!grouped[resellerName]) {
+                grouped[resellerName] = {
+                    resellerName,
+                    totalAmount: 0,
+                    orders: []
+                };
+            }
+            grouped[resellerName].totalAmount += order.totalAmount || 0;
+            grouped[resellerName].orders.push(order);
+        });
+
+        let result = Object.values(grouped);
+        result.sort((a, b) => {
+            return sortDescending
+                ? b.totalAmount - a.totalAmount
+                : a.totalAmount - b.totalAmount;
+        });
+
+        return result;
+    }, [filteredOrders, sortDescending]);
+
     // Handle encoded toggle
     const handleEncodedToggle = async (order) => {
         const newEncodedStatus = !order.is_encoded;
@@ -488,9 +497,9 @@ const ResellerDashboard = () => {
                     format="currency"
                 />
                 <MetricCard
-                    title="Encoding Progress"
-                    value={metrics.encodingProgress}
-                    change={metrics.encodingChange}
+                    title="Compliance Rate"
+                    value={metrics.complianceRate}
+                    change={metrics.complianceChange}
                     icon={CheckCircle}
                     format="percentage"
                 />
