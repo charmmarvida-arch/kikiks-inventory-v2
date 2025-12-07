@@ -768,7 +768,7 @@ export const InventoryProvider = ({ children }) => {
         setResellerSettings(data || []);
     };
 
-    const updateResellerSetting = async (resellerName, minimumMonthlyOrder) => {
+    const updateResellerSetting = async (resellerName, minimumMonthlyOrder, startDate) => {
         // Check if setting exists
         const existing = resellerSettings.find(s => s.reseller_name === resellerName);
 
@@ -776,7 +776,10 @@ export const InventoryProvider = ({ children }) => {
             // Update existing
             const { error } = await supabase
                 .from('reseller_settings')
-                .update({ minimum_monthly_order: Number(minimumMonthlyOrder) })
+                .update({
+                    minimum_monthly_order: Number(minimumMonthlyOrder),
+                    start_date: startDate
+                })
                 .eq('reseller_name', resellerName);
 
             if (error) {
@@ -788,7 +791,11 @@ export const InventoryProvider = ({ children }) => {
             // Update local state
             setResellerSettings(prev => prev.map(s =>
                 s.reseller_name === resellerName
-                    ? { ...s, minimum_monthly_order: Number(minimumMonthlyOrder) }
+                    ? {
+                        ...s,
+                        minimum_monthly_order: Number(minimumMonthlyOrder),
+                        start_date: startDate // Update local state
+                    }
                     : s
             ));
         } else {
@@ -797,42 +804,44 @@ export const InventoryProvider = ({ children }) => {
                 .from('reseller_settings')
                 .insert({
                     reseller_name: resellerName,
-                    minimum_monthly_order: Number(minimumMonthlyOrder)
+                    minimum_monthly_order: Number(minimumMonthlyOrder),
+                    start_date: startDate // Insert new
                 })
+        })
                 .select()
-                .single();
+    .single();
 
-            if (error) {
-                console.error("Error creating reseller setting:", error);
-                alert("Failed to create minimum order setting");
-                return;
-            }
+if (error) {
+    console.error("Error creating reseller setting:", error);
+    alert("Failed to create minimum order setting");
+    return;
+}
 
-            // Add to local state
-            setResellerSettings(prev => [...prev, data]);
+// Add to local state
+setResellerSettings(prev => [...prev, data]);
         }
     };
 
-    return (
-        <InventoryContext.Provider value={{
-            inventory, addStock,
-            legazpiInventory, addLegazpiProduct, updateLegazpiProduct, deleteLegazpiProduct, addLegazpiStock,
-            history, addHistory,
-            resellers, addReseller, updateReseller, deleteReseller,
-            resellerOrders, addResellerOrder, updateResellerOrderStatus, updateResellerOrder, deleteResellerOrder,
-            transferOrders, addTransferOrder, updateTransferOrderStatus, deleteTransferOrder, updateTransferOrder,
-            kikiksLocations, addKikiksLocation, updateKikiksLocation, deleteKikiksLocation,
-            locationSRPs, updateLocationSRP, updateLocationCategoryPrices,
-            resellerPrices,
-            zonePrices, updateZonePrice,
-            addSku, updateSku, deleteSku, toggleSkuVisibility,
-            resellerZones, addResellerZone, updateResellerZone, deleteResellerZone,
-            resellerSettings, fetchResellerSettings, updateResellerSetting,
-            loading
-        }}>
-            {children}
-        </InventoryContext.Provider>
-    );
+return (
+    <InventoryContext.Provider value={{
+        inventory, addStock,
+        legazpiInventory, addLegazpiProduct, updateLegazpiProduct, deleteLegazpiProduct, addLegazpiStock,
+        history, addHistory,
+        resellers, addReseller, updateReseller, deleteReseller,
+        resellerOrders, addResellerOrder, updateResellerOrderStatus, updateResellerOrder, deleteResellerOrder,
+        transferOrders, addTransferOrder, updateTransferOrderStatus, deleteTransferOrder, updateTransferOrder,
+        kikiksLocations, addKikiksLocation, updateKikiksLocation, deleteKikiksLocation,
+        locationSRPs, updateLocationSRP, updateLocationCategoryPrices,
+        resellerPrices,
+        zonePrices, updateZonePrice,
+        addSku, updateSku, deleteSku, toggleSkuVisibility,
+        resellerZones, addResellerZone, updateResellerZone, deleteResellerZone,
+        resellerSettings, fetchResellerSettings, updateResellerSetting,
+        loading
+    }}>
+        {children}
+    </InventoryContext.Provider>
+);
 };
 
 // eslint-disable-next-line react-refresh/only-export-components

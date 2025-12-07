@@ -173,36 +173,73 @@ const ResellerDashboard = () => {
 
         return result;
     }, [filteredOrders, sortDescending]);
-    // Calculate monthly compliance data (current month only)
+    // Calculate monthly compliance data (rolling cycle)
     const monthlyComplianceData = useMemo(() => {
         const today = new Date();
-        const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-        const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+        const currentYear = today.getFullYear();
+        const currentMonth = today.getMonth();
 
-        // Filter orders for current month only
-        const currentMonthOrders = resellerOrders.filter(order => {
-            const orderDate = new Date(order.date);
-            return orderDate >= firstDayOfMonth &&
-                orderDate <= lastDayOfMonth &&
-                order.status === 'Completed';
-        });
-
-        // Group by reseller
-        const grouped = {};
-        currentMonthOrders.forEach(order => {
-            const resellerName = order.resellerName;
-            if (!grouped[resellerName]) {
-                grouped[resellerName] = 0;
+        // Helper to get current cycle for a specific start day
+        const getCycle = (startDayStr) => {
+            // Default to 1st of month if no start date set
+            let startDay = 1;
+            if (startDayStr) {
+                const date = new Date(startDayStr);
+                if (!isNaN(date.getTime())) {
+                    startDay = date.getDate();
+                }
             }
-            grouped[resellerName] += order.totalAmount || 0;
+
+            // Determine if we are past the start day in current month
+            // Example: Today Dec 7. Start Day 2. Cycle: Dec 2 - Jan 2.
+            // Example: Today Dec 1. Start Day 2. Cycle: Nov 2 - Dec 2.
+
+            let cycleStart = new Date(currentYear, currentMonth, startDay);
+            let cycleEnd = new Date(currentYear, currentMonth + 1, startDay); // End is exclusive or inclusive? Let's say exclusive range [start, end) or inclusive [start, end-1]
+
+            if (today < cycleStart) {
+                // We are in the previous cycle
+                cycleStart = new Date(currentYear, currentMonth - 1, startDay);
+                cycleEnd = new Date(currentYear, currentMonth, startDay);
+            }
+
+            // Adjust end date to be end of day before next start day?
+            // Or just use strict comparison >= start && < end
+            // Let's set time to start of day
+            cycleStart.setHours(0, 0, 0, 0);
+            cycleEnd.setHours(0, 0, 0, 0);
+
+            return { cycleStart, cycleEnd };
+        };
+
+        // Get all unique resellers
+        const uniqueResellers = new Set(resellerOrders.map(o => o.resellerName));
+
+        // Group orders by reseller
+        const groupedOrders = {};
+        resellerOrders.forEach(o => {
+            if (!groupedOrders[o.resellerName]) groupedOrders[o.resellerName] = [];
+            groupedOrders[o.resellerName].push(o);
         });
 
-        // Get all unique resellers and calculate status
-        const uniqueResellers = new Set(resellerOrders.map(o => o.resellerName));
         const result = Array.from(uniqueResellers).map(resellerName => {
-            const ordersThisMonth = grouped[resellerName] || 0;
             const setting = resellerSettings.find(s => s.reseller_name === resellerName);
             const minimum = setting ? setting.minimum_monthly_order : 10000;
+            const startDateStr = setting ? setting.start_date : null;
+
+            const { cycleStart, cycleEnd } = getCycle(startDateStr);
+
+            // Filter orders for this reseller in the current cycle
+            const ordersInCycle = (groupedOrders[resellerName] || []).filter(order => {
+                const orderDate = new Date(order.date);
+                // Use >= start AND < end logic for 1 month exactly
+                return orderDate >= cycleStart && orderDate < cycleEnd && order.status === 'Completed';
+            });
+
+            const ordersThisMonth = ordersInCycle.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+
+            // Determine Cycle Display String
+            const cycleString = `${cycleStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${cycleEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
 
             let status;
             if (ordersThisMonth >= minimum) {
@@ -217,11 +254,12 @@ const ResellerDashboard = () => {
                 resellerName,
                 ordersThisMonth,
                 minimum,
-                status
+                status,
+                cycleString // Add this for UI display
             };
         });
 
-        // Sort by status (not met first, then pending, then met)
+        // Sort by status
         result.sort((a, b) => {
             const statusOrder = { 'not_met': 0, 'pending': 1, 'met': 2 };
             return statusOrder[a.status] - statusOrder[b.status];
@@ -609,7 +647,8 @@ const ResellerDashboard = () => {
                             <thead>
                                 <tr>
                                     <th>Reseller Name</th>
-                                    <th className="text-right">This Month</th>
+                                    <th className="text-right">Cycle Period</th>
+                                    <th className="text-right">Sales</th>
                                     <th className="text-right">Minimum</th>
                                     <th className="text-center">Status</th>
                                 </tr>
@@ -625,6 +664,9 @@ const ResellerDashboard = () => {
                                     monthlyComplianceData.map(data => (
                                         <tr key={data.resellerName}>
                                             <td className="font-medium">{data.resellerName}</td>
+                                            <td className="text-right" style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                                                {data.cycleString}
+                                            </td>
                                             <td className="text-right font-bold">
                                                 ₱{data.ordersThisMonth.toLocaleString()}
                                             </td>

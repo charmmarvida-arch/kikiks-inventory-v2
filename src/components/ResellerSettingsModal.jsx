@@ -24,6 +24,15 @@ const ResellerSettingsModal = ({ onClose }) => {
         return setting ? setting.minimum_monthly_order : 10000;
     };
 
+    // Get start Date
+    const getStartDate = (resellerName) => {
+        if (editValues[`${resellerName}_date`] !== undefined) {
+            return editValues[`${resellerName}_date`];
+        }
+        const setting = resellerSettings.find(s => s.reseller_name === resellerName);
+        return setting ? setting.start_date : '';
+    };
+
     // Handle input change
     const handleChange = (resellerName, value) => {
         setEditValues(prev => ({
@@ -32,19 +41,30 @@ const ResellerSettingsModal = ({ onClose }) => {
         }));
     };
 
+    const handleDateChange = (resellerName, value) => {
+        setEditValues(prev => ({
+            ...prev,
+            [`${resellerName}_date`]: value
+        }));
+    };
+
     // Handle save for a specific reseller
     const handleSave = async (resellerName) => {
-        const value = editValues[resellerName];
-        if (value === undefined || value === '') return;
+        const minimumValue = getMinimum(resellerName); // Get current value (edited or saved)
+        const dateValue = getStartDate(resellerName);  // Get current date (edited or saved)
+
+        if (minimumValue === undefined || minimumValue === '') return;
 
         setSaving(prev => ({ ...prev, [resellerName]: true }));
 
         try {
-            await updateResellerSetting(resellerName, Number(value));
-            // Clear edit value after successful save
+            await updateResellerSetting(resellerName, Number(minimumValue), dateValue);
+
+            // Clear edit values after successful save
             setEditValues(prev => {
                 const newValues = { ...prev };
                 delete newValues[resellerName];
+                delete newValues[`${resellerName}_date`];
                 return newValues;
             });
         } catch (error) {
@@ -73,14 +93,15 @@ const ResellerSettingsModal = ({ onClose }) => {
                             <thead style={{ position: 'sticky', top: 0, backgroundColor: 'white', zIndex: 1 }}>
                                 <tr className="text-left text-sm text-secondary" style={{ borderBottom: '2px solid var(--border-color)' }}>
                                     <th style={{ padding: '12px 16px', fontWeight: '600' }}>Reseller Name</th>
-                                    <th style={{ padding: '12px 16px', fontWeight: '600' }}>Minimum Monthly Order (₱)</th>
+                                    <th style={{ padding: '12px 16px', fontWeight: '600' }}>Start Day</th>
+                                    <th style={{ padding: '12px 16px', fontWeight: '600' }}>Minimum (₱)</th>
                                     <th style={{ padding: '12px 16px', textAlign: 'center', fontWeight: '600' }}>Action</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {uniqueResellers.length === 0 ? (
                                     <tr>
-                                        <td colSpan={3} className="empty-state">
+                                        <td colSpan={4} className="empty-state">
                                             No resellers found. Create an order first to set minimums.
                                         </td>
                                     </tr>
@@ -98,9 +119,18 @@ const ResellerSettingsModal = ({ onClose }) => {
                                             </td>
                                             <td style={{ padding: '16px' }}>
                                                 <input
+                                                    type="date"
+                                                    className="premium-input"
+                                                    style={{ maxWidth: '160px', padding: '8px' }}
+                                                    value={getStartDate(resellerName)}
+                                                    onChange={(e) => handleDateChange(resellerName, e.target.value)}
+                                                />
+                                            </td>
+                                            <td style={{ padding: '16px' }}>
+                                                <input
                                                     type="number"
                                                     className="premium-input"
-                                                    style={{ maxWidth: '200px' }}
+                                                    style={{ maxWidth: '140px' }}
                                                     value={getMinimum(resellerName)}
                                                     onChange={(e) => handleChange(resellerName, e.target.value)}
                                                     min="0"
@@ -111,10 +141,10 @@ const ResellerSettingsModal = ({ onClose }) => {
                                                 <button
                                                     className="icon-btn"
                                                     onClick={() => handleSave(resellerName)}
-                                                    disabled={saving[resellerName] || editValues[resellerName] === undefined}
+                                                    disabled={saving[resellerName]}
                                                     style={{
-                                                        opacity: (saving[resellerName] || editValues[resellerName] === undefined) ? 0.5 : 1,
-                                                        cursor: (saving[resellerName] || editValues[resellerName] === undefined) ? 'not-allowed' : 'pointer'
+                                                        opacity: saving[resellerName] ? 0.5 : 1,
+                                                        cursor: saving[resellerName] ? 'not-allowed' : 'pointer'
                                                     }}
                                                 >
                                                     <Save size={16} />
