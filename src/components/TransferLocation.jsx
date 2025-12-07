@@ -400,7 +400,7 @@ const TransferLocation = () => {
             </div>
 
             {/* Main Content Area */}
-            <div style={{ display: 'flex', gap: '1.5rem' }}>
+            <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
                 {/* Left: Product Categories */}
                 <div style={{ flex: 1 }}>
                     <h3 className="text-lg font-semibold mb-4">Product Categories</h3>
@@ -448,7 +448,7 @@ const TransferLocation = () => {
                 </div>
 
                 {/* Right: Transfer Summary */}
-                <div style={{ width: '300px' }}>
+                <div style={{ minWidth: '300px', flex: '0 0 auto' }}>
                     <div className="form-card" style={{ position: 'sticky', top: '1rem' }}>
                         <h3 className="text-lg font-semibold mb-4">Transfer Summary</h3>
 
