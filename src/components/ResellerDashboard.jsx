@@ -25,6 +25,9 @@ const ResellerDashboard = () => {
     // Sorting State
     const [sortDescending, setSortDescending] = useState(true);
 
+    // Loading state for encoding toggle
+    const [encodingLoading, setEncodingLoading] = useState({});
+
     // Settings Modal State  
     const [showSettingsModal, setShowSettingsModal] = useState(false);
 
@@ -279,287 +282,352 @@ const ResellerDashboard = () => {
     return (
         <div className="fade-in">
             <div className="header-section" style={{ marginBottom: '1.5rem' }}>
-                <Calendar size={14} style={{ display: 'inline', marginRight: '0.25rem' }} />
-                {new Date(startDate).toLocaleDateString()} - {new Date(endDate).toLocaleDateString()}
-            </div>
-        </div>
-
-            {/* Key Metrics */ }
-    <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-        gap: '1.25rem',
-        marginBottom: '2rem'
-    }}>
-        <MetricCard
-            title="Total Orders"
-            value={metrics.totalOrders}
-            change={metrics.ordersChange}
-            icon={Package}
-        />
-        <MetricCard
-            title="Active Resellers"
-            value={metrics.activeResellers}
-            change={metrics.resellersChange}
-            icon={Users}
-        />
-        <MetricCard
-            title="Avg Order Value"
-            value={metrics.avgOrderValue}
-            change={metrics.avgOrderChange}
-            icon={TrendingUp}
-            format="currency"
-        />
-        <MetricCard
-            title="Encoding Progress"
-            value={metrics.encodingProgress}
-            change={metrics.encodingChange}
-            icon={CheckCircle}
-            format="percentage"
-        />
-        <MetricCard
-            title="Pending Encoding"
-            value={metrics.pendingEncoding}
-            change={null}
-            icon={Clock}
-        />
-    </div>
-
-    {/* Summary Table */ }
-    <div className="card">
-        <div className="card-header">
-            <h3 className="card-heading">Reseller Summary</h3>
-            <button
-                onClick={() => setSortDescending(!sortDescending)}
-                style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    padding: '8px 16px',
-                    backgroundColor: sortDescending ? '#f0f9ff' : '#fef3f2',
-                    border: sortDescending ? '1px solid #0ea5e9' : '1px solid #f97316',
-                    borderRadius: '8px',
-                    color: sortDescending ? '#0284c7' : '#ea580c',
-                    fontSize: '0.8125rem',
-                    fontWeight: '600',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                    letterSpacing: '0.01em'
-                }}
-                onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'scale(1.02)';
-                    e.currentTarget.style.boxShadow = sortDescending
-                        ? '0 4px 12px rgba(14, 165, 233, 0.15)'
-                        : '0 4px 12px rgba(249, 115, 22, 0.15)';
-                }}
-                onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'scale(1)';
-                    e.currentTarget.style.boxShadow = 'none';
-                }}
-            >
-                {sortDescending ? '↓' : '↑'}
-                <span>{sortDescending ? 'Highest First' : 'Lowest First'}</span>
-            </button>
-        </div>
-        <div className="table-container">
-            <table className="inventory-table">
-                <thead>
-                    <tr>
-                        <th>Reseller Name</th>
-                        <th className="text-right">Total Orders</th>
-                        <th className="text-center">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {aggregatedData.length === 0 ? (
-                        <tr>
-                            <td colSpan={3} className="empty-state">
-                                No orders found for the selected date range.
-                            </td>
-                        </tr>
-                    ) : (
-                        aggregatedData.map(reseller => (
-                            <tr key={reseller.resellerName}>
-                                <td className="font-medium">{reseller.resellerName}</td>
-                                <td className="text-right font-bold">
-                                    ₱{reseller.totalAmount.toLocaleString()}
-                                </td>
-                                <td className="text-center">
-                                    <button
-                                        className="text-btn text-primary"
-                                        onClick={() => {
-                                            setSelectedReseller(reseller);
-                                            setShowModal(true);
-                                        }}
-                                    >
-                                        View
-                                    </button>
-                                </td>
-                            </tr>
-                        ))
-                    )}
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    {/* Date Filter Modal */ }
-    {
-        showDateFilterModal && (
-            <div className="modal-overlay" onClick={() => setShowDateFilterModal(false)}>
-                <div className="modal-content medium-modal" onClick={e => e.stopPropagation()}>
-                    <div className="modal-header">
-                        <h3 className="modal-title">
-                            <Calendar size={20} />
-                            Date Range Filter
-                        </h3>
-                        <button className="close-btn" onClick={() => setShowDateFilterModal(false)}>
-                            <X size={24} />
-                        </button>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                        <h2 className="page-title">Reseller Dashboard</h2>
+                        <p className="page-subtitle">Executive overview of reseller performance</p>
                     </div>
-                    <div className="modal-body">
-                        <div className="grid-responsive two-cols">
-                            <div>
-                                <label className="form-label">Start Date</label>
-                                <input
-                                    type="date"
-                                    className="premium-input"
-                                    value={startDate}
-                                    onChange={(e) => setStartDate(e.target.value)}
-                                />
-                            </div>
-                            <div>
-                                <label className="form-label">End Date</label>
-                                <input
-                                    type="date"
-                                    className="premium-input"
-                                    value={endDate}
-                                    onChange={(e) => setEndDate(e.target.value)}
-                                />
-                            </div>
-                        </div>
-                        <div className="flex justify-end gap-4 mt-6">
-                            <button
-                                className="icon-btn px-4 w-auto"
-                                onClick={() => setShowDateFilterModal(false)}
-                            >
-                                Close
-                            </button>
-                            <button
-                                className="submit-btn"
-                                onClick={() => setShowDateFilterModal(false)}
-                            >
-                                Apply Filter
-                            </button>
-                        </div>
+                    <div style={{ display: 'flex', gap: '0.75rem' }}>
+                        <button
+                            onClick={() => setShowSettingsModal(true)}
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.5rem',
+                                padding: '10px 20px',
+                                backgroundColor: 'white',
+                                border: '1.5px solid #64748b',
+                                borderRadius: '50px',
+                                color: '#64748b',
+                                fontSize: '0.875rem',
+                                fontWeight: '600',
+                                cursor: 'pointer',
+                                transition: 'all 0.3s ease',
+                                boxShadow: '0 2px 8px rgba(100, 116, 139, 0.1)'
+                            }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.backgroundColor = '#64748b';
+                                e.currentTarget.style.color = 'white';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.backgroundColor = 'white';
+                                e.currentTarget.style.color = '#64748b';
+                            }}
+                        >
+                            <Settings size={16} />
+                            <span>Settings</span>
+                        </button>
+                        <button
+                            onClick={() => setShowDateFilterModal(true)}
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.5rem',
+                                padding: '10px 20px',
+                                backgroundColor: 'white',
+                                border: '1.5px solid var(--primary)',
+                                borderRadius: '50px',
+                                color: 'var(--primary)',
+                                fontSize: '0.875rem',
+                                fontWeight: '600',
+                                cursor: 'pointer',
+                                transition: 'all 0.3s ease',
+                                boxShadow: '0 2px 8px rgba(79, 70, 229, 0.1)'
+                            }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.backgroundColor = 'var(--primary)';
+                                e.currentTarget.style.color = 'white';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.backgroundColor = 'white';
+                                e.currentTarget.style.color = 'var(--primary)';
+                            }}
+                        >
+                            <Calendar size={16} />
+                            <span>Filter</span>
+                        </button>
                     </div>
                 </div>
+                <div style={{ marginTop: '0.75rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+                    📅 {new Date(startDate).toLocaleDateString()} - {new Date(endDate).toLocaleDateString()}
+                </div>
             </div>
-        )
-    }
 
-    {/* Order Details Modal */ }
-    {
-        showModal && selectedReseller && (
-            <div className="modal-overlay" onClick={() => setShowModal(false)}>
-                <div className="modal-content medium-modal" onClick={e => e.stopPropagation()}>
-                    <div className="modal-header">
-                        <h3 className="modal-title">
-                            Orders - {selectedReseller.resellerName}
-                        </h3>
-                        <button className="close-btn" onClick={() => setShowModal(false)}>
-                            <X size={24} />
-                        </button>
-                    </div>
-                    <div className="modal-body">
-                        <div className="scrollable-table-container" style={{ maxHeight: '500px' }}>
-                            <table className="w-full" style={{ borderCollapse: 'separate', borderSpacing: 0 }}>
-                                <thead style={{ position: 'sticky', top: 0, backgroundColor: 'white', zIndex: 1 }}>
-                                    <tr className="text-left text-sm text-secondary" style={{ borderBottom: '2px solid var(--border-color)' }}>
-                                        <th style={{ padding: '12px 16px', fontWeight: '600' }}>Date</th>
-                                        <th style={{ padding: '12px 16px', textAlign: 'right', fontWeight: '600' }}>Total Order</th>
-                                        <th style={{ padding: '12px 16px', fontWeight: '600' }}>COA Created By</th>
-                                        <th style={{ padding: '12px 16px', textAlign: 'center', fontWeight: '600' }}>Encoded Status</th>
+            {/* Key Metrics */}
+            <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                gap: '1.25rem',
+                marginBottom: '2rem'
+            }}>
+                <MetricCard
+                    title="Total Orders"
+                    value={metrics.totalOrders}
+                    change={metrics.ordersChange}
+                    icon={Package}
+                />
+                <MetricCard
+                    title="Active Resellers"
+                    value={metrics.activeResellers}
+                    change={metrics.resellersChange}
+                    icon={Users}
+                />
+                <MetricCard
+                    title="Avg Order Value"
+                    value={metrics.avgOrderValue}
+                    change={metrics.avgOrderChange}
+                    icon={TrendingUp}
+                    format="currency"
+                />
+                <MetricCard
+                    title="Encoding Progress"
+                    value={metrics.encodingProgress}
+                    change={metrics.encodingChange}
+                    icon={CheckCircle}
+                    format="percentage"
+                />
+                <MetricCard
+                    title="Pending Encoding"
+                    value={metrics.pendingEncoding}
+                    change={null}
+                    icon={Clock}
+                />
+            </div>
+
+            {/* Summary Table */}
+            <div className="card">
+                <div className="card-header">
+                    <h3 className="card-heading">Reseller Summary</h3>
+                    <button
+                        onClick={() => setSortDescending(!sortDescending)}
+                        style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            padding: '8px 16px',
+                            backgroundColor: sortDescending ? '#f0f9ff' : '#fef3f2',
+                            border: sortDescending ? '1px solid #0ea5e9' : '1px solid #f97316',
+                            borderRadius: '8px',
+                            color: sortDescending ? '#0284c7' : '#ea580c',
+                            fontSize: '0.8125rem',
+                            fontWeight: '600',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                            letterSpacing: '0.01em'
+                        }}
+                        onMouseEnter={(e) => {
+                            e.currentTarget.style.transform = 'scale(1.02)';
+                            e.currentTarget.style.boxShadow = sortDescending
+                                ? '0 4px 12px rgba(14, 165, 233, 0.15)'
+                                : '0 4px 12px rgba(249, 115, 22, 0.15)';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.transform = 'scale(1)';
+                            e.currentTarget.style.boxShadow = 'none';
+                        }}
+                    >
+                        {sortDescending ? '↓' : '↑'}
+                        <span>{sortDescending ? 'Highest First' : 'Lowest First'}</span>
+                    </button>
+                </div>
+                <div className="table-container">
+                    <table className="inventory-table">
+                        <thead>
+                            <tr>
+                                <th>Reseller Name</th>
+                                <th className="text-right">Total Orders</th>
+                                <th className="text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {aggregatedData.length === 0 ? (
+                                <tr>
+                                    <td colSpan={3} className="empty-state">
+                                        No orders found for the selected date range.
+                                    </td>
+                                </tr>
+                            ) : (
+                                aggregatedData.map(reseller => (
+                                    <tr key={reseller.resellerName}>
+                                        <td className="font-medium">{reseller.resellerName}</td>
+                                        <td className="text-right font-bold">
+                                            ₱{reseller.totalAmount.toLocaleString()}
+                                        </td>
+                                        <td className="text-center">
+                                            <button
+                                                className="text-btn text-primary"
+                                                onClick={() => {
+                                                    setSelectedReseller(reseller);
+                                                    setShowModal(true);
+                                                }}
+                                            >
+                                                View
+                                            </button>
+                                        </td>
                                     </tr>
-                                </thead>
-                                <tbody>
-                                    {selectedReseller.orders.map((order, index) => (
-                                        <tr
-                                            key={order.id}
-                                            style={{
-                                                borderBottom: index < selectedReseller.orders.length - 1 ? '1px solid #f0f0f0' : 'none',
-                                                backgroundColor: index % 2 === 0 ? 'white' : '#fafafa'
-                                            }}
-                                        >
-                                            <td style={{ padding: '16px' }}>
-                                                {new Date(order.date).toLocaleDateString()}
-                                            </td>
-                                            <td style={{ padding: '16px', textAlign: 'right', fontWeight: 'bold' }}>
-                                                ₱{order.totalAmount?.toLocaleString() || '0'}
-                                            </td>
-                                            <td style={{ padding: '16px', color: 'var(--text-secondary)' }}>
-                                                {order.created_by || 'N/A'}
-                                            </td>
-                                            <td style={{ padding: '16px', textAlign: 'center' }}>
-                                                <button
-                                                    className={`${order.is_encoded
-                                                        ? 'bg-green-100 text-green-700 border-green-300'
-                                                        : 'bg-gray-100 text-gray-700 border-gray-300'
-                                                        }`}
-                                                    onClick={() => handleEncodedToggle(order)}
-                                                    disabled={encodingLoading[order.id]}
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {/* Date Filter Modal */}
+            {
+                showDateFilterModal && (
+                    <div className="modal-overlay" onClick={() => setShowDateFilterModal(false)}>
+                        <div className="modal-content medium-modal" onClick={e => e.stopPropagation()}>
+                            <div className="modal-header">
+                                <h3 className="modal-title">
+                                    <Calendar size={20} />
+                                    Date Range Filter
+                                </h3>
+                                <button className="close-btn" onClick={() => setShowDateFilterModal(false)}>
+                                    <X size={24} />
+                                </button>
+                            </div>
+                            <div className="modal-body">
+                                <div className="grid-responsive two-cols">
+                                    <div>
+                                        <label className="form-label">Start Date</label>
+                                        <input
+                                            type="date"
+                                            className="premium-input"
+                                            value={startDate}
+                                            onChange={(e) => setStartDate(e.target.value)}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="form-label">End Date</label>
+                                        <input
+                                            type="date"
+                                            className="premium-input"
+                                            value={endDate}
+                                            onChange={(e) => setEndDate(e.target.value)}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="flex justify-end gap-4 mt-6">
+                                    <button
+                                        className="icon-btn px-4 w-auto"
+                                        onClick={() => setShowDateFilterModal(false)}
+                                    >
+                                        Close
+                                    </button>
+                                    <button
+                                        className="submit-btn"
+                                        onClick={() => setShowDateFilterModal(false)}
+                                    >
+                                        Apply Filter
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )
+            }
+
+            {/* Order Details Modal */}
+            {
+                showModal && selectedReseller && (
+                    <div className="modal-overlay" onClick={() => setShowModal(false)}>
+                        <div className="modal-content medium-modal" onClick={e => e.stopPropagation()}>
+                            <div className="modal-header">
+                                <h3 className="modal-title">
+                                    Orders - {selectedReseller.resellerName}
+                                </h3>
+                                <button className="close-btn" onClick={() => setShowModal(false)}>
+                                    <X size={24} />
+                                </button>
+                            </div>
+                            <div className="modal-body">
+                                <div className="scrollable-table-container" style={{ maxHeight: '500px' }}>
+                                    <table className="w-full" style={{ borderCollapse: 'separate', borderSpacing: 0 }}>
+                                        <thead style={{ position: 'sticky', top: 0, backgroundColor: 'white', zIndex: 1 }}>
+                                            <tr className="text-left text-sm text-secondary" style={{ borderBottom: '2px solid var(--border-color)' }}>
+                                                <th style={{ padding: '12px 16px', fontWeight: '600' }}>Date</th>
+                                                <th style={{ padding: '12px 16px', textAlign: 'right', fontWeight: '600' }}>Total Order</th>
+                                                <th style={{ padding: '12px 16px', fontWeight: '600' }}>COA Created By</th>
+                                                <th style={{ padding: '12px 16px', textAlign: 'center', fontWeight: '600' }}>Encoded Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {selectedReseller.orders.map((order, index) => (
+                                                <tr
+                                                    key={order.id}
                                                     style={{
-                                                        padding: '6px 16px',
-                                                        borderRadius: '6px',
-                                                        fontSize: '0.875rem',
-                                                        fontWeight: '600',
-                                                        border: '1px solid',
-                                                        cursor: encodingLoading[order.id] ? 'wait' : 'pointer',
-                                                        transition: 'all 0.2s',
-                                                        minWidth: '120px',
-                                                        opacity: encodingLoading[order.id] ? 0.6 : 1
+                                                        borderBottom: index < selectedReseller.orders.length - 1 ? '1px solid #f0f0f0' : 'none',
+                                                        backgroundColor: index % 2 === 0 ? 'white' : '#fafafa'
                                                     }}
                                                 >
-                                                    {encodingLoading[order.id] ? (
-                                                        'Updating...'
-                                                    ) : order.is_encoded ? (
-                                                        <>✓ ENCODED</>
-                                                    ) : (
-                                                        <>NOT ENCODED</>
-                                                    )}
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                        <div style={{
-                            marginTop: '1.5rem',
-                            paddingTop: '1.5rem',
-                            borderTop: '2px solid var(--border-color)',
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center'
-                        }}>
-                            <span style={{ fontSize: '1.125rem', fontWeight: 'bold' }}>Total Amount:</span>
-                            <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--primary)' }}>
-                                ₱{selectedReseller.totalAmount.toLocaleString()}
-                            </span>
+                                                    <td style={{ padding: '16px' }}>
+                                                        {new Date(order.date).toLocaleDateString()}
+                                                    </td>
+                                                    <td style={{ padding: '16px', textAlign: 'right', fontWeight: 'bold' }}>
+                                                        ₱{order.totalAmount?.toLocaleString() || '0'}
+                                                    </td>
+                                                    <td style={{ padding: '16px', color: 'var(--text-secondary)' }}>
+                                                        {order.created_by || 'N/A'}
+                                                    </td>
+                                                    <td style={{ padding: '16px', textAlign: 'center' }}>
+                                                        <button
+                                                            className={`${order.is_encoded
+                                                                ? 'bg-green-100 text-green-700 border-green-300'
+                                                                : 'bg-gray-100 text-gray-700 border-gray-300'
+                                                                }`}
+                                                            onClick={() => handleEncodedToggle(order)}
+                                                            disabled={encodingLoading[order.id]}
+                                                            style={{
+                                                                padding: '6px 16px',
+                                                                borderRadius: '6px',
+                                                                fontSize: '0.875rem',
+                                                                fontWeight: '600',
+                                                                border: '1px solid',
+                                                                cursor: encodingLoading[order.id] ? 'wait' : 'pointer',
+                                                                transition: 'all 0.2s',
+                                                                minWidth: '120px',
+                                                                opacity: encodingLoading[order.id] ? 0.6 : 1
+                                                            }}
+                                                        >
+                                                            {encodingLoading[order.id] ? (
+                                                                'Updating...'
+                                                            ) : order.is_encoded ? (
+                                                                <>✓ ENCODED</>
+                                                            ) : (
+                                                                <>NOT ENCODED</>
+                                                            )}
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div style={{
+                                    marginTop: '1.5rem',
+                                    paddingTop: '1.5rem',
+                                    borderTop: '2px solid var(--border-color)',
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center'
+                                }}>
+
+                                    <span style={{ fontSize: '1.125rem', fontWeight: 'bold' }}>Total Amount:</span>
+                                    <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--primary)' }}>
+                                        ₱{selectedReseller.totalAmount.toLocaleString()}
+                                    </span>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </div>
-        )
-    }
-        </div >
+                )
+            }
+
+            {/* Settings Modal */}
+            {showSettingsModal && (
+                <ResellerSettingsModal onClose={() => setShowSettingsModal(false)} />
+            )}
+        </div>
     );
-})
-{/* Settings Modal */ }
-{
-    showSettingsModal && (
-        <ResellerSettingsModal onClose={() => setShowSettingsModal(false)} />
-    )
-}
-}
+};
 export default ResellerDashboard;
