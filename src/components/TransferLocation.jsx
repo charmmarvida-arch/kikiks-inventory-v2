@@ -25,7 +25,14 @@ const TransferLocation = ({ isPublic = false }) => {
         updateLocationCategoryPrices,
         addTransferOrder,
         addStock,
-        addLegazpiStock } = useInventory();
+        addLegazpiStock,
+        addLegazpiProduct,
+        addSku,
+        updateLegazpiProduct,
+        deleteLegazpiProduct,
+        updateSku,
+        deleteSku
+    } = useInventory();
 
     // State declarations
     const [fromLocation, setFromLocation] = useState('FTF Manufacturing');
@@ -39,6 +46,139 @@ const TransferLocation = ({ isPublic = false }) => {
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [editingPriceLocation, setEditingPriceLocation] = useState(null);
     const [tempPrices, setTempPrices] = useState({});
+    const [newItem, setNewItem] = useState({ name: '', flavor: '', quantity: 0, unit: 'PCS', sku: '', description: '' });
+
+    // Inventory Management State
+    const [activeTab, setActiveTab] = useState('add'); // 'add' | 'manage'
+    const [searchTerm, setSearchTerm] = useState('');
+    const [editingItem, setEditingItem] = useState(null);
+
+    const handleAddItem = async () => {
+        if (!editingPriceLocation) return;
+
+        try {
+            if (editingItem) {
+                // UPDATE EXISTING ITEM
+                if (editingPriceLocation === 'Legazpi Storage') {
+                    await updateLegazpiProduct(editingItem.id, {
+                        product_name: newItem.name,
+                        flavor: newItem.flavor,
+                        quantity: newItem.quantity,
+                        unit: newItem.unit
+                    });
+                    alert('Item updated successfully');
+                } else if (editingPriceLocation === 'FTF Manufacturing') {
+                    await updateSku(editingItem.sku, {
+                        sku: newItem.sku,
+                        description: newItem.description,
+                        uom: newItem.unit,
+                        quantity: newItem.quantity
+                    });
+                    alert('Item updated successfully');
+                }
+                setEditingItem(null);
+            } else {
+                // ADD NEW ITEM
+                if (editingPriceLocation === 'Legazpi Storage') {
+                    if (!newItem.name) return alert('Product Name is required');
+                    await addLegazpiProduct({
+                        product_name: newItem.name,
+                        flavor: newItem.flavor,
+                        quantity: newItem.quantity,
+                        unit: newItem.unit
+                    });
+                    alert('Item added to Legazpi Storage');
+                } else if (editingPriceLocation === 'FTF Manufacturing') {
+                    if (!newItem.sku || !newItem.description) return alert('SKU and Description are required');
+                    await addSku({
+                        sku: newItem.sku,
+                        description: newItem.description,
+                        uom: newItem.unit,
+                        quantity: 0 // Default to 0 for inventory to avoid mess
+                    });
+                    // If user specified quantity, we might want to add stock? 
+                    // For now let's stick to adding the SKU definition.
+                    // The input has quantity, so maybe we should honor it?
+                    // existing addSku sets quantity to 0. 
+                    // Let's force update if quantity is provided.
+                    if (newItem.quantity > 0) {
+                        await addStock(newItem.sku, newItem.quantity);
+                    }
+                    alert('Item added to Inventory');
+                }
+            }
+            // Reset form
+            setNewItem({ name: '', flavor: '', quantity: 0, unit: 'PCS', sku: '', description: '' });
+            setActiveTab('manage'); // Switch to view the item
+        } catch (error) {
+            console.error('Error saving item:', error);
+            alert('Failed to save item');
+        }
+    };
+
+    const handleEditClick = (item) => {
+        setEditingItem(item);
+        if (editingPriceLocation === 'Legazpi Storage') {
+            setNewItem({
+                name: item.product_name,
+                flavor: item.flavor || '',
+                quantity: item.quantity,
+                unit: item.unit,
+                sku: '',
+                description: ''
+            });
+        } else {
+            setNewItem({
+                name: '',
+                flavor: '',
+                quantity: item.quantity,
+                unit: item.uom,
+                sku: item.sku,
+                description: item.description
+            });
+        }
+        setActiveTab('add'); // Switch to form
+    };
+
+    const handleDeleteClick = async (idOrSku) => {
+        if (!confirm('Are you sure you want to delete this item? This action cannot be undone.')) return;
+
+        try {
+            if (editingPriceLocation === 'Legazpi Storage') {
+                await deleteLegazpiProduct(idOrSku);
+            } else {
+                await deleteSku(idOrSku);
+            }
+        } catch (error) {
+            console.error('Error deleting:', error);
+            alert('Failed to delete item');
+        }
+    };
+
+    // Filter items for management view
+    const filteredManagementItems = useMemo(() => {
+        if (!editingPriceLocation) return [];
+
+        let items = [];
+        if (editingPriceLocation === 'Legazpi Storage') {
+            items = legazpiInventory;
+        } else if (editingPriceLocation === 'FTF Manufacturing') {
+            items = inventory;
+        }
+
+        if (!searchTerm) return items;
+
+        const lowerSearch = searchTerm.toLowerCase();
+        return items.filter(item => {
+            if (editingPriceLocation === 'Legazpi Storage') {
+                return item.product_name?.toLowerCase().includes(lowerSearch) ||
+                    item.flavor?.toLowerCase().includes(lowerSearch);
+            } else {
+                return item.sku?.toLowerCase().includes(lowerSearch) ||
+                    item.description?.toLowerCase().includes(lowerSearch);
+            }
+        });
+    }, [editingPriceLocation, legazpiInventory, inventory, searchTerm]);
 
     // Get source inventory based on FROM location
     const sourceInventory = useMemo(() => {
@@ -152,7 +292,7 @@ const TransferLocation = ({ isPublic = false }) => {
         // Group products by main categories
         MAIN_CATEGORIES.forEach(cat => {
             grouped[cat.id] = sourceInventory.filter(item =>
-                item.sku?.startsWith(cat.id) || item.description?.includes(cat.name.slice(0, -1))
+                item.sku?.startsWith(cat.id) || item.description?.toLowerCase().includes(cat.name.slice(0, -1).toLowerCase())
             );
         });
 
@@ -341,7 +481,7 @@ const TransferLocation = ({ isPublic = false }) => {
     }, [fromLocation, kikiksLocations]);
 
     return (
-        <div className="fade-in">
+        <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '1.5rem' }}>
             {/* Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                 <div>
@@ -406,11 +546,13 @@ const TransferLocation = ({ isPublic = false }) => {
                 {/* Left: Product Categories */}
                 <div style={{ flex: 1 }}>
                     <h3 className="text-lg font-semibold mb-4">Product Categories</h3>
-                    <div style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-                        gap: '1rem'
-                    }}>
+                    <div
+                        style={{
+                            display: 'grid',
+                            gap: '1.5rem'
+                        }}
+                        className="product-categories-grid"
+                    >
                         {visibleCategories.map(category => {
                             const Icon = category.icon;
                             const totals = categoryTotals[category.id] || { qty: 0, value: 0 };
@@ -433,7 +575,7 @@ const TransferLocation = ({ isPublic = false }) => {
                                         <h4 style={{ fontSize: '1.1rem', fontWeight: '600', margin: 0 }}>{category.name}</h4>
                                     </div>
                                     <div style={{ fontSize: '1.5rem', fontWeight: '700', color: category.color }}>
-                                        {totals.qty} qty
+                                        {totals.qty} Quantity
                                     </div>
                                     {isBranch && (
                                         <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
@@ -498,8 +640,9 @@ const TransferLocation = ({ isPublic = false }) => {
 
             {/* Category Modal */}
             {selectedCategory && (
-                <div className="modal-overlay" onClick={closeModal}>
-                    <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '600px' }}>
+                <div className="modal-overlay" onClick={closeModal} style={{ padding: '1rem' }}>
+                    <div className="modal-content" onClick={e => e.stopPropagation()}
+                        style={{ maxWidth: '650px', margin: '2rem auto', borderRadius: '12px' }}>
                         <div className="modal-header">
                             <h2 className="modal-title">
                                 Select {visibleCategories.find(c => c.id === selectedCategory)?.name} to Transfer
@@ -585,6 +728,31 @@ const TransferLocation = ({ isPublic = false }) => {
                             <div style={{ width: '300px', borderRight: '1px solid var(--border-color)', backgroundColor: '#f8f9fa', overflowY: 'auto' }}>
                                 <div style={{ padding: '1rem' }}>
                                     <h3 style={{ fontSize: '0.85rem', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
+                                        WAREHOUSES
+                                    </h3>
+                                    {WAREHOUSE_LOCATIONS.map(loc => (
+                                        <div
+                                            key={loc}
+                                            onClick={() => {
+                                                setEditingPriceLocation(loc);
+                                                setNewItem({ name: '', flavor: '', quantity: 0, unit: 'PCS', sku: '', description: '' });
+                                            }}
+                                            style={{
+                                                padding: '0.75rem',
+                                                marginBottom: '0.5rem',
+                                                borderRadius: 'var(--radius-md)',
+                                                cursor: 'pointer',
+                                                background: editingPriceLocation === loc ? 'white' : 'transparent',
+                                                borderLeft: editingPriceLocation === loc ? '4px solid var(--primary)' : '4px solid transparent',
+                                                fontWeight: editingPriceLocation === loc ? '600' : '400',
+                                                color: editingPriceLocation === loc ? 'var(--primary)' : 'var(--text-primary)'
+                                            }}
+                                        >
+                                            {loc}
+                                        </div>
+                                    ))}
+
+                                    <h3 style={{ fontSize: '0.85rem', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '1rem', marginTop: '1.5rem' }}>
                                         BRANCH LOCATIONS
                                     </h3>
                                     {kikiksLocations.map(loc => (
@@ -616,54 +784,234 @@ const TransferLocation = ({ isPublic = false }) => {
                                 </div>
                             </div>
 
-                            {/* RIGHT: Price Configuration */}
+                            {/* RIGHT: Price Configuration or Add Item */}
                             <div style={{ flex: 1, padding: '2rem', overflowY: 'auto' }}>
                                 {editingPriceLocation ? (
                                     <div>
                                         <h3 style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '0.5rem' }}>
                                             {editingPriceLocation}
                                         </h3>
-                                        <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>
-                                            Configure pricing for this location
-                                        </p>
 
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                                            {MAIN_CATEGORIES.map(cat => (
-                                                <div
-                                                    key={cat.id}
-                                                    style={{
-                                                        display: 'flex',
-                                                        justifyContent: 'space-between',
-                                                        alignItems: 'center',
-                                                        padding: '1rem',
-                                                        background: 'var(--gray-50)',
-                                                        borderRadius: 'var(--radius-md)',
-                                                        border: '1px solid var(--border-color)'
-                                                    }}
-                                                >
-                                                    <label style={{ fontWeight: '600' }}>
-                                                        {cat.name} ({cat.id})
-                                                    </label>
-                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                                        <span style={{ color: 'var(--text-secondary)' }}>₱</span>
-                                                        <input
-                                                            type="number"
-                                                            value={tempPrices[cat.id] || 0}
-                                                            onChange={(e) => handlePriceChange(cat.id, e.target.value)}
-                                                            className="premium-input"
-                                                            style={{ width: '120px', textAlign: 'right', fontWeight: '700' }}
-                                                        />
-                                                    </div>
+                                        {WAREHOUSE_LOCATIONS.includes(editingPriceLocation) ? (
+                                            <div className="form-card" style={{ padding: '1.5rem', height: '100%', display: 'flex', flexDirection: 'column' }}>
+                                                {/* Tabs */}
+                                                <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--border-color)' }}>
+                                                    <button
+                                                        onClick={() => { setActiveTab('add'); setEditingItem(null); setNewItem({ name: '', flavor: '', quantity: 0, unit: 'PCS', sku: '', description: '' }); }}
+                                                        style={{
+                                                            padding: '0.5rem 1rem',
+                                                            borderBottom: activeTab === 'add' ? '2px solid var(--primary)' : 'none',
+                                                            color: activeTab === 'add' ? 'var(--primary)' : 'var(--text-secondary)',
+                                                            fontWeight: activeTab === 'add' ? '600' : '400',
+                                                            background: 'none',
+                                                            cursor: 'pointer'
+                                                        }}
+                                                    >
+                                                        {editingItem ? 'Edit Item' : 'Add New Item'}
+                                                    </button>
+                                                    <button
+                                                        onClick={() => setActiveTab('manage')}
+                                                        style={{
+                                                            padding: '0.5rem 1rem',
+                                                            borderBottom: activeTab === 'manage' ? '2px solid var(--primary)' : 'none',
+                                                            color: activeTab === 'manage' ? 'var(--primary)' : 'var(--text-secondary)',
+                                                            fontWeight: activeTab === 'manage' ? '600' : '400',
+                                                            background: 'none',
+                                                            cursor: 'pointer'
+                                                        }}
+                                                    >
+                                                        Manage Inventory
+                                                    </button>
                                                 </div>
-                                            ))}
-                                        </div>
 
-                                        <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'flex-end' }}>
-                                            <button onClick={savePrices} className="submit-btn">
-                                                <Save size={18} style={{ marginRight: '0.5rem' }} />
-                                                Save Changes
-                                            </button>
-                                        </div>
+                                                {activeTab === 'add' ? (
+                                                    <>
+                                                        <h4 className="font-semibold mb-4">{editingItem ? 'Update Item Details' : 'Add New Item to Inventory'}</h4>
+                                                        <div className="form-grid" style={{ gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                                            {editingPriceLocation === 'Legazpi Storage' ? (
+                                                                <>
+                                                                    <div className="form-group">
+                                                                        <label>Product Name</label>
+                                                                        <input
+                                                                            className="premium-input"
+                                                                            value={newItem.name}
+                                                                            onChange={e => setNewItem({ ...newItem, name: e.target.value })}
+                                                                            placeholder="e.g. Tray 150g"
+                                                                        />
+                                                                    </div>
+                                                                    <div className="form-group">
+                                                                        <label>Flavor</label>
+                                                                        <input
+                                                                            className="premium-input"
+                                                                            value={newItem.flavor}
+                                                                            onChange={e => setNewItem({ ...newItem, flavor: e.target.value })}
+                                                                            placeholder="Optional"
+                                                                        />
+                                                                    </div>
+                                                                </>
+                                                            ) : (
+                                                                <>
+                                                                    <div className="form-group">
+                                                                        <label>SKU</label>
+                                                                        <input
+                                                                            className="premium-input"
+                                                                            value={newItem.sku}
+                                                                            onChange={e => setNewItem({ ...newItem, sku: e.target.value })}
+                                                                            placeholder="e.g. FGT-001"
+                                                                            disabled={!!editingItem} // Disable SKU editing for safety
+                                                                        />
+                                                                    </div>
+                                                                    <div className="form-group">
+                                                                        <label>Description</label>
+                                                                        <input
+                                                                            className="premium-input"
+                                                                            value={newItem.description}
+                                                                            onChange={e => setNewItem({ ...newItem, description: e.target.value })}
+                                                                            placeholder="e.g. Tray 150g Vanilla"
+                                                                        />
+                                                                    </div>
+                                                                </>
+                                                            )}
+                                                            <div className="form-group">
+                                                                <label>Quantity</label>
+                                                                <input
+                                                                    type="number"
+                                                                    className="premium-input"
+                                                                    value={newItem.quantity}
+                                                                    onChange={e => setNewItem({ ...newItem, quantity: parseInt(e.target.value) || 0 })}
+                                                                />
+                                                            </div>
+                                                            <div className="form-group">
+                                                                <label>Unit</label>
+                                                                <select
+                                                                    className="premium-input"
+                                                                    value={newItem.unit}
+                                                                    onChange={e => setNewItem({ ...newItem, unit: e.target.value })}
+                                                                >
+                                                                    <option value="PCS">PCS</option>
+                                                                    <option value="GRM">GRM</option>
+                                                                    <option value="KGS">KGS</option>
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                        <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+                                                            <button onClick={handleAddItem} className="submit-btn" style={{ flex: 1 }}>
+                                                                <Save size={18} className="mr-2" /> {editingItem ? 'Update Item' : 'Add Item'}
+                                                            </button>
+                                                            {editingItem && (
+                                                                <button
+                                                                    onClick={() => { setEditingItem(null); setNewItem({ name: '', flavor: '', quantity: 0, unit: 'PCS', sku: '', description: '' }); setActiveTab('manage'); }}
+                                                                    className="secondary-btn"
+                                                                    style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'white', cursor: 'pointer' }}
+                                                                >
+                                                                    Cancel
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                    </>
+                                                ) : (
+                                                    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                                                        <div style={{ marginBottom: '1rem' }}>
+                                                            <input
+                                                                type="text"
+                                                                placeholder="Search items..."
+                                                                className="premium-input"
+                                                                value={searchTerm}
+                                                                onChange={e => setSearchTerm(e.target.value)}
+                                                                style={{ width: '100%' }}
+                                                            />
+                                                        </div>
+                                                        <div style={{ flex: 1, overflowY: 'auto', border: '1px solid var(--border-color)', borderRadius: '8px' }}>
+                                                            {filteredManagementItems.map((item, idx) => (
+                                                                <div
+                                                                    key={item.id || item.sku || idx}
+                                                                    style={{
+                                                                        padding: '0.75rem',
+                                                                        borderBottom: '1px solid var(--border-color)',
+                                                                        display: 'flex',
+                                                                        justifyContent: 'space-between',
+                                                                        alignItems: 'center',
+                                                                        backgroundColor: 'white'
+                                                                    }}
+                                                                >
+                                                                    <div>
+                                                                        <div style={{ fontWeight: '600', fontSize: '0.9rem' }}>
+                                                                            {editingPriceLocation === 'Legazpi Storage' ? `${item.product_name} ${item.flavor || ''}` : item.description}
+                                                                        </div>
+                                                                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                                                                            {editingPriceLocation === 'Legazpi Storage' ? `Qty: ${item.quantity} ${item.unit}` : `SKU: ${item.sku} | Qty: ${item.quantity}`}
+                                                                        </div>
+                                                                    </div>
+                                                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                                                        <button
+                                                                            onClick={() => handleEditClick(item)}
+                                                                            style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem', backgroundColor: '#e3f2fd', color: '#1976d2', borderRadius: '4px', border: 'none', cursor: 'pointer' }}
+                                                                        >
+                                                                            Edit
+                                                                        </button>
+                                                                        <button
+                                                                            onClick={() => handleDeleteClick(editingPriceLocation === 'Legazpi Storage' ? item.id : item.sku)}
+                                                                            style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem', backgroundColor: '#ffebee', color: '#c62828', borderRadius: '4px', border: 'none', cursor: 'pointer' }}
+                                                                        >
+                                                                            Delete
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                            {filteredManagementItems.length === 0 && (
+                                                                <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                                                                    No items found
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ) : (
+                                            <>
+                                                <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>
+                                                    Configure pricing for this location
+                                                </p>
+
+                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                                    {MAIN_CATEGORIES.map(cat => (
+                                                        <div
+                                                            key={cat.id}
+                                                            style={{
+                                                                display: 'flex',
+                                                                justifyContent: 'space-between',
+                                                                alignItems: 'center',
+                                                                padding: '1rem',
+                                                                background: 'var(--gray-50)',
+                                                                borderRadius: 'var(--radius-md)',
+                                                                border: '1px solid var(--border-color)'
+                                                            }}
+                                                        >
+                                                            <label style={{ fontWeight: '600' }}>
+                                                                {cat.name} ({cat.id})
+                                                            </label>
+                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                                <span style={{ color: 'var(--text-secondary)' }}>₱</span>
+                                                                <input
+                                                                    type="number"
+                                                                    value={tempPrices[cat.id] || 0}
+                                                                    onChange={(e) => handlePriceChange(cat.id, e.target.value)}
+                                                                    className="premium-input"
+                                                                    style={{ width: '120px', textAlign: 'right', fontWeight: '700' }}
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+
+                                                <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'flex-end' }}>
+                                                    <button onClick={savePrices} className="submit-btn">
+                                                        <Save size={18} style={{ marginRight: '0.5rem' }} />
+                                                        Save Changes
+                                                    </button>
+                                                </div>
+                                            </>
+                                        )}
                                     </div>
                                 ) : (
                                     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)' }}>
