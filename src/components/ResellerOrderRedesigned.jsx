@@ -719,10 +719,9 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
                 </div>
             )}
 
-            <ResellerSettingsModal
-                isOpen={isSettingsOpen}
-                onClose={() => setIsSettingsOpen(false)}
-            />
+            {isSettingsOpen && (
+                <ResellerSettingsModal onClose={() => setIsSettingsOpen(false)} />
+            )}
         </div>
     );
 };
