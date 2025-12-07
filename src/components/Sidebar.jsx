@@ -129,11 +129,15 @@ const Sidebar = ({ isOpen, onClose }) => {
               </NavLink>
               <NavLink to="/reseller-orders-list" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`} onClick={onClose}>
                 <span className="nav-icon"><ClipboardList size={20} /></span>
-                Order List
+                Pending Orders
               </NavLink>
               <NavLink to="/order-history" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`} onClick={onClose}>
                 <span className="nav-icon"><ClipboardList size={20} /></span>
                 Order History
+              </NavLink>
+              <NavLink to="/reseller-dashboard" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`} onClick={onClose}>
+                <span className="nav-icon"><ClipboardList size={20} /></span>
+                Reseller Dashboard
               </NavLink>
             </div>
           )}

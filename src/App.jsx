@@ -16,6 +16,7 @@ import ResellerOrderRedesigned from './components/ResellerOrderRedesigned';
 import OrderPdfView from './components/OrderPdfView';
 import ResellerOrderList from './components/ResellerOrderList';
 import OrderHistory from './components/OrderHistory';
+import ResellerDashboard from './components/ResellerDashboard';
 import SettingsSku from './components/SettingsSku';
 import FTFManufacturing from './components/FTFManufacturing';
 import LegazpiStorage from './components/LegazpiStorage';
@@ -65,6 +66,7 @@ function App() {
               <Route path="reseller-order/edit/:orderId" element={<ResellerOrderRedesigned />} />
               <Route path="reseller-orders-list" element={<ResellerOrderList />} />
               <Route path="order-history" element={<OrderHistory />} />
+              <Route path="reseller-dashboard" element={<ResellerDashboard />} />
               <Route path="settings/sku-addition" element={<SettingsSku />} />
               <Route path="settings/admin-key" element={<AdminKey />} />
               <Route path="settings/register" element={<RegisterAccount />} />

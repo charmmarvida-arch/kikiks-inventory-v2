@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useInventory } from '../context/InventoryContext';
+import { useAuth } from '../context/AuthContext';
 import { Eye, X, Edit2, Trash2 } from 'lucide-react';
 import { generatePackingList, generateCOA } from '../utils/pdfGenerator';
 
 const ResellerOrderList = () => {
     const { resellerOrders, updateResellerOrderStatus, updateResellerOrder, inventory, resellerPrices, deleteResellerOrder } = useInventory();
+    const { userProfile } = useAuth();
     const navigate = useNavigate();
     const [selectedOrder, setSelectedOrder] = useState(null);
     const [showCOAModal, setShowCOAModal] = useState(false);
@@ -101,10 +103,16 @@ const ResellerOrderList = () => {
                 console.log('Starting COA generation...');
                 await generateCOA(selectedCOAOrder, bestBeforeDates, inventory);
 
+                // Get current user's email/name
+                const createdBy = userProfile?.email || 'Unknown User';
+                const encodedBy = userProfile?.email || 'Unknown User';
+
                 // Update DB with status and data
                 await updateResellerOrder(selectedCOAOrder.id, {
                     hasCOA: true,
-                    coaData: bestBeforeDates
+                    coaData: bestBeforeDates,
+                    created_by: createdBy,
+                    encoded_by: encodedBy
                 });
 
                 console.log('COA generation completed!');
@@ -132,7 +140,7 @@ const ResellerOrderList = () => {
     return (
         <div className="fade-in">
             <div className="header-section">
-                <h2 className="page-title">Reseller Orders List</h2>
+                <h2 className="page-title">Pending Orders</h2>
                 <p className="page-subtitle">Manage and track reseller orders</p>
             </div>
 
