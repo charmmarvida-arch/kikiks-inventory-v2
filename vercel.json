@@ -4,5 +4,17 @@
             "source": "/(.*)",
             "destination": "/index.html"
         }
+    ],
+    "redirects": [
+        {
+            "source": "/",
+            "destination": "/public-transfer",
+            "permanent": false
+        },
+        {
+            "source": "/login",
+            "destination": "/public-transfer",
+            "permanent": false
+        }
     ]
 }
