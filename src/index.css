@@ -435,6 +435,15 @@ button {
   box-shadow: var(--shadow-sm);
 }
 
+/* Prevent auto-zoom on focus - applies to ALL screen sizes */
+input[type="text"],
+input[type="number"],
+input[type="email"],
+input[type="password"],
+select {
+  font-size: 16px !important;
+}
+
 .premium-input:hover {
   border-color: var(--border-hover);
 }
