@@ -807,41 +807,40 @@ export const InventoryProvider = ({ children }) => {
                     minimum_monthly_order: Number(minimumMonthlyOrder),
                     start_date: startDate // Insert new
                 })
-        })
                 .select()
-    .single();
+                .single();
 
-if (error) {
-    console.error("Error creating reseller setting:", error);
-    alert("Failed to create minimum order setting");
-    return;
-}
+            if (error) {
+                console.error("Error creating reseller setting:", error);
+                alert("Failed to create minimum order setting");
+                return;
+            }
 
-// Add to local state
-setResellerSettings(prev => [...prev, data]);
+            // Add to local state
+            setResellerSettings(prev => [...prev, data]);
         }
     };
 
-return (
-    <InventoryContext.Provider value={{
-        inventory, addStock,
-        legazpiInventory, addLegazpiProduct, updateLegazpiProduct, deleteLegazpiProduct, addLegazpiStock,
-        history, addHistory,
-        resellers, addReseller, updateReseller, deleteReseller,
-        resellerOrders, addResellerOrder, updateResellerOrderStatus, updateResellerOrder, deleteResellerOrder,
-        transferOrders, addTransferOrder, updateTransferOrderStatus, deleteTransferOrder, updateTransferOrder,
-        kikiksLocations, addKikiksLocation, updateKikiksLocation, deleteKikiksLocation,
-        locationSRPs, updateLocationSRP, updateLocationCategoryPrices,
-        resellerPrices,
-        zonePrices, updateZonePrice,
-        addSku, updateSku, deleteSku, toggleSkuVisibility,
-        resellerZones, addResellerZone, updateResellerZone, deleteResellerZone,
-        resellerSettings, fetchResellerSettings, updateResellerSetting,
-        loading
-    }}>
-        {children}
-    </InventoryContext.Provider>
-);
+    return (
+        <InventoryContext.Provider value={{
+            inventory, addStock,
+            legazpiInventory, addLegazpiProduct, updateLegazpiProduct, deleteLegazpiProduct, addLegazpiStock,
+            history, addHistory,
+            resellers, addReseller, updateReseller, deleteReseller,
+            resellerOrders, addResellerOrder, updateResellerOrderStatus, updateResellerOrder, deleteResellerOrder,
+            transferOrders, addTransferOrder, updateTransferOrderStatus, deleteTransferOrder, updateTransferOrder,
+            kikiksLocations, addKikiksLocation, updateKikiksLocation, deleteKikiksLocation,
+            locationSRPs, updateLocationSRP, updateLocationCategoryPrices,
+            resellerPrices,
+            zonePrices, updateZonePrice,
+            addSku, updateSku, deleteSku, toggleSkuVisibility,
+            resellerZones, addResellerZone, updateResellerZone, deleteResellerZone,
+            resellerSettings, fetchResellerSettings, updateResellerSetting,
+            loading
+        }}>
+            {children}
+        </InventoryContext.Provider>
+    );
 };
 
 // eslint-disable-next-line react-refresh/only-export-components
