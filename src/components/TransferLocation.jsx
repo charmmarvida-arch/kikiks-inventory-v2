@@ -676,7 +676,7 @@ const TransferLocation = ({ isPublic = false }) => {
                                             <div>
                                                 <div style={{ fontWeight: '600' }}>{product.description}</div>
                                                 <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                                                    Stock: {product.quantity}
+                                                    Stock: {product.quantity} {product.uom}
                                                 </div>
                                             </div>
 
