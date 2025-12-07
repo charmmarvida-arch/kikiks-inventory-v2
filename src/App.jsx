@@ -48,7 +48,6 @@ function App() {
             {/* Public Routes */}
             <Route path="/login" element={<Login />} />
             <Route path="/public-order" element={<ResellerOrderRedesigned isPublic={true} />} />
-            <Route path="/transfer" element={<TransferLocation />} />
             <Route path="/order-pdf/:orderId" element={<OrderPdfView />} />
 
             {/* Protected Routes */}
@@ -62,6 +61,7 @@ function App() {
               <Route path="dashboard/legazpi-storage" element={<LegazpiStorage />} />
               <Route path="dashboard/:location" element={<LocationDashboard />} />
               <Route path="stock-in" element={<StockIn />} />
+              <Route path="transfer" element={<TransferLocation />} />
               <Route path="reseller-order" element={<ResellerOrderRedesigned />} />
               <Route path="reseller-order/edit/:orderId" element={<ResellerOrderRedesigned />} />
               <Route path="reseller-orders-list" element={<ResellerOrderList />} />
