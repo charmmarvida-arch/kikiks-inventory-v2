@@ -64,8 +64,21 @@ const LegazpiStorage = () => {
     };
 
     const handleDelete = async (id, productName) => {
+        // Debugging
+        console.log('Delete requested for:', id, productName);
+
+        if (!id) {
+            alert('Error: Cannot delete item with missing ID');
+            return;
+        }
+
         if (confirm(`Are you sure you want to delete "${productName}"?`)) {
-            await deleteLegazpiProduct(id);
+            try {
+                await deleteLegazpiProduct(id);
+                // Success alert handled in context or by UI update
+            } catch (err) {
+                alert('Delete failed: ' + err.message);
+            }
         }
     };
 
