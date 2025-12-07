@@ -23,18 +23,24 @@ import LegazpiStorage from './components/LegazpiStorage';
 import AdminKey from './components/AdminKey';
 
 
-// Domain Guard Component
-const MainDomainGuard = ({ children }) => {
-  const hostname = window.location.hostname;
-  // Allow localhost, 127.0.0.1, and the main production domain
-  const isMainDomain = hostname.includes('localhost') ||
-    hostname.includes('127.0.0.1') ||
-    hostname === 'kikiks-orders.vercel.app';
 
-  if (!isMainDomain) {
+
+// Domain Middleware Component
+const DomainMiddleware = ({ children }) => {
+  const location = useLocation();
+  const hostname = window.location.hostname;
+
+  // 1. kikiks-orders -> Reseller Order Only
+  if (hostname.includes('kikiks-orders') && location.pathname !== '/public-order') {
+    return <Navigate to="/public-order" replace />;
+  }
+
+  // 2. kikiks-transfer -> Transfer Location Only
+  if (hostname.includes('kikiks-transfer') && location.pathname !== '/public-transfer') {
     return <Navigate to="/public-transfer" replace />;
   }
 
+  // 3. kikiks-inventory (or others like localhost) -> Full Access
   return children;
 };
 
@@ -59,41 +65,37 @@ function App() {
     <AuthProvider>
       <InventoryProvider>
         <BrowserRouter>
-          <Routes>
-            {/* Public Routes */}
-            <Route path="/login" element={
-              <MainDomainGuard>
-                <Login />
-              </MainDomainGuard>
-            } />
-            <Route path="/public-order" element={<ResellerOrderRedesigned isPublic={true} />} />
-            <Route path="/public-transfer" element={<TransferLocation isPublic={true} />} />
-            <Route path="/order-pdf/:orderId" element={<OrderPdfView />} />
+          <DomainMiddleware>
+            <Routes>
+              {/* Public Routes */}
+              <Route path="/login" element={<Login />} />
+              <Route path="/public-order" element={<ResellerOrderRedesigned isPublic={true} />} />
+              <Route path="/public-transfer" element={<TransferLocation isPublic={true} />} />
+              <Route path="/order-pdf/:orderId" element={<OrderPdfView />} />
 
-            {/* Protected Routes */}
-            <Route path="/" element={
-              <MainDomainGuard>
+              {/* Protected Routes */}
+              <Route path="/" element={
                 <RequireAuth>
                   <Layout />
                 </RequireAuth>
-              </MainDomainGuard>
-            }>
-              <Route index element={<Dashboard />} />
-              <Route path="dashboard/ftf-manufacturing" element={<FTFManufacturing />} />
-              <Route path="dashboard/legazpi-storage" element={<LegazpiStorage />} />
-              <Route path="dashboard/:location" element={<LocationDashboard />} />
-              <Route path="stock-in" element={<StockIn />} />
-              <Route path="transfer" element={<TransferLocation />} />
-              <Route path="reseller-order" element={<ResellerOrderRedesigned />} />
-              <Route path="reseller-order/edit/:orderId" element={<ResellerOrderRedesigned />} />
-              <Route path="reseller-orders-list" element={<ResellerOrderList />} />
-              <Route path="order-history" element={<OrderHistory />} />
-              <Route path="reseller-dashboard" element={<ResellerDashboard />} />
-              <Route path="settings/sku-addition" element={<SettingsSku />} />
-              <Route path="settings/admin-key" element={<AdminKey />} />
-              <Route path="settings/register" element={<RegisterAccount />} />
-            </Route>
-          </Routes>
+              }>
+                <Route index element={<Dashboard />} />
+                <Route path="dashboard/ftf-manufacturing" element={<FTFManufacturing />} />
+                <Route path="dashboard/legazpi-storage" element={<LegazpiStorage />} />
+                <Route path="dashboard/:location" element={<LocationDashboard />} />
+                <Route path="stock-in" element={<StockIn />} />
+                <Route path="transfer" element={<TransferLocation />} />
+                <Route path="reseller-order" element={<ResellerOrderRedesigned />} />
+                <Route path="reseller-order/edit/:orderId" element={<ResellerOrderRedesigned />} />
+                <Route path="reseller-orders-list" element={<ResellerOrderList />} />
+                <Route path="order-history" element={<OrderHistory />} />
+                <Route path="reseller-dashboard" element={<ResellerDashboard />} />
+                <Route path="settings/sku-addition" element={<SettingsSku />} />
+                <Route path="settings/admin-key" element={<AdminKey />} />
+                <Route path="settings/register" element={<RegisterAccount />} />
+              </Route>
+            </Routes>
+          </DomainMiddleware>
         </BrowserRouter>
       </InventoryProvider>
     </AuthProvider>
