@@ -50,6 +50,7 @@ export const InventoryProvider = ({ children }) => {
     const [resellerPrices, setResellerPrices] = useState({});
     const [zonePrices, setZonePrices] = useState({}); // { [zoneId]: { 'FGC': 23, ... } }
     const [resellerZones, setResellerZones] = useState([]);
+    const [resellerSettings, setResellerSettings] = useState([]); // Minimum order settings
     const [loading, setLoading] = useState(true);
 
     // Fetch Data from Supabase
@@ -184,6 +185,12 @@ export const InventoryProvider = ({ children }) => {
                     zpMap[item.zone_id][item.sku_prefix] = Number(item.price);
                 });
                 setZonePrices(zpMap);
+            }
+
+            // 9. Reseller Settings (Minimum Monthly Orders)
+            const { data: rsData } = await supabase.from('reseller_settings').select('*');
+            if (rsData) {
+                setResellerSettings(rsData);
             }
 
         } catch (error) {
@@ -751,6 +758,61 @@ export const InventoryProvider = ({ children }) => {
         }
     };
 
+    // Reseller Settings Management
+    const fetchResellerSettings = async () => {
+        const { data, error } = await supabase.from('reseller_settings').select('*');
+        if (error) {
+            console.error("Error fetching reseller settings:", error);
+            return;
+        }
+        setResellerSettings(data || []);
+    };
+
+    const updateResellerSetting = async (resellerName, minimumMonthlyOrder) => {
+        // Check if setting exists
+        const existing = resellerSettings.find(s => s.reseller_name === resellerName);
+
+        if (existing) {
+            // Update existing
+            const { error } = await supabase
+                .from('reseller_settings')
+                .update({ minimum_monthly_order: Number(minimumMonthlyOrder) })
+                .eq('reseller_name', resellerName);
+
+            if (error) {
+                console.error("Error updating reseller setting:", error);
+                alert("Failed to update minimum order setting");
+                return;
+            }
+
+            // Update local state
+            setResellerSettings(prev => prev.map(s =>
+                s.reseller_name === resellerName
+                    ? { ...s, minimum_monthly_order: Number(minimumMonthlyOrder) }
+                    : s
+            ));
+        } else {
+            // Create new
+            const { data, error } = await supabase
+                .from('reseller_settings')
+                .insert({
+                    reseller_name: resellerName,
+                    minimum_monthly_order: Number(minimumMonthlyOrder)
+                })
+                .select()
+                .single();
+
+            if (error) {
+                console.error("Error creating reseller setting:", error);
+                alert("Failed to create minimum order setting");
+                return;
+            }
+
+            // Add to local state
+            setResellerSettings(prev => [...prev, data]);
+        }
+    };
+
     return (
         <InventoryContext.Provider value={{
             inventory, addStock,
@@ -765,6 +827,7 @@ export const InventoryProvider = ({ children }) => {
             zonePrices, updateZonePrice,
             addSku, updateSku, deleteSku, toggleSkuVisibility,
             resellerZones, addResellerZone, updateResellerZone, deleteResellerZone,
+            resellerSettings, fetchResellerSettings, updateResellerSetting,
             loading
         }}>
             {children}

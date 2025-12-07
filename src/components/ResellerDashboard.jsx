@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useInventory } from '../context/InventoryContext';
 import { useAuth } from '../context/AuthContext';
-import { X, Calendar, ArrowUpDown, TrendingUp, TrendingDown, Users, Package, CheckCircle, Clock, Filter } from 'lucide-react';
+import { X, Calendar, Settings, ArrowUpDown, TrendingUp, TrendingDown, Users, Package, CheckCircle, Clock, Filter } from 'lucide-react';
+import ResellerSettingsModal from './ResellerSettingsModal';
 
 const ResellerDashboard = () => {
-    const { resellerOrders, updateResellerOrder } = useInventory();
+    const { resellerOrders, updateResellerOrder, resellerSettings } = useInventory();
     const { userProfile } = useAuth();
 
     // PIN Protection State
@@ -24,8 +25,8 @@ const ResellerDashboard = () => {
     // Sorting State
     const [sortDescending, setSortDescending] = useState(true);
 
-    // Loading state for encoding toggle
-    const [encodingLoading, setEncodingLoading] = useState({});
+    // Settings Modal State  
+    const [showSettingsModal, setShowSettingsModal] = useState(false);
 
     // Check for existing session on mount
     useEffect(() => {
@@ -553,6 +554,12 @@ const ResellerDashboard = () => {
     }
         </div >
     );
-};
-
+})
+{/* Settings Modal */ }
+{
+    showSettingsModal && (
+        <ResellerSettingsModal onClose={() => setShowSettingsModal(false)} />
+    )
+}
+}
 export default ResellerDashboard;
