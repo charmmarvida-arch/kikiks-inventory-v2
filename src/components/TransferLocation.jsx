@@ -287,20 +287,22 @@ const TransferLocation = ({ isPublic = false }) => {
     // Group products by category
     const productsByCategory = useMemo(() => {
         const grouped = {};
-        const mainCategoryPrefixes = MAIN_CATEGORIES.map(cat => cat.id);
+        const matchedSkus = new Set();
 
         // Group products by main categories
         MAIN_CATEGORIES.forEach(cat => {
-            grouped[cat.id] = sourceInventory.filter(item =>
+            const items = sourceInventory.filter(item =>
                 item.sku?.startsWith(cat.id) || item.description?.toLowerCase().includes(cat.name.slice(0, -1).toLowerCase())
             );
+            grouped[cat.id] = items;
+
+            // Track matched items
+            items.forEach(item => matchedSkus.add(item.sku));
         });
 
-        // Find products that don't match any main category
-        grouped['OTHERS'] = sourceInventory.filter(item => {
-            const sku = item.sku || '';
-            return !mainCategoryPrefixes.some(prefix => sku.startsWith(prefix));
-        });
+        // Find products that don't match any main category (OTHERS)
+        // Only include items that haven't been matched to a main category yet
+        grouped['OTHERS'] = sourceInventory.filter(item => !matchedSkus.has(item.sku));
 
         return grouped;
     }, [sourceInventory]);
