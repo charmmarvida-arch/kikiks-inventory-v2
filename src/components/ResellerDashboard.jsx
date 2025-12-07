@@ -158,7 +158,62 @@ const ResellerDashboard = () => {
 
         return result;
     }, [filteredOrders, sortDescending]);
+    // Calculate monthly compliance data (current month only)
+    const monthlyComplianceData = useMemo(() => {
+        const today = new Date();
+        const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+        const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
 
+        // Filter orders for current month only
+        const currentMonthOrders = resellerOrders.filter(order => {
+            const orderDate = new Date(order.date);
+            return orderDate >= firstDayOfMonth &&
+                orderDate <= lastDayOfMonth &&
+                order.status === 'Completed';
+        });
+
+        // Group by reseller
+        const grouped = {};
+        currentMonthOrders.forEach(order => {
+            const resellerName = order.resellerName;
+            if (!grouped[resellerName]) {
+                grouped[resellerName] = 0;
+            }
+            grouped[resellerName] += order.totalAmount || 0;
+        });
+
+        // Get all unique resellers and calculate status
+        const uniqueResellers = new Set(resellerOrders.map(o => o.resellerName));
+        const result = Array.from(uniqueResellers).map(resellerName => {
+            const ordersThisMonth = grouped[resellerName] || 0;
+            const setting = resellerSettings.find(s => s.reseller_name === resellerName);
+            const minimum = setting ? setting.minimum_monthly_order : 10000;
+
+            let status;
+            if (ordersThisMonth >= minimum) {
+                status = 'met';
+            } else if (ordersThisMonth > 0) {
+                status = 'pending';
+            } else {
+                status = 'not_met';
+            }
+
+            return {
+                resellerName,
+                ordersThisMonth,
+                minimum,
+                status
+            };
+        });
+
+        // Sort by status (not met first, then pending, then met)
+        result.sort((a, b) => {
+            const statusOrder = { 'not_met': 0, 'pending': 1, 'met': 2 };
+            return statusOrder[a.status] - statusOrder[b.status];
+        });
+
+        return result;
+    }, [resellerOrders, resellerSettings]);
     // Handle encoded toggle
     const handleEncodedToggle = async (order) => {
         const newEncodedStatus = !order.is_encoded;
@@ -394,9 +449,11 @@ const ResellerDashboard = () => {
                 />
             </div>
 
-            {/* Summary Table */}
-            <div className="card">
-                <div className="card-header">
+            {/* Two Column Layout for Tables */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '2rem' }}>
+
+                {/* Reseller Summary Table */}
+                <div className="card">
                     <h3 className="card-heading">Reseller Summary</h3>
                     <button
                         onClick={() => setSortDescending(!sortDescending)}
@@ -430,204 +487,288 @@ const ResellerDashboard = () => {
                         <span>{sortDescending ? 'Highest First' : 'Lowest First'}</span>
                     </button>
                 </div>
-                <div className="table-container">
-                    <table className="inventory-table">
-                        <thead>
-                            <tr>
-                                <th>Reseller Name</th>
-                                <th className="text-right">Total Orders</th>
-                                <th className="text-center">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {aggregatedData.length === 0 ? (
+
+                {/* Monthly Compliance Table */}
+                <div className="card">
+                    <div className="card-header">
+                        <h3 className="card-heading">Monthly Compliance</h3>
+                        <span style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+                            {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                        </span>
+                    </div>
+                    <div className="table-container">
+                        <table className="inventory-table">
+                            <thead>
                                 <tr>
-                                    <td colSpan={3} className="empty-state">
-                                        No orders found for the selected date range.
-                                    </td>
+                                    <th>Reseller Name</th>
+                                    <th className="text-right">This Month</th>
+                                    <th className="text-right">Minimum</th>
+                                    <th className="text-center">Status</th>
                                 </tr>
-                            ) : (
-                                aggregatedData.map(reseller => (
-                                    <tr key={reseller.resellerName}>
-                                        <td className="font-medium">{reseller.resellerName}</td>
-                                        <td className="text-right font-bold">
-                                            ₱{reseller.totalAmount.toLocaleString()}
-                                        </td>
-                                        <td className="text-center">
-                                            <button
-                                                className="text-btn text-primary"
-                                                onClick={() => {
-                                                    setSelectedReseller(reseller);
-                                                    setShowModal(true);
-                                                }}
-                                            >
-                                                View
-                                            </button>
+                            </thead>
+                            <tbody>
+                                {monthlyComplianceData.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={4} className="empty-state">
+                                            No resellers found.
                                         </td>
                                     </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
+                                ) : (
+                                    monthlyComplianceData.map(data => (
+                                        <tr key={data.resellerName}>
+                                            <td className="font-medium">{data.resellerName}</td>
+                                            <td className="text-right font-bold">
+                                                ₱{data.ordersThisMonth.toLocaleString()}
+                                            </td>
+                                            <td className="text-right" style={{ color: 'var(--text-secondary)' }}>
+                                                ₱{data.minimum.toLocaleString()}
+                                            </td>
+                                            <td className="text-center">
+                                                {data.status === 'met' && (
+                                                    <span style={{
+                                                        padding: '4px 12px',
+                                                        borderRadius: '12px',
+                                                        fontSize: '0.75rem',
+                                                        fontWeight: '600',
+                                                        backgroundColor: '#d1fae5',
+                                                        color: '#065f46'
+                                                    }}>
+                                                        ✓ Met
+                                                    </span>
+                                                )}
+                                                {data.status === 'pending' && (
+                                                    <span style={{
+                                                        padding: '4px 12px',
+                                                        borderRadius: '12px',
+                                                        fontSize: '0.75rem',
+                                                        fontWeight: '600',
+                                                        backgroundColor: '#fef3c7',
+                                                        color: '#92400e'
+                                                    }}>
+                                                        ⏳ Pending
+                                                    </span>
+                                                )}
+                                                {data.status === 'not_met' && (
+                                                    <span style={{
+                                                        padding: '4px 12px',
+                                                        borderRadius: '12px',
+                                                        fontSize: '0.75rem',
+                                                        fontWeight: '600',
+                                                        backgroundColor: '#fee2e2',
+                                                        color: '#991b1b'
+                                                    }}>
+                                                        ✗ Not Met
+                                                    </span>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
+            <div className="table-container">
+                <table className="inventory-table">
+                    <thead>
+                        <tr>
+                            <th>Reseller Name</th>
+                            <th className="text-right">Total Orders</th>
+                            <th className="text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {aggregatedData.length === 0 ? (
+                            <tr>
+                                <td colSpan={3} className="empty-state">
+                                    No orders found for the selected date range.
+                                </td>
+                            </tr>
+                        ) : (
+                            aggregatedData.map(reseller => (
+                                <tr key={reseller.resellerName}>
+                                    <td className="font-medium">{reseller.resellerName}</td>
+                                    <td className="text-right font-bold">
+                                        ₱{reseller.totalAmount.toLocaleString()}
+                                    </td>
+                                    <td className="text-center">
+                                        <button
+                                            className="text-btn text-primary"
+                                            onClick={() => {
+                                                setSelectedReseller(reseller);
+                                                setShowModal(true);
+                                            }}
+                                        >
+                                            View
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))
+                        )}
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
-            {/* Date Filter Modal */}
-            {
-                showDateFilterModal && (
-                    <div className="modal-overlay" onClick={() => setShowDateFilterModal(false)}>
-                        <div className="modal-content medium-modal" onClick={e => e.stopPropagation()}>
-                            <div className="modal-header">
-                                <h3 className="modal-title">
-                                    <Calendar size={20} />
-                                    Date Range Filter
-                                </h3>
-                                <button className="close-btn" onClick={() => setShowDateFilterModal(false)}>
-                                    <X size={24} />
-                                </button>
+            {/* Date Filter Modal */ }
+    {
+        showDateFilterModal && (
+            <div className="modal-overlay" onClick={() => setShowDateFilterModal(false)}>
+                <div className="modal-content medium-modal" onClick={e => e.stopPropagation()}>
+                    <div className="modal-header">
+                        <h3 className="modal-title">
+                            <Calendar size={20} />
+                            Date Range Filter
+                        </h3>
+                        <button className="close-btn" onClick={() => setShowDateFilterModal(false)}>
+                            <X size={24} />
+                        </button>
+                    </div>
+                    <div className="modal-body">
+                        <div className="grid-responsive two-cols">
+                            <div>
+                                <label className="form-label">Start Date</label>
+                                <input
+                                    type="date"
+                                    className="premium-input"
+                                    value={startDate}
+                                    onChange={(e) => setStartDate(e.target.value)}
+                                />
                             </div>
-                            <div className="modal-body">
-                                <div className="grid-responsive two-cols">
-                                    <div>
-                                        <label className="form-label">Start Date</label>
-                                        <input
-                                            type="date"
-                                            className="premium-input"
-                                            value={startDate}
-                                            onChange={(e) => setStartDate(e.target.value)}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="form-label">End Date</label>
-                                        <input
-                                            type="date"
-                                            className="premium-input"
-                                            value={endDate}
-                                            onChange={(e) => setEndDate(e.target.value)}
-                                        />
-                                    </div>
-                                </div>
-                                <div className="flex justify-end gap-4 mt-6">
-                                    <button
-                                        className="icon-btn px-4 w-auto"
-                                        onClick={() => setShowDateFilterModal(false)}
-                                    >
-                                        Close
-                                    </button>
-                                    <button
-                                        className="submit-btn"
-                                        onClick={() => setShowDateFilterModal(false)}
-                                    >
-                                        Apply Filter
-                                    </button>
-                                </div>
+                            <div>
+                                <label className="form-label">End Date</label>
+                                <input
+                                    type="date"
+                                    className="premium-input"
+                                    value={endDate}
+                                    onChange={(e) => setEndDate(e.target.value)}
+                                />
                             </div>
                         </div>
+                        <div className="flex justify-end gap-4 mt-6">
+                            <button
+                                className="icon-btn px-4 w-auto"
+                                onClick={() => setShowDateFilterModal(false)}
+                            >
+                                Close
+                            </button>
+                            <button
+                                className="submit-btn"
+                                onClick={() => setShowDateFilterModal(false)}
+                            >
+                                Apply Filter
+                            </button>
+                        </div>
                     </div>
-                )
-            }
+                </div>
+            </div>
+        )
+    }
 
-            {/* Order Details Modal */}
-            {
-                showModal && selectedReseller && (
-                    <div className="modal-overlay" onClick={() => setShowModal(false)}>
-                        <div className="modal-content medium-modal" onClick={e => e.stopPropagation()}>
-                            <div className="modal-header">
-                                <h3 className="modal-title">
-                                    Orders - {selectedReseller.resellerName}
-                                </h3>
-                                <button className="close-btn" onClick={() => setShowModal(false)}>
-                                    <X size={24} />
-                                </button>
-                            </div>
-                            <div className="modal-body">
-                                <div className="scrollable-table-container" style={{ maxHeight: '500px' }}>
-                                    <table className="w-full" style={{ borderCollapse: 'separate', borderSpacing: 0 }}>
-                                        <thead style={{ position: 'sticky', top: 0, backgroundColor: 'white', zIndex: 1 }}>
-                                            <tr className="text-left text-sm text-secondary" style={{ borderBottom: '2px solid var(--border-color)' }}>
-                                                <th style={{ padding: '12px 16px', fontWeight: '600' }}>Date</th>
-                                                <th style={{ padding: '12px 16px', textAlign: 'right', fontWeight: '600' }}>Total Order</th>
-                                                <th style={{ padding: '12px 16px', fontWeight: '600' }}>COA Created By</th>
-                                                <th style={{ padding: '12px 16px', textAlign: 'center', fontWeight: '600' }}>Encoded Status</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {selectedReseller.orders.map((order, index) => (
-                                                <tr
-                                                    key={order.id}
+    {/* Order Details Modal */ }
+    {
+        showModal && selectedReseller && (
+            <div className="modal-overlay" onClick={() => setShowModal(false)}>
+                <div className="modal-content medium-modal" onClick={e => e.stopPropagation()}>
+                    <div className="modal-header">
+                        <h3 className="modal-title">
+                            Orders - {selectedReseller.resellerName}
+                        </h3>
+                        <button className="close-btn" onClick={() => setShowModal(false)}>
+                            <X size={24} />
+                        </button>
+                    </div>
+                    <div className="modal-body">
+                        <div className="scrollable-table-container" style={{ maxHeight: '500px' }}>
+                            <table className="w-full" style={{ borderCollapse: 'separate', borderSpacing: 0 }}>
+                                <thead style={{ position: 'sticky', top: 0, backgroundColor: 'white', zIndex: 1 }}>
+                                    <tr className="text-left text-sm text-secondary" style={{ borderBottom: '2px solid var(--border-color)' }}>
+                                        <th style={{ padding: '12px 16px', fontWeight: '600' }}>Date</th>
+                                        <th style={{ padding: '12px 16px', textAlign: 'right', fontWeight: '600' }}>Total Order</th>
+                                        <th style={{ padding: '12px 16px', fontWeight: '600' }}>COA Created By</th>
+                                        <th style={{ padding: '12px 16px', textAlign: 'center', fontWeight: '600' }}>Encoded Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {selectedReseller.orders.map((order, index) => (
+                                        <tr
+                                            key={order.id}
+                                            style={{
+                                                borderBottom: index < selectedReseller.orders.length - 1 ? '1px solid #f0f0f0' : 'none',
+                                                backgroundColor: index % 2 === 0 ? 'white' : '#fafafa'
+                                            }}
+                                        >
+                                            <td style={{ padding: '16px' }}>
+                                                {new Date(order.date).toLocaleDateString()}
+                                            </td>
+                                            <td style={{ padding: '16px', textAlign: 'right', fontWeight: 'bold' }}>
+                                                ₱{order.totalAmount?.toLocaleString() || '0'}
+                                            </td>
+                                            <td style={{ padding: '16px', color: 'var(--text-secondary)' }}>
+                                                {order.created_by || 'N/A'}
+                                            </td>
+                                            <td style={{ padding: '16px', textAlign: 'center' }}>
+                                                <button
+                                                    className={`${order.is_encoded
+                                                        ? 'bg-green-100 text-green-700 border-green-300'
+                                                        : 'bg-gray-100 text-gray-700 border-gray-300'
+                                                        }`}
+                                                    onClick={() => handleEncodedToggle(order)}
+                                                    disabled={encodingLoading[order.id]}
                                                     style={{
-                                                        borderBottom: index < selectedReseller.orders.length - 1 ? '1px solid #f0f0f0' : 'none',
-                                                        backgroundColor: index % 2 === 0 ? 'white' : '#fafafa'
+                                                        padding: '6px 16px',
+                                                        borderRadius: '6px',
+                                                        fontSize: '0.875rem',
+                                                        fontWeight: '600',
+                                                        border: '1px solid',
+                                                        cursor: encodingLoading[order.id] ? 'wait' : 'pointer',
+                                                        transition: 'all 0.2s',
+                                                        minWidth: '120px',
+                                                        opacity: encodingLoading[order.id] ? 0.6 : 1
                                                     }}
                                                 >
-                                                    <td style={{ padding: '16px' }}>
-                                                        {new Date(order.date).toLocaleDateString()}
-                                                    </td>
-                                                    <td style={{ padding: '16px', textAlign: 'right', fontWeight: 'bold' }}>
-                                                        ₱{order.totalAmount?.toLocaleString() || '0'}
-                                                    </td>
-                                                    <td style={{ padding: '16px', color: 'var(--text-secondary)' }}>
-                                                        {order.created_by || 'N/A'}
-                                                    </td>
-                                                    <td style={{ padding: '16px', textAlign: 'center' }}>
-                                                        <button
-                                                            className={`${order.is_encoded
-                                                                ? 'bg-green-100 text-green-700 border-green-300'
-                                                                : 'bg-gray-100 text-gray-700 border-gray-300'
-                                                                }`}
-                                                            onClick={() => handleEncodedToggle(order)}
-                                                            disabled={encodingLoading[order.id]}
-                                                            style={{
-                                                                padding: '6px 16px',
-                                                                borderRadius: '6px',
-                                                                fontSize: '0.875rem',
-                                                                fontWeight: '600',
-                                                                border: '1px solid',
-                                                                cursor: encodingLoading[order.id] ? 'wait' : 'pointer',
-                                                                transition: 'all 0.2s',
-                                                                minWidth: '120px',
-                                                                opacity: encodingLoading[order.id] ? 0.6 : 1
-                                                            }}
-                                                        >
-                                                            {encodingLoading[order.id] ? (
-                                                                'Updating...'
-                                                            ) : order.is_encoded ? (
-                                                                <>✓ ENCODED</>
-                                                            ) : (
-                                                                <>NOT ENCODED</>
-                                                            )}
-                                                        </button>
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                                <div style={{
-                                    marginTop: '1.5rem',
-                                    paddingTop: '1.5rem',
-                                    borderTop: '2px solid var(--border-color)',
-                                    display: 'flex',
-                                    justifyContent: 'space-between',
-                                    alignItems: 'center'
-                                }}>
+                                                    {encodingLoading[order.id] ? (
+                                                        'Updating...'
+                                                    ) : order.is_encoded ? (
+                                                        <>✓ ENCODED</>
+                                                    ) : (
+                                                        <>NOT ENCODED</>
+                                                    )}
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div style={{
+                            marginTop: '1.5rem',
+                            paddingTop: '1.5rem',
+                            borderTop: '2px solid var(--border-color)',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center'
+                        }}>
 
-                                    <span style={{ fontSize: '1.125rem', fontWeight: 'bold' }}>Total Amount:</span>
-                                    <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--primary)' }}>
-                                        ₱{selectedReseller.totalAmount.toLocaleString()}
-                                    </span>
-                                </div>
-                            </div>
+                            <span style={{ fontSize: '1.125rem', fontWeight: 'bold' }}>Total Amount:</span>
+                            <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--primary)' }}>
+                                ₱{selectedReseller.totalAmount.toLocaleString()}
+                            </span>
                         </div>
                     </div>
-                )
-            }
+                </div>
+            </div>
+        )
+    }
 
-            {/* Settings Modal */}
-            {showSettingsModal && (
-                <ResellerSettingsModal onClose={() => setShowSettingsModal(false)} />
-            )}
-        </div>
+    {/* Settings Modal */ }
+    {
+        showSettingsModal && (
+            <ResellerSettingsModal onClose={() => setShowSettingsModal(false)} />
+        )
+    }
+        </div >
     );
 };
 export default ResellerDashboard;
