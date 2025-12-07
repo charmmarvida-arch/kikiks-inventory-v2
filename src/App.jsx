@@ -48,6 +48,7 @@ function App() {
             {/* Public Routes */}
             <Route path="/login" element={<Login />} />
             <Route path="/public-order" element={<ResellerOrderRedesigned isPublic={true} />} />
+            <Route path="/public-transfer" element={<TransferLocation isPublic={true} />} />
             <Route path="/order-pdf/:orderId" element={<OrderPdfView />} />
 
             {/* Protected Routes */}

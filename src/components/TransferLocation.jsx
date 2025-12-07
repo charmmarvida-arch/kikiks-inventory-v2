@@ -16,7 +16,7 @@ const OTHERS_CATEGORY = { id: 'OTHERS', name: 'Others', icon: Package, color: '#
 // Warehouse locations (no pricing required)
 const WAREHOUSE_LOCATIONS = ['FTF Manufacturing', 'Legazpi Storage'];
 
-const TransferLocation = () => {
+const TransferLocation = ({ isPublic = false }) => {
     const {
         inventory,
         legazpiInventory,
@@ -348,9 +348,11 @@ const TransferLocation = () => {
                     <h2 className="page-title" style={{ marginBottom: '0.25rem' }}>Transfer Location</h2>
                     <p className="page-subtitle">Transfer stock between locations</p>
                 </div>
-                <button onClick={handleSettingsClick} className="icon-btn text-primary" title="Location Settings">
-                    <Settings size={20} />
-                </button>
+                {!isPublic && (
+                    <button onClick={handleSettingsClick} className="icon-btn text-primary" title="Location Settings">
+                        <Settings size={20} />
+                    </button>
+                )}
             </div>
 
             {/* Transfer Info Card */}
