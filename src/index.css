@@ -724,6 +724,13 @@ button {
     padding: 0.4rem !important;
   }
 
+  /* Prevent auto-zoom on Transfer Location page inputs */
+  input[type="text"],
+  input[type="number"],
+  select {
+    font-size: 16px !important;
+  }
+
   /* Hide desktop table on mobile */
   .desktop-only {
     display: none !important;
