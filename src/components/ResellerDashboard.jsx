@@ -309,48 +309,27 @@ const ResellerDashboard = () => {
                 ? `${value.toFixed(1)}%`
                 : value.toLocaleString();
 
+        const showChange = change !== null && change !== undefined && !isNaN(change) && Math.abs(change) > 0;
+
         return (
-            <div style={{
-                backgroundColor: 'white',
-                border: '2px solid var(--border-color)',
-                borderRadius: '12px',
-                padding: '1.5rem',
-                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
-                transition: 'transform 0.2s, box-shadow 0.2s',
-                cursor: 'default'
-            }}
-                onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-2px)';
-                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.12)';
-                }}
-                onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.08)';
-                }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
-                    <span className="text-secondary text-sm font-medium">{title}</span>
-                    <div style={{
-                        backgroundColor: 'var(--primary-light)',
-                        borderRadius: '8px',
-                        padding: '8px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                    }}>
-                        <Icon size={20} className="text-primary" />
+            <div className="dashboard-card metric-card">
+                <div className="metric-header">
+                    <span className="metric-title">{title}</span>
+                    <div className="metric-icon-wrapper">
+                        <Icon size={20} />
                     </div>
                 </div>
-                <div style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '0.5rem', color: 'var(--text-main)' }}>
+                <div className="metric-value">
                     {formattedValue}
                 </div>
-                {change !== null && change !== undefined && !isNaN(change) && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.875rem' }}>
+                {showChange && (
+                    <div className="metric-trend">
                         {isPositive ? (
                             <TrendingUp size={16} className="text-success" />
                         ) : (
                             <TrendingDown size={16} className="text-danger" />
                         )}
-                        <span className={isPositive ? 'text-success' : 'text-danger'} style={{ fontWeight: '600' }}>
+                        <span className={isPositive ? 'text-success' : 'text-danger'}>
                             {isPositive ? '+' : ''}{change.toFixed(1)}%
                         </span>
                         <span className="text-secondary">vs prev period</span>
@@ -519,85 +498,29 @@ const ResellerDashboard = () => {
                 marginBottom: '2rem'
             }}>
                 {/* Reseller Summary Table - Left */}
-                <div className="card">
+                <div className="dashboard-card">
                     <div className="card-header">
-                        <h3 className="card-heading">Reseller Summary</h3>
+                        <h3 className="card-title">Reseller Summary</h3>
                         <button
                             onClick={() => setSortDescending(!sortDescending)}
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '0.375rem',
-                                padding: '6px 14px',
-                                backgroundColor: sortDescending ? '#3b82f6' : '#ef4444',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '20px',
-                                fontSize: '0.8125rem',
-                                fontWeight: '600',
-                                cursor: 'pointer',
-                                transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-                                boxShadow: sortDescending
-                                    ? '0 2px 8px rgba(59, 130, 246, 0.3)'
-                                    : '0 2px 8px rgba(239, 68, 68, 0.3)'
-                            }}
-                            onMouseEnter={(e) => {
-                                e.currentTarget.style.transform = 'translateY(-1px)';
-                                e.currentTarget.style.boxShadow = sortDescending
-                                    ? '0 4px 12px rgba(59, 130, 246, 0.4)'
-                                    : '0 4px 12px rgba(239, 68, 68, 0.4)';
-                            }}
-                            onMouseLeave={(e) => {
-                                e.currentTarget.style.transform = 'translateY(0)';
-                                e.currentTarget.style.boxShadow = sortDescending
-                                    ? '0 2px 8px rgba(59, 130, 246, 0.3)'
-                                    : '0 2px 8px rgba(239, 68, 68, 0.3)';
-                            }}
+                            className="text-btn text-primary text-sm flex items-center gap-1 font-medium bg-gray-50 px-3 py-1 rounded-full hover:bg-gray-100 transition-colors"
                         >
                             <ArrowUpDown size={14} />
                             <span>{sortDescending ? 'Highest First' : 'Lowest First'}</span>
                         </button>
                     </div>
-                    <div className="table-container" style={{ maxHeight: '400px', overflowY: 'auto' }}>
-                        <table style={{
-                            width: '100%',
-                            tableLayout: 'fixed',
-                            borderCollapse: 'collapse'
-                        }}>
+                    <div className="table-container shadow-none border-0">
+                        <table className="inventory-table">
                             <colgroup>
-                                <col style={{ width: '35%' }} />
-                                <col style={{ width: '45%' }} />
+                                <col style={{ width: '40%' }} />
+                                <col style={{ width: '40%' }} />
                                 <col style={{ width: '20%' }} />
                             </colgroup>
                             <thead>
-                                <tr style={{ borderBottom: '2px solid var(--border-color)' }}>
-                                    <th style={{
-                                        padding: '12px 4px',
-                                        textAlign: 'left',
-                                        fontSize: '0.75rem',
-                                        fontWeight: '600',
-                                        color: 'var(--text-secondary)',
-                                        textTransform: 'uppercase',
-                                        letterSpacing: '0.05em'
-                                    }}>Reseller Name</th>
-                                    <th style={{
-                                        padding: '12px 4px',
-                                        textAlign: 'right',
-                                        fontSize: '0.75rem',
-                                        fontWeight: '600',
-                                        color: 'var(--text-secondary)',
-                                        textTransform: 'uppercase',
-                                        letterSpacing: '0.05em'
-                                    }}>Total Orders</th>
-                                    <th style={{
-                                        padding: '12px 4px',
-                                        textAlign: 'center',
-                                        fontSize: '0.75rem',
-                                        fontWeight: '600',
-                                        color: 'var(--text-secondary)',
-                                        textTransform: 'uppercase',
-                                        letterSpacing: '0.05em'
-                                    }}>Actions</th>
+                                <tr>
+                                    <th>Reseller Name</th>
+                                    <th className="text-right">Total Orders</th>
+                                    <th className="text-center">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -644,14 +567,14 @@ const ResellerDashboard = () => {
                 </div>
 
                 {/* Monthly Compliance Table - Right */}
-                <div className="card">
+                <div className="dashboard-card">
                     <div className="card-header">
-                        <h3 className="card-heading">Monthly Compliance</h3>
-                        <span style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+                        <h3 className="card-title">Monthly Compliance</h3>
+                        <span className="text-secondary text-sm font-medium">
                             {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
                         </span>
                     </div>
-                    <div className="table-container" style={{ maxHeight: '400px', overflowY: 'auto' }}>
+                    <div className="table-container shadow-none border-0">
                         <table className="inventory-table">
                             <thead>
                                 <tr>
@@ -665,57 +588,36 @@ const ResellerDashboard = () => {
                             <tbody>
                                 {monthlyComplianceData.length === 0 ? (
                                     <tr>
-                                        <td colSpan={4} className="empty-state">
+                                        <td colSpan={5} className="empty-state text-center py-8 text-secondary">
                                             No resellers found.
                                         </td>
                                     </tr>
                                 ) : (
                                     monthlyComplianceData.map(data => (
-                                        <tr key={data.resellerName}>
-                                            <td className="font-medium">{data.resellerName}</td>
-                                            <td className="text-right" style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                                        <tr key={data.resellerName} className="hover:bg-gray-50 transition-colors">
+                                            <td className="font-medium text-main">{data.resellerName}</td>
+                                            <td className="text-right text-secondary text-sm">
                                                 {data.cycleString}
                                             </td>
-                                            <td className="text-right font-bold">
+                                            <td className="text-right font-bold text-main">
                                                 ₱{data.ordersThisMonth.toLocaleString()}
                                             </td>
-                                            <td className="text-right" style={{ color: 'var(--text-secondary)' }}>
+                                            <td className="text-right text-secondary text-sm">
                                                 ₱{data.minimum.toLocaleString()}
                                             </td>
                                             <td className="text-center">
                                                 {data.status === 'met' && (
-                                                    <span style={{
-                                                        padding: '4px 12px',
-                                                        borderRadius: '12px',
-                                                        fontSize: '0.75rem',
-                                                        fontWeight: '600',
-                                                        backgroundColor: '#d1fae5',
-                                                        color: '#065f46'
-                                                    }}>
+                                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                                                         ✓ Met
                                                     </span>
                                                 )}
                                                 {data.status === 'pending' && (
-                                                    <span style={{
-                                                        padding: '4px 12px',
-                                                        borderRadius: '12px',
-                                                        fontSize: '0.75rem',
-                                                        fontWeight: '600',
-                                                        backgroundColor: '#fef3c7',
-                                                        color: '#92400e'
-                                                    }}>
+                                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
                                                         ⏳ Pending
                                                     </span>
                                                 )}
                                                 {data.status === 'not_met' && (
-                                                    <span style={{
-                                                        padding: '4px 12px',
-                                                        borderRadius: '12px',
-                                                        fontSize: '0.75rem',
-                                                        fontWeight: '600',
-                                                        backgroundColor: '#fee2e2',
-                                                        color: '#991b1b'
-                                                    }}>
+                                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
                                                         ✗ Not Met
                                                     </span>
                                                 )}

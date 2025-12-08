@@ -248,13 +248,19 @@ button {
 }
 
 /* Card Component - Modern & Flat/Subtle */
-.card {
+.card,
+.dashboard-card {
   background-color: var(--bg-surface);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
   border: 1px solid var(--border-color);
   padding: 1.5rem;
   margin-bottom: 1.5rem;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.dashboard-card:hover {
+  box-shadow: var(--shadow-md);
 }
 
 .card-header {
@@ -265,10 +271,61 @@ button {
 }
 
 .card-title {
-  font-size: 1.125rem;
+  font-size: 1rem;
+  /* Reduced from 1.125rem for minimalism */
   font-weight: 600;
   color: var(--text-main);
-  letter-spacing: -0.025em;
+  letter-spacing: -0.01em;
+}
+
+/* Specific Metric Card Styles */
+.metric-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+}
+
+.metric-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.5rem;
+}
+
+.metric-title {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.metric-icon-wrapper {
+  background-color: var(--gray-50);
+  /* More subtle than primary-light */
+  border-radius: 8px;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  /* More subtle icon color */
+}
+
+.metric-value {
+  font-size: 1.75rem;
+  /* Slightly smaller than 2rem */
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 0.25rem;
+  letter-spacing: -0.03em;
+}
+
+.metric-trend {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
 }
 
 /* Inventory Table Styles - Clean Enterprise Look */
@@ -332,9 +389,10 @@ button {
 }
 
 .inventory-table th {
-  background-color: var(--gray-50);
-  /* Subtle gray, not blue */
-  color: var(--text-secondary);
+  background-color: transparent;
+  /* Clean look */
+  color: var(--text-muted);
+  /* Softer text */
   padding: 0.75rem 1rem;
   text-align: left;
   font-weight: 600;
@@ -1528,6 +1586,7 @@ select {
     transform: translate(-50%, 0);
   }
 }
+
 /* ========================================
    Transfer Location Responsive Grid
    ======================================== */
