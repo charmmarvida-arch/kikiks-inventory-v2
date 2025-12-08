@@ -13,6 +13,8 @@ const ResellerOrderList = () => {
     const [showCOAModal, setShowCOAModal] = useState(false);
     const [selectedCOAOrder, setSelectedCOAOrder] = useState(null);
     const [bestBeforeDates, setBestBeforeDates] = useState({});
+    const [preparedBy, setPreparedBy] = useState('');
+    const [preparedDate, setPreparedDate] = useState('');
 
     // Filter out COMPLETED orders
     const activeOrders = resellerOrders.filter(order => order.status !== 'Completed');
@@ -62,6 +64,22 @@ const ResellerOrderList = () => {
             });
             setBestBeforeDates(initialDates);
         }
+
+        // Initialize Prepared By and Date
+        if (order.coaData && order.coaData.preparedBy) {
+            setPreparedBy(order.coaData.preparedBy);
+        } else {
+            setPreparedBy('');
+        }
+
+        if (order.coaData && order.coaData.preparedDate) {
+            setPreparedDate(order.coaData.preparedDate);
+        } else {
+            // Default to today's date
+            const today = new Date().toISOString().split('T')[0];
+            setPreparedDate(today);
+        }
+
         setShowCOAModal(true);
     };
 
@@ -101,7 +119,13 @@ const ResellerOrderList = () => {
         if (selectedCOAOrder) {
             try {
                 console.log('Starting COA generation...');
-                await generateCOA(selectedCOAOrder, bestBeforeDates, inventory);
+                // Pass preparedBy and preparedDate to generateCOA
+                const coaData = {
+                    ...bestBeforeDates,
+                    preparedBy,
+                    preparedDate
+                };
+                await generateCOA(selectedCOAOrder, coaData, inventory);
 
                 // Get current user's email/name
                 const createdBy = userProfile?.email || 'Unknown User';
@@ -110,7 +134,11 @@ const ResellerOrderList = () => {
                 // Update DB with status and data
                 await updateResellerOrder(selectedCOAOrder.id, {
                     hasCOA: true,
-                    coaData: bestBeforeDates,
+                    coaData: {
+                        ...bestBeforeDates,
+                        preparedBy,
+                        preparedDate
+                    },
                     created_by: createdBy,
                     encoded_by: encodedBy
                 });
@@ -490,6 +518,31 @@ const ResellerOrderList = () => {
                                         })}
                                     </tbody>
                                 </table>
+                            </div>
+
+                            {/* Prepared By and Date Inputs */}
+                            <div className="border-t border-gray-100 pt-4 mt-4">
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Prepared by (Full Name)</label>
+                                        <input
+                                            type="text"
+                                            className="premium-input w-full"
+                                            placeholder="Enter Full Name"
+                                            value={preparedBy}
+                                            onChange={(e) => setPreparedBy(e.target.value)}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                                        <input
+                                            type="date"
+                                            className="premium-input w-full"
+                                            value={preparedDate}
+                                            onChange={(e) => setPreparedDate(e.target.value)}
+                                        />
+                                    </div>
+                                </div>
                             </div>
                             <div className="flex justify-end gap-4">
                                 <button

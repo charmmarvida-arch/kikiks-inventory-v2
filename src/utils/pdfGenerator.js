@@ -462,9 +462,9 @@ export const generateCOA = async (order, bestBeforeDates, inventory) => {
         doc.setFont("helvetica", "italic");
         doc.setTextColor(0);
         doc.text("Notes:", 15, notesY);
-        doc.text("•   Cafe Mocha may or may not have some minimal black dots from ground coffee beans", 20, notesY + 3);
+        doc.text("•   Storage Requirement: Keep frozen to at least -18˚C or lower", 20, notesY + 3);
         doc.text("•   Vanilla Langka visually have minimal tiny black dots from ground vanilla bean paste", 20, notesY + 6);
-        doc.text("•   Mango Sticky Rice may or may not have some minimal black dots from toasted glutinous rice flour", 20, notesY + 9);
+        doc.text("•   Suman at Mangga may or may not have some minimal black dots from toasted glutinous rice flour.", 20, notesY + 9);
         doc.text("•   During receiving, client must inspect all products according to the analysis criteria above, any quality concerns not documented at time of delivery will not be accepted for claims", 20, notesY + 12);
 
         // Signature Box (positioned after notes)
@@ -483,12 +483,17 @@ export const generateCOA = async (order, bestBeforeDates, inventory) => {
 
         doc.setFontSize(10);
         doc.setTextColor(0);
-        doc.text("CHARMAINE MARVIDA", 81, sigY + 13, { align: 'center' });
+        // Use preparedBy from data or fallback to default/blank
+        const preparedByName = order.coaData?.preparedBy || '';
+        doc.text(preparedByName.toUpperCase(), 81, sigY + 13, { align: 'center' });
 
         doc.setFontSize(8);
         doc.setTextColor(100);
         doc.line(15, sigY + 15, 282, sigY + 15); // Date separator
-        doc.text("Date:", 17, sigY + 18.5);
+
+        // Use preparedDate from data or fallback
+        const dateStr = order.coaData?.preparedDate ? new Date(order.coaData.preparedDate).toLocaleDateString() : '';
+        doc.text(`Date: ${dateStr}`, 17, sigY + 18.5);
     }
 
     if (order.returnBlob) {
