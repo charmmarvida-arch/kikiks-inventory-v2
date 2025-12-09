@@ -240,7 +240,7 @@ export const generatePackingList = async (order, inventory, resellerPrices = {})
 };
 
 // New function for Transfer Orders (matches reseller packing list format)
-export const generateTransferPackingList = async (order) => {
+export const generateTransferPackingList = async (order, inventory = []) => {
     const doc = new jsPDF();
 
     // 1. Header with Logo
@@ -313,6 +313,20 @@ export const generateTransferPackingList = async (order) => {
         return name.replace(/-Default$/i, '').trim();
     };
 
+    // Helper function to get product description from SKU or item name
+    const getDisplayName = (itemName) => {
+        // Check if it looks like an SKU (starts with FG followed by letter)
+        if (/^FG[CPLG]/i.test(itemName)) {
+            // Look up in inventory
+            const product = inventory.find(p => p.sku === itemName);
+            if (product && product.description) {
+                return product.description;
+            }
+        }
+        // Otherwise clean the name and return
+        return cleanItemName(itemName);
+    };
+
     // Categorize items - supports both item names AND SKU codes
     Object.entries(order.items || {}).forEach(([itemName, qty]) => {
         if (qty > 0) {
@@ -332,7 +346,7 @@ export const generateTransferPackingList = async (order) => {
             else if (upperName.startsWith('FGG')) category = 'Gallon';
 
             groupedItems[category].push({
-                name: cleanItemName(itemName),
+                name: getDisplayName(itemName),
                 qty
             });
         }

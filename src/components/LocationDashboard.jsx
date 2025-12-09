@@ -114,7 +114,7 @@ const LocationDashboard = () => {
     // Packing List Handlers
     const handleCreatePackingList = async (order) => {
         try {
-            await generateTransferPackingList(order);
+            await generateTransferPackingList(order, inventory);
             // Update DB
             await updateTransferOrder(order.id, { hasPackingList: true });
         } catch (error) {
@@ -129,7 +129,7 @@ const LocationDashboard = () => {
                 ...order,
                 returnBlob: true
             };
-            const url = await generateTransferPackingList(orderWithBlob);
+            const url = await generateTransferPackingList(orderWithBlob, inventory);
             setPreviewUrl(url);
             setPreviewTitle(`Transfer Packing List - ${order.destination}`);
             setShowPreviewModal(true);

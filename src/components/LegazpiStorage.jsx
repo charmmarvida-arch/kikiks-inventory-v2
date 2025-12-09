@@ -115,7 +115,7 @@ const LegazpiStorage = () => {
 
     const handleCreatePackingList = async (order) => {
         try {
-            await generateTransferPackingList(order);
+            await generateTransferPackingList(order, inventory);
             await updateTransferOrder(order.id, { hasPackingList: true });
         } catch (error) {
             console.error("Error creating packing list:", error);
@@ -129,7 +129,7 @@ const LegazpiStorage = () => {
                 ...order,
                 returnBlob: true
             };
-            const url = await generateTransferPackingList(orderWithBlob);
+            const url = await generateTransferPackingList(orderWithBlob, inventory);
             setPreviewUrl(url);
             setPreviewTitle(`Transfer Packing List - ${order.destination || order.to_location}`);
             setShowPreviewModal(true);
