@@ -266,6 +266,21 @@ const ResellerDashboard = () => {
             grouped[resellerName].orders.push(order);
         });
 
+        // Calculate YTD per reseller
+        const today = new Date();
+        const startOfYear = new Date(today.getFullYear(), 0, 1);
+        
+        Object.values(grouped).forEach(reseller => {
+            const resellerYtdOrders = resellerOrders.filter(order => {
+                const orderDate = new Date(order.date);
+                return order.resellerName === reseller.resellerName && 
+                       orderDate >= startOfYear && 
+                       orderDate <= today && 
+                       order.status === 'Completed';
+            });
+            reseller.ytdAmount = resellerYtdOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+        });
+
         let result = Object.values(grouped);
         result.sort((a, b) => {
             return sortDescending
@@ -512,21 +527,19 @@ const ResellerDashboard = () => {
                     <div className="table-container shadow-none border-0">
                         <table className="inventory-table" style={{ tableLayout: 'fixed', width: '100%' }}>
                             <colgroup>
-                                <col style={{ width: '55%' }} />
-                                <col style={{ width: '30%' }} />
-                                <col style={{ width: '15%' }} />
+                                <col style={{ width: '75%' }} />
+                                <col style={{ width: '25%' }} />
                             </colgroup>
                             <thead>
                                 <tr>
                                     <th>Reseller Name</th>
-                                    <th className="text-right">Sales</th>
                                     <th className="text-center">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {aggregatedData.length === 0 ? (
                                     <tr>
-                                        <td colSpan={3} className="empty-state">
+                                        <td colSpan={2} className="empty-state">
                                             No orders found for the selected date range.
                                         </td>
                                     </tr>
@@ -540,13 +553,6 @@ const ResellerDashboard = () => {
                                                 overflow: 'hidden',
                                                 textOverflow: 'ellipsis'
                                             }} title={reseller.resellerName}>{reseller.resellerName}</td>
-                                            <td style={{
-                                                padding: '12px 2px',
-                                                textAlign: 'right',
-                                                fontWeight: 'bold'
-                                            }}>
-                                                ₱{reseller.totalAmount.toLocaleString()}
-                                            </td>
                                             <td style={{
                                                 padding: '14px 4px',
                                                 textAlign: 'center'
