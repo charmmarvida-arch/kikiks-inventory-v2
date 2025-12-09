@@ -267,15 +267,13 @@ const ResellerDashboard = () => {
         });
 
         // Calculate YTD per reseller
-        const today = new Date();
-        const startOfYear = new Date(today.getFullYear(), 0, 1);
+        const currentYear = new Date().getFullYear();
 
         Object.values(grouped).forEach(reseller => {
             const resellerYtdOrders = resellerOrders.filter(order => {
                 const orderDate = new Date(order.date);
                 return order.resellerName === reseller.resellerName &&
-                    orderDate >= startOfYear &&
-                    orderDate <= today &&
+                    orderDate.getFullYear() === currentYear &&
                     order.status === 'Completed';
             });
             reseller.ytdAmount = resellerYtdOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
