@@ -493,8 +493,8 @@ const ResellerDashboard = () => {
             {/* Two-Column Layout: Reseller Summary + Monthly Compliance */}
             <div style={{
                 display: 'grid',
-                gridTemplateColumns: '1fr 2fr',
-                gap: '1.5rem',
+                gridTemplateColumns: 'minmax(350px, 30fr) 70fr',
+                gap: '1rem',
                 marginBottom: '2rem'
             }}>
                 {/* Reseller Summary Table - Left */}
@@ -534,14 +534,14 @@ const ResellerDashboard = () => {
                                     aggregatedData.map(reseller => (
                                         <tr key={reseller.resellerName} style={{ borderBottom: '1px solid var(--border-color)' }}>
                                             <td style={{
-                                                padding: '14px 4px',
+                                                padding: '12px 2px',
                                                 fontWeight: '500',
                                                 whiteSpace: 'nowrap',
                                                 overflow: 'hidden',
                                                 textOverflow: 'ellipsis'
                                             }} title={reseller.resellerName}>{reseller.resellerName}</td>
                                             <td style={{
-                                                padding: '14px 4px',
+                                                padding: '12px 2px',
                                                 textAlign: 'right',
                                                 fontWeight: 'bold'
                                             }}>
@@ -580,11 +580,11 @@ const ResellerDashboard = () => {
                     <div className="table-container shadow-none border-0">
                         <table className="inventory-table" style={{ tableLayout: 'fixed', width: '100%' }}>
                             <colgroup>
-                                <col style={{ width: '35%' }} />
+                                <col style={{ width: '28%' }} />
+                                <col style={{ width: '22%' }} />
+                                <col style={{ width: '15%' }} />
+                                <col style={{ width: '15%' }} />
                                 <col style={{ width: '20%' }} />
-                                <col style={{ width: '15%' }} />
-                                <col style={{ width: '15%' }} />
-                                <col style={{ width: '15%' }} />
                             </colgroup>
                             <thead>
                                 <tr>
