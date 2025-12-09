@@ -519,7 +519,7 @@ const ResellerDashboard = () => {
                             <thead>
                                 <tr>
                                     <th>Reseller Name</th>
-                                    <th className="text-right">Total Orders</th>
+                                    <th className="text-right">Sales</th>
                                     <th className="text-center">Actions</th>
                                 </tr>
                             </thead>
