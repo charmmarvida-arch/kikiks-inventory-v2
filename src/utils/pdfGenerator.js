@@ -239,11 +239,11 @@ export const generatePackingList = async (order, inventory, resellerPrices = {})
     }
 };
 
-// New function for Transfer Orders (handles different item format)
+// New function for Transfer Orders (matches reseller packing list format)
 export const generateTransferPackingList = async (order) => {
     const doc = new jsPDF();
 
-    // 1. Header
+    // 1. Header with Logo
     try {
         const logo = await loadImage('/logo.png');
         const logoWidth = 50;
@@ -259,76 +259,105 @@ export const generateTransferPackingList = async (order) => {
     doc.text("Brgy San Juan (Roro)", 15, 50);
     doc.text("Sorsogon City", 15, 55);
 
-    // 2. Transfer Info Section
+    // 2. Bill To & Delivery Date Section (matching reseller format)
     doc.setFillColor(150, 150, 150);
     doc.rect(15, 62, 85, 7, 'F');
     doc.rect(110, 62, 85, 7, 'F');
 
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(10);
-    doc.text("TRANSFER TO", 17, 67);
-    doc.text("TRANSFER DATE", 112, 67);
+    doc.text("BILL TO", 17, 67);
+    doc.text("DELIVERY DATE", 112, 67);
 
     doc.setTextColor(0, 0, 0);
     doc.setFont("helvetica", "normal");
 
-    // Transfer Info
-    doc.text("Destination:", 15, 77);
+    // Reseller/Destination Info
+    doc.text("Reseller Name:", 15, 77);
     doc.text(order.destination || order.to_location || '', 45, 77);
     doc.line(45, 78, 100, 78);
 
-    doc.text("From:", 15, 85);
-    doc.text(order.from_location || 'FTF Manufacturing', 30, 85);
-    doc.line(30, 86, 100, 86);
+    doc.text("Reseller Category:", 15, 85);
+    doc.text(order.destination || order.to_location || '', 48, 85);
+    doc.line(48, 86, 100, 86);
 
     // Date Info
     doc.text("DATE:", 110, 77);
     doc.text(new Date(order.date || order.created_at).toLocaleDateString(), 125, 77);
     doc.line(125, 78, 195, 78);
 
-    // 3. Table Data - Group by size category
+    // 3. Table Data Setup - Group by category like reseller packing list
     const tableBody = [];
-    let grandTotal = 0;
+    let grandTotalBill = 0;
 
-    // Group items by size category
-    const sizeCategories = {
-        'Cup': { items: [], name: 'CUPS' },
-        'Pint': { items: [], name: 'PINTS' },
-        'Liter': { items: [], name: 'LITERS' },
-        'Gallon': { items: [], name: 'GALLONS' },
-        'Other': { items: [], name: 'OTHER ITEMS' }
+    // Pack sizes and prices for each category
+    const categoryConfig = {
+        'Cup': { packSize: 10, price: 23, name: 'CUPS' },
+        'Pint': { packSize: 1, price: 85, name: 'PINTS' },
+        'Liter': { packSize: 1, price: 170, name: 'LITERS' },
+        'Gallon': { packSize: 1, price: 680, name: 'GALLONS' },
+        'Other': { packSize: 1, price: 0, name: 'OTHER ITEMS' }
     };
 
-    // Categorize items by checking if name contains size keywords
+    // Group items by size category
+    const groupedItems = {
+        'Cup': [],
+        'Pint': [],
+        'Liter': [],
+        'Gallon': [],
+        'Other': []
+    };
+
+    // Helper function to clean item name (remove "-Default" suffix)
+    const cleanItemName = (name) => {
+        return name.replace(/-Default$/i, '').trim();
+    };
+
+    // Categorize items
     Object.entries(order.items || {}).forEach(([itemName, qty]) => {
         if (qty > 0) {
             let category = 'Other';
-            if (itemName.toLowerCase().includes('cup')) category = 'Cup';
-            else if (itemName.toLowerCase().includes('pint')) category = 'Pint';
-            else if (itemName.toLowerCase().includes('liter')) category = 'Liter';
-            else if (itemName.toLowerCase().includes('gallon')) category = 'Gallon';
+            const lowerName = itemName.toLowerCase();
+            if (lowerName.includes('cup')) category = 'Cup';
+            else if (lowerName.includes('pint')) category = 'Pint';
+            else if (lowerName.includes('liter')) category = 'Liter';
+            else if (lowerName.includes('gallon')) category = 'Gallon';
 
-            sizeCategories[category].items.push({ name: itemName, qty });
-            grandTotal += qty;
+            groupedItems[category].push({
+                name: cleanItemName(itemName),
+                qty
+            });
         }
     });
 
-    // Add items to table by category
-    Object.entries(sizeCategories).forEach(([key, category]) => {
-        if (category.items.length > 0) {
+    // Process each category (in order: Cup, Pint, Liter, Gallon, Other)
+    ['Cup', 'Pint', 'Liter', 'Gallon', 'Other'].forEach(category => {
+        const items = groupedItems[category];
+        const config = categoryConfig[category];
+
+        if (items.length > 0) {
             // Add items
-            category.items.forEach(item => {
+            items.forEach(item => {
+                const numPacks = config.packSize > 1 ? (item.qty / config.packSize).toFixed(1) : '';
+                const totalCost = config.price * item.qty;
+                grandTotalBill += totalCost;
+
                 tableBody.push([
                     item.name,
-                    item.qty
+                    numPacks,
+                    config.packSize,
+                    item.qty,
+                    `P ${config.price.toLocaleString()}`,
+                    `P ${totalCost.toLocaleString()}`
                 ]);
             });
 
-            // Add category total
-            const categoryTotal = category.items.reduce((sum, item) => sum + item.qty, 0);
+            // Add category total row
+            const categoryTotal = items.reduce((sum, item) => sum + item.qty, 0);
             tableBody.push([
                 {
-                    content: `TOTAL # OF ${category.name}`,
+                    content: `TOTAL # OF ${config.name} (IN PCS)`,
+                    colSpan: 3,
                     styles: {
                         fillColor: [255, 248, 220],
                         fontStyle: 'bold',
@@ -342,15 +371,18 @@ export const generateTransferPackingList = async (order) => {
                         fontStyle: 'bold',
                         halign: 'center'
                     }
-                }
+                },
+                { content: '', styles: { fillColor: [255, 248, 220] } },
+                { content: '', styles: { fillColor: [255, 248, 220] } }
             ]);
         }
     });
 
-    // Add Grand Total
+    // Add Grand Total Row
     tableBody.push([
         {
-            content: 'GRAND TOTAL',
+            content: 'TOTAL BILL',
+            colSpan: 5,
             styles: {
                 fillColor: [255, 255, 255],
                 fontStyle: 'bold',
@@ -360,7 +392,7 @@ export const generateTransferPackingList = async (order) => {
             }
         },
         {
-            content: grandTotal,
+            content: `P ${grandTotalBill.toLocaleString()}`,
             styles: {
                 fillColor: [255, 255, 255],
                 fontStyle: 'bold',
@@ -371,28 +403,36 @@ export const generateTransferPackingList = async (order) => {
         }
     ]);
 
-    // 4. Draw Table
+    // 4. Draw Table (matching reseller format exactly)
     autoTable(doc, {
         startY: 95,
         head: [[
-            { content: 'ITEM DESCRIPTION', styles: { halign: 'left', fillColor: [128, 128, 128], textColor: 255 } },
-            { content: 'QUANTITY', styles: { halign: 'center', fillColor: [128, 128, 128], textColor: 255 } }
+            { content: 'DESCRIPTION', styles: { halign: 'left', fillColor: [128, 128, 128], textColor: 255 } },
+            { content: 'NUMBER OF PACKS', styles: { halign: 'center', fillColor: [128, 128, 128], textColor: 255 } },
+            { content: 'PCS/PACK', styles: { halign: 'center', fillColor: [128, 128, 128], textColor: 255 } },
+            { content: 'TOTAL QUANTITY (IN PCS)', styles: { halign: 'center', fillColor: [128, 128, 128], textColor: 255 } },
+            { content: 'PRICE', styles: { halign: 'center', fillColor: [128, 128, 128], textColor: 255 } },
+            { content: 'TOTAL COST', styles: { halign: 'center', fillColor: [128, 128, 128], textColor: 255 } }
         ]],
         body: tableBody,
         theme: 'grid',
         styles: {
             fontSize: 9,
-            cellPadding: 2,
+            cellPadding: 1.5,
             lineColor: [0, 0, 0],
             lineWidth: 0.1
         },
         columnStyles: {
             0: { cellWidth: 'auto' },
-            1: { cellWidth: 40, halign: 'center' }
+            1: { cellWidth: 25, halign: 'center' },
+            2: { cellWidth: 20, halign: 'center' },
+            3: { cellWidth: 30, halign: 'center' },
+            4: { cellWidth: 25, halign: 'center' },
+            5: { cellWidth: 30, halign: 'center' }
         }
     });
 
-    // 5. Footer Signatures
+    // 5. Footer Signatures (matching reseller format)
     const finalY = doc.lastAutoTable.finalY + 10;
 
     doc.setFontSize(9);
@@ -423,7 +463,7 @@ export const generateTransferPackingList = async (order) => {
         return doc.output('bloburl');
     } else {
         const destName = (order.destination || order.to_location || 'Transfer').replace(/\s+/g, '_');
-        doc.save(`Transfer_Packing_List_${destName}_${new Date().toISOString().split('T')[0]}.pdf`);
+        doc.save(`Packing_List_${destName}_${new Date().toISOString().split('T')[0]}.pdf`);
     }
 };
 
