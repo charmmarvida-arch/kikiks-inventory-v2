@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useInventory } from '../context/InventoryContext';
 import { Eye, X, Edit2, Trash2 } from 'lucide-react';
-import { generateTransferPackingList } from '../utils/pdfGenerator';
+import { generatePackingList } from '../utils/pdfGenerator';
 
 const LocationDashboard = () => {
     const { location } = useParams();
@@ -12,10 +12,7 @@ const LocationDashboard = () => {
         deleteTransferOrder,
         updateTransferOrder,
         inventory,
-        locationSRPs,
-        addStock,
-        addLegazpiStock,
-        legazpiInventory
+        locationSRPs
     } = useInventory();
     const [selectedOrder, setSelectedOrder] = useState(null);
 
@@ -27,7 +24,6 @@ const LocationDashboard = () => {
     // Edit Modal State
     const [editingOrder, setEditingOrder] = useState(null);
     const [showEditModal, setShowEditModal] = useState(false);
-    const [processingOrderId, setProcessingOrderId] = useState(null); // Prevent double-clicks
 
     // Filter and sort orders for this location
     const filteredOrders = transferOrders.filter(order => {
@@ -39,82 +35,20 @@ const LocationDashboard = () => {
 
     const sortedOrders = [...filteredOrders].sort((a, b) => new Date(b.date) - new Date(a.date));
 
-    const handleStatusChange = async (id, newStatus) => {
-        // Prevent double-clicks - if this order is already being processed, ignore
-        if (processingOrderId === id) {
-            console.log('Already processing this order, ignoring click');
-            return;
-        }
-
-        // Find the order to get item details
-        const order = sortedOrders.find(o => o.id === id);
-
-        if (!order) {
-            console.error('Order not found:', id);
-            return;
-        }
-
-        // Check if status is changing TO "Completed" and wasn't already Completed
-        if (newStatus === 'Completed' && order.status !== 'Completed') {
-            // Set processing state immediately to prevent double-clicks
-            setProcessingOrderId(id);
-
-            // Update status IMMEDIATELY (optimistic update) for instant UI feedback
-            updateTransferOrderStatus(id, newStatus);
-
-            try {
-                // Process inventory adjustments for each item
-                for (const [sku, qty] of Object.entries(order.items || {})) {
-                    const fromLocation = order.from_location || 'FTF Manufacturing';
-                    const toLocation = order.destination || order.to_location;
-
-                    // Deduct from source location
-                    if (fromLocation === 'FTF Manufacturing') {
-                        await addStock(sku, -qty);
-                        console.log(`Deducted ${qty} of ${sku} from FTF Manufacturing`);
-                    } else if (fromLocation === 'Legazpi Storage') {
-                        const product = legazpiInventory.find(p => p.sku === sku);
-                        if (product) {
-                            await addLegazpiStock(product.id, -qty);
-                            console.log(`Deducted ${qty} of ${sku} from Legazpi Storage`);
-                        }
-                    }
-
-                    // Add to destination location (for warehouses)
-                    if (toLocation === 'Legazpi Storage') {
-                        const product = legazpiInventory.find(p => p.sku === sku);
-                        if (product) {
-                            await addLegazpiStock(product.id, qty);
-                            console.log(`Added ${qty} of ${sku} to Legazpi Storage`);
-                        }
-                    } else if (toLocation === 'FTF Manufacturing') {
-                        await addStock(sku, qty);
-                        console.log(`Added ${qty} of ${sku} to FTF Manufacturing`);
-                    }
-                    // Note: For branch locations (not warehouses), we don't add to inventory
-                    // as branches are just transfer destinations, not tracked inventory
-                }
-
-                console.log('Transfer completed! Stock has been adjusted.');
-            } catch (error) {
-                console.error('Error adjusting stock:', error);
-                alert('Failed to adjust stock: ' + error.message);
-                // Revert status on error
-                updateTransferOrderStatus(id, order.status);
-            } finally {
-                setProcessingOrderId(null);
-            }
-            return; // Already updated status above
-        }
-
-        // Update the order status for non-Completed changes
+    const handleStatusChange = (id, newStatus) => {
         updateTransferOrderStatus(id, newStatus);
     };
 
     // Packing List Handlers
     const handleCreatePackingList = async (order) => {
         try {
-            await generateTransferPackingList(order);
+            // Format order to match expected structure (similar to reseller order)
+            const formattedOrder = {
+                ...order,
+                resellerName: order.destination,
+                address: ''
+            };
+            await generatePackingList(formattedOrder, inventory, locationSRPs[order.destination] || {});
             // Update DB
             await updateTransferOrder(order.id, { hasPackingList: true });
         } catch (error) {
@@ -125,13 +59,15 @@ const LocationDashboard = () => {
 
     const handleViewPackingList = async (order) => {
         try {
-            const orderWithBlob = {
+            const formattedOrder = {
                 ...order,
+                resellerName: order.destination,
+                address: '',
                 returnBlob: true
             };
-            const url = await generateTransferPackingList(orderWithBlob);
+            const url = await generatePackingList(formattedOrder, inventory, locationSRPs[order.destination] || {});
             setPreviewUrl(url);
-            setPreviewTitle(`Transfer Packing List - ${order.destination}`);
+            setPreviewTitle(`Packing List - ${order.destination}`);
             setShowPreviewModal(true);
         } catch (error) {
             console.error("Error viewing packing list:", error);
@@ -246,16 +182,14 @@ const LocationDashboard = () => {
                                             <select
                                                 value={order.status}
                                                 onChange={(e) => handleStatusChange(order.id, e.target.value)}
-                                                disabled={processingOrderId === order.id}
                                                 className={`status-badge status-${order.status.toLowerCase().replace(' ', '-')}`}
                                                 style={{
                                                     border: 'none',
-                                                    cursor: processingOrderId === order.id ? 'wait' : 'pointer',
+                                                    cursor: 'pointer',
                                                     appearance: 'none',
                                                     paddingRight: '1.5rem',
                                                     textAlign: 'center',
-                                                    fontSize: '0.75rem',
-                                                    opacity: processingOrderId === order.id ? 0.7 : 1
+                                                    fontSize: '0.75rem'
                                                 }}
                                             >
                                                 <option value="Unread">Unread</option>

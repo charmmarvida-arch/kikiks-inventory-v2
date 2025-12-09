@@ -431,9 +431,36 @@ const TransferLocation = ({ isPublic = false }) => {
             // Send Discord notification
             sendDiscordNotification(newOrder).catch(console.error);
 
-            // NOTE: Stock adjustment is now handled when status changes to "Completed"
-            // in the Legazpi Storage History / Location Dashboard
-            // This prevents double-counting and allows for proper workflow management
+            // Update inventories
+            // Deduct from FROM location
+            for (const [sku, qty] of Object.entries(transferItems)) {
+                if (fromLocation === 'FTF Manufacturing') {
+                    await addStock(sku, -qty);
+                } else if (fromLocation === 'Legazpi Storage') {
+                    const product = legazpiInventory.find(p =>
+                        `${p.product_name}-${p.flavor || 'Default'}` === sku
+                    );
+                    if (product) {
+                        await addLegazpiStock(product.id, -qty);
+                    }
+                }
+            }
+
+            // Add to TO location if it's a warehouse
+            if (toLocation === 'FTF Manufacturing') {
+                for (const [sku, qty] of Object.entries(transferItems)) {
+                    await addStock(sku, qty);
+                }
+            } else if (toLocation === 'Legazpi Storage') {
+                for (const [sku, qty] of Object.entries(transferItems)) {
+                    const product = legazpiInventory.find(p =>
+                        `${p.product_name}-${p.flavor || 'Default'}` === sku
+                    );
+                    if (product) {
+                        await addLegazpiStock(product.id, qty);
+                    }
+                }
+            }
 
             // Show success toast
             setShowToast(true);
