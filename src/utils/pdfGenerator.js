@@ -313,15 +313,23 @@ export const generateTransferPackingList = async (order) => {
         return name.replace(/-Default$/i, '').trim();
     };
 
-    // Categorize items
+    // Categorize items - supports both item names AND SKU codes
     Object.entries(order.items || {}).forEach(([itemName, qty]) => {
         if (qty > 0) {
             let category = 'Other';
             const lowerName = itemName.toLowerCase();
+            const upperName = itemName.toUpperCase();
+
+            // Check for item names containing category keywords
             if (lowerName.includes('cup')) category = 'Cup';
             else if (lowerName.includes('pint')) category = 'Pint';
             else if (lowerName.includes('liter')) category = 'Liter';
             else if (lowerName.includes('gallon')) category = 'Gallon';
+            // Also check for SKU prefixes (FGC=Cup, FGP=Pint, FGL=Liter, FGG=Gallon)
+            else if (upperName.startsWith('FGC')) category = 'Cup';
+            else if (upperName.startsWith('FGP')) category = 'Pint';
+            else if (upperName.startsWith('FGL')) category = 'Liter';
+            else if (upperName.startsWith('FGG')) category = 'Gallon';
 
             groupedItems[category].push({
                 name: cleanItemName(itemName),
