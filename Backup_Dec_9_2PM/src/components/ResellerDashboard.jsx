@@ -376,7 +376,7 @@ const ResellerDashboard = () => {
 
     // Main Dashboard View
     return (
-        <div className="fade-in" style={{ overflow: 'hidden', maxWidth: '100%' }}>
+        <div className="fade-in">
             <div className="header-section" style={{ marginBottom: '1.5rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
@@ -493,7 +493,7 @@ const ResellerDashboard = () => {
             {/* Two-Column Layout: Reseller Summary + Monthly Compliance */}
             <div style={{
                 display: 'grid',
-                gridTemplateColumns: '1fr 2fr',
+                gridTemplateColumns: '35fr 65fr',
                 gap: '1.5rem',
                 marginBottom: '2rem'
             }}>
@@ -510,11 +510,11 @@ const ResellerDashboard = () => {
                         </button>
                     </div>
                     <div className="table-container shadow-none border-0">
-                        <table className="inventory-table" style={{ tableLayout: 'fixed', width: '100%' }}>
+                        <table className="inventory-table">
                             <colgroup>
-                                <col style={{ width: '60%' }} />
-                                <col style={{ width: '25%' }} />
-                                <col style={{ width: '15%' }} />
+                                <col style={{ width: '40%' }} />
+                                <col style={{ width: '40%' }} />
+                                <col style={{ width: '20%' }} />
                             </colgroup>
                             <thead>
                                 <tr>
@@ -575,14 +575,7 @@ const ResellerDashboard = () => {
                         </span>
                     </div>
                     <div className="table-container shadow-none border-0">
-                        <table className="inventory-table" style={{ tableLayout: 'fixed', width: '100%' }}>
-                            <colgroup>
-                                <col style={{ width: '30%' }} />
-                                <col style={{ width: '20%' }} />
-                                <col style={{ width: '17%' }} />
-                                <col style={{ width: '17%' }} />
-                                <col style={{ width: '16%' }} />
-                            </colgroup>
+                        <table className="inventory-table">
                             <thead>
                                 <tr>
                                     <th>Reseller Name</th>
