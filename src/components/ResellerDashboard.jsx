@@ -512,8 +512,8 @@ const ResellerDashboard = () => {
                     <div className="table-container shadow-none border-0">
                         <table className="inventory-table" style={{ tableLayout: 'fixed', width: '100%' }}>
                             <colgroup>
-                                <col style={{ width: '60%' }} />
-                                <col style={{ width: '25%' }} />
+                                <col style={{ width: '55%' }} />
+                                <col style={{ width: '30%' }} />
                                 <col style={{ width: '15%' }} />
                             </colgroup>
                             <thead>
@@ -535,8 +535,11 @@ const ResellerDashboard = () => {
                                         <tr key={reseller.resellerName} style={{ borderBottom: '1px solid var(--border-color)' }}>
                                             <td style={{
                                                 padding: '14px 4px',
-                                                fontWeight: '500'
-                                            }}>{reseller.resellerName}</td>
+                                                fontWeight: '500',
+                                                whiteSpace: 'nowrap',
+                                                overflow: 'hidden',
+                                                textOverflow: 'ellipsis'
+                                            }} title={reseller.resellerName}>{reseller.resellerName}</td>
                                             <td style={{
                                                 padding: '14px 4px',
                                                 textAlign: 'right',
@@ -577,11 +580,11 @@ const ResellerDashboard = () => {
                     <div className="table-container shadow-none border-0">
                         <table className="inventory-table" style={{ tableLayout: 'fixed', width: '100%' }}>
                             <colgroup>
-                                <col style={{ width: '30%' }} />
+                                <col style={{ width: '35%' }} />
                                 <col style={{ width: '20%' }} />
-                                <col style={{ width: '17%' }} />
-                                <col style={{ width: '17%' }} />
-                                <col style={{ width: '16%' }} />
+                                <col style={{ width: '15%' }} />
+                                <col style={{ width: '15%' }} />
+                                <col style={{ width: '15%' }} />
                             </colgroup>
                             <thead>
                                 <tr>
@@ -602,7 +605,11 @@ const ResellerDashboard = () => {
                                 ) : (
                                     monthlyComplianceData.map(data => (
                                         <tr key={data.resellerName} className="hover:bg-gray-50 transition-colors">
-                                            <td className="font-medium text-main">{data.resellerName}</td>
+                                            <td className="font-medium text-main" style={{
+                                                whiteSpace: 'nowrap',
+                                                overflow: 'hidden',
+                                                textOverflow: 'ellipsis'
+                                            }} title={data.resellerName}>{data.resellerName}</td>
                                             <td className="text-right text-secondary text-sm">
                                                 {data.cycleString}
                                             </td>
