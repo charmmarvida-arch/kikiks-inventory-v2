@@ -7,6 +7,7 @@ import {
     ChevronRight, Save, X, Trash2, AlertCircle, FileText
 } from 'lucide-react';
 import ResellerSettingsModal from './ResellerSettingsModal';
+import { generatePackingList } from '../utils/pdfGenerator';
 
 // Category Configuration with Icons and Colors
 // Brand Palette:
@@ -225,8 +226,12 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
     const handleProceedOrder = async () => {
         // Prepare Order Data
         const orderItems = {};
+        let orderTotalQuantity = 0;
         Object.entries(cart).forEach(([sku, qty]) => {
-            if (qty > 0) orderItems[sku] = qty;
+            if (qty > 0) {
+                orderItems[sku] = qty;
+                orderTotalQuantity += qty;
+            }
         });
 
         const orderData = {
@@ -241,22 +246,87 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
         };
 
         // Save to DB
+        let finalOrderId = orderId;
         if (orderId) {
             // Update Existing Order
             await updateResellerOrder(orderId, {
                 ...orderData,
-                id: orderId, // Ensure ID is preserved
-                status: 'Pending' // Reset status to Pending on edit? Or keep existing? Usually reset if re-submitting. Let's keep it simple.
+                id: orderId,
+                status: 'Pending'
             });
             navigate(`/order-pdf/${orderId}`);
         } else {
             // Create New Order
             const newOrderId = crypto.randomUUID();
             orderData.id = newOrderId;
+            finalOrderId = newOrderId;
             await addResellerOrder(orderData);
 
             // Clear draft after successful submission
             localStorage.removeItem(DRAFT_KEY);
+
+            // --- EMAIL NOTIFICATION LOGIC ---
+            if (selectedReseller && selectedReseller.email) {
+                try {
+                    // 1. Generate PDF Base64
+                    const pdfDataUri = await generatePackingList({
+                        ...orderData,
+                        returnBase64: true,
+                        skipLogo: true // Compressing size for email
+                    }, inventory, resellerPrices);
+
+                    // Debug Size
+                    console.log("PDF Base64 Length:", pdfDataUri.length);
+                    // alert("Debug: Generated PDF Size: " + Math.round(pdfDataUri.length / 1024) + "KB");
+
+                    // 2. Send to API
+                    fetch('/api/send-email', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            to: selectedReseller.email,
+                            subject: `New Order Receipt - ${selectedReseller.name}`,
+                            html: `
+                                <h1>Order Confirmation</h1>
+                                <p>Hi ${selectedReseller.name},</p>
+                                <p>Thank you for your order! We have received your request.</p>
+                                <h3>Order Summary:</h3>
+                                <ul>
+                                    <li><strong>Order ID:</strong> ${finalOrderId.slice(0, 8)}</li>
+                                    <li><strong>Total Items:</strong> ${orderTotalQuantity}</li>
+                                    <li><strong>Total Amount:</strong> ₱${cartTotal.toLocaleString()}</li>
+                                </ul>
+                                <p>Please find the official receipt attached.</p>
+                                <br/>
+                                <p>Best regards,<br/>Kikik's Inventory System</p>
+                            `,
+                            attachments: [
+                                {
+                                    filename: `Order_${finalOrderId.slice(0, 8)}.pdf`,
+                                    content: pdfDataUri.split(',')[1], // Remove data URL prefix
+                                    encoding: 'base64'
+                                }
+                            ]
+                        })
+                    }).then(async res => {
+                        const result = await res.json();
+                        if (res.ok) {
+                            console.log('Email sent successfully', result);
+                            alert(`Email Sent Successfully to ${selectedReseller.email}!`);
+                        } else {
+                            console.error('Failed to send email', result);
+                            alert(`Email Failed: ${JSON.stringify(result)}`);
+                        }
+                    }).catch(err => {
+                        console.error('Error sending email:', err);
+                        alert(`Email Error: ${err.message}`);
+                    });
+
+                } catch (emailErr) {
+                    console.error("Email sequence failed:", emailErr);
+                    // Don't block navigation on email fail
+                }
+            }
 
             navigate(`/order-pdf/${newOrderId}`);
         }

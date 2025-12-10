@@ -37,13 +37,15 @@ export const generatePackingList = async (order, inventory, resellerPrices = {})
     const doc = new jsPDF();
 
     // 1. Header
-    try {
-        const logo = await loadImage('/logo.png');
-        const logoWidth = 50;
-        const logoHeight = (logo.height / logo.width) * logoWidth;
-        doc.addImage(logo, 'PNG', 15, 5, logoWidth, logoHeight); // Moved up to y=5
-    } catch (e) {
-        console.error("Error loading logo", e);
+    if (!order.skipLogo) { // Check skipLogo flag
+        try {
+            const logo = await loadImage('/logo.png');
+            const logoWidth = 50;
+            const logoHeight = (logo.height / logo.width) * logoWidth;
+            doc.addImage(logo, 'PNG', 15, 5, logoWidth, logoHeight); // Moved up to y=5
+        } catch (e) {
+            console.error("Error loading logo", e);
+        }
     }
 
     doc.setFontSize(10);
@@ -232,7 +234,9 @@ export const generatePackingList = async (order, inventory, resellerPrices = {})
     doc.line(135, finalY + 8, 180, finalY + 8);
 
     // Save or Return Blob
-    if (order.returnBlob) {
+    if (order.returnBase64) {
+        return doc.output('datauristring'); // Returns "data:application/pdf;base64,..."
+    } else if (order.returnBlob) {
         return doc.output('bloburl');
     } else {
         doc.save(`Packing_List_${order.resellerName.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`);
