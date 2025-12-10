@@ -213,10 +213,18 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
         if (Object.keys(cart).length === 0) return alert('Cart is empty');
 
         // Validation: Cups (FGC) must be divisible by 10
-        const fgcItems = Object.entries(cart).filter(([sku]) => sku.startsWith('FGC'));
-        for (const [sku, qty] of fgcItems) {
-            if (qty % 10 !== 0) {
-                return alert(`Order for ${sku} must be in multiples of 10 (e.g., 10, 20, 30). Current: ${qty}`);
+        // EXCEPTION: Private Individuals / Walk-ins can order any quantity
+        const isPrivateIndividual = currentZone && (
+            currentZone.name.toLowerCase().includes('private') ||
+            currentZone.name.toLowerCase().includes('walk-in')
+        );
+
+        if (!isPrivateIndividual) {
+            const fgcItems = Object.entries(cart).filter(([sku]) => sku.startsWith('FGC'));
+            for (const [sku, qty] of fgcItems) {
+                if (qty % 10 !== 0) {
+                    return alert(`Order for ${sku} must be in multiples of 10 (e.g., 10, 20, 30). Current: ${qty}`);
+                }
             }
         }
 
