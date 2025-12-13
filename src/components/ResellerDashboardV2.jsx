@@ -530,23 +530,19 @@ const ResellerDashboardV2 = () => {
                     <div className="table-container shadow-none border-0">
                         <table className="inventory-table" style={{ tableLayout: 'fixed', width: '100%' }}>
                             <colgroup>
-                                <col style={{ width: '40%' }} />
-                                <col style={{ width: '25%' }} />
-                                <col style={{ width: '20%' }} />
-                                <col style={{ width: '15%' }} />
+                                <col style={{ width: '50%' }} />
+                                <col style={{ width: '50%' }} />
                             </colgroup>
                             <thead>
                                 <tr>
                                     <th style={{ paddingLeft: '16px' }}>Reseller Name</th>
                                     <th className="text-right">Sales (YTD)</th>
-                                    <th className="text-right">Sales</th>
-                                    <th className="text-center">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {aggregatedData.length === 0 ? (
                                     <tr>
-                                        <td colSpan={4} className="empty-state">
+                                        <td colSpan={2} className="empty-state">
                                             No orders found for the selected date range.
                                         </td>
                                     </tr>
@@ -554,58 +550,36 @@ const ResellerDashboardV2 = () => {
                                     aggregatedData.map(reseller => (
                                         <tr key={reseller.resellerName} style={{ borderBottom: '1px solid var(--border-color)' }}>
                                             <td style={{
-                                                padding: '12px 16px', // Increased padding
+                                                padding: '12px 16px',
                                                 fontWeight: '500',
-                                                whiteSpace: 'normal', // Allow wrapping
-                                                wordBreak: 'break-word', // Break long words if needed
+                                                whiteSpace: 'normal',
+                                                wordBreak: 'break-word',
                                                 lineHeight: '1.4',
                                                 cursor: 'pointer',
                                                 color: 'var(--primary)',
                                                 textDecoration: 'underline'
                                             }}
-                                                title={reseller.resellerName}
                                                 onClick={() => handleViewResellerHistory(reseller)}
                                             >
                                                 {reseller.resellerName}
                                             </td>
                                             <td style={{
-                                                padding: '12px 2px',
+                                                padding: '12px 16px',
                                                 textAlign: 'right'
                                             }}>
                                                 <div style={{
                                                     display: 'inline-block',
-                                                    padding: '4px 12px',
+                                                    padding: '6px 16px',
                                                     backgroundColor: 'rgba(79, 70, 229, 0.1)',
                                                     color: 'var(--primary)',
                                                     borderRadius: '6px',
                                                     fontWeight: '600',
-                                                    fontSize: '0.85em',
-                                                    minWidth: '80px',
+                                                    fontSize: '0.9em',
+                                                    minWidth: '100px',
                                                     textAlign: 'center'
                                                 }}>
                                                     ₱{reseller.ytdAmount?.toLocaleString() || '0'}
                                                 </div>
-                                            </td>
-                                            <td style={{
-                                                padding: '12px 2px',
-                                                textAlign: 'right',
-                                                fontWeight: 'bold'
-                                            }}>
-                                                ₱{reseller.totalAmount.toLocaleString()}
-                                            </td>
-                                            <td style={{
-                                                padding: '14px 4px',
-                                                textAlign: 'center'
-                                            }}>
-                                                <button
-                                                    className="text-btn text-primary"
-                                                    onClick={() => {
-                                                        setSelectedReseller(reseller);
-                                                        setShowModal(true);
-                                                    }}
-                                                >
-                                                    View
-                                                </button>
                                             </td>
                                         </tr>
                                     ))
