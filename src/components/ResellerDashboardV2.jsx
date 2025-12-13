@@ -229,7 +229,9 @@ const ResellerDashboardV2 = () => {
             ordersChange,
             resellersChange,
             ytdChange,
-            complianceChange
+            ytdChange,
+            complianceChange,
+            encodedCount // Exposed for display
         };
     }, [filteredOrders, previousPeriodOrders, resellerOrders, monthlyComplianceData]);
 
@@ -504,9 +506,10 @@ const ResellerDashboardV2 = () => {
                 />
                 <MetricCard
                     title="Pending Encoding"
-                    value={metrics.pendingEncoding}
+                    value={`${metrics.encodedCount} of ${metrics.totalOrders} is encoded`}
                     change={null}
                     icon={Clock}
+                    format="text"
                 />
             </div>
 
