@@ -139,42 +139,17 @@ const OrderHistory = () => {
                                                     setSelectedOrder(order);
                                                     setShowDetailsModal(true);
                                                 }}
-                                                style={{
-                                                    width: '85px',
-                                                    padding: '0',
-                                                    height: '28px',
-                                                    border: 'none',
-                                                    color: 'white',
-                                                    background: 'var(--primary)',
-                                                    fontSize: '0.75rem',
-                                                    fontWeight: '500',
-                                                    borderRadius: '50px',
-                                                    boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
-                                                    display: 'inline-flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center'
-                                                }}
+                                                className="std-btn std-btn-primary"
                                                 title="View Details"
                                             >
-                                                View Details
+                                                Details
                                             </button>
                                         </td>
                                         <td className="text-center">
                                             {order.hasPackingList ? (
                                                 <button
                                                     onClick={() => handleViewPackingList(order)}
-                                                    style={{
-                                                        width: '85px',
-                                                        height: '28px',
-                                                        backgroundColor: 'var(--primary)',
-                                                        color: 'white',
-                                                        padding: '0',
-                                                        borderRadius: '50px',
-                                                        fontSize: '0.75rem',
-                                                        fontWeight: '600',
-                                                        border: 'none',
-                                                        boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
-                                                    }}
+                                                    className="std-btn std-btn-primary"
                                                 >
                                                     View PDF
                                                 </button>
@@ -203,18 +178,7 @@ const OrderHistory = () => {
                                             {order.hasCOA ? (
                                                 <button
                                                     onClick={() => handleViewCOA(order)}
-                                                    style={{
-                                                        width: '85px',
-                                                        height: '28px',
-                                                        backgroundColor: 'var(--primary)',
-                                                        color: 'white',
-                                                        padding: '0',
-                                                        borderRadius: '50px',
-                                                        fontSize: '0.75rem',
-                                                        fontWeight: '600',
-                                                        border: 'none',
-                                                        boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
-                                                    }}
+                                                    className="std-btn std-btn-primary"
                                                 >
                                                     View COA
                                                 </button>

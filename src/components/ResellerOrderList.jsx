@@ -210,25 +210,9 @@ const ResellerOrderList = () => {
                                     <td className="text-center">
                                         <button
                                             onClick={() => setSelectedOrder(order)}
-                                            className="icon-btn"
-                                            style={{
-                                                width: '85px',
-                                                padding: '0',
-                                                height: '28px',
-                                                border: 'none',
-                                                color: 'white',
-                                                background: 'var(--primary)',
-                                                fontSize: '0.75rem',
-                                                fontWeight: '500',
-                                                borderRadius: '50px',
-                                                boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
-                                                display: 'inline-flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center'
-                                            }}
-                                            title="View Details"
+                                            className="std-btn std-btn-primary"
                                         >
-                                            <Eye size={14} style={{ marginRight: '4px' }} /> View
+                                            <Eye size={14} style={{ marginRight: '4px' }} /> Details
                                         </button>
                                     </td>
                                     {/* Create Document Columns */}
@@ -236,36 +220,14 @@ const ResellerOrderList = () => {
                                         {order.hasPackingList ? (
                                             <button
                                                 onClick={() => handleViewPackingList(order)}
-                                                style={{
-                                                    width: '85px',
-                                                    height: '28px',
-                                                    backgroundColor: 'var(--primary)',
-                                                    color: 'white',
-                                                    padding: '0',
-                                                    borderRadius: '50px',
-                                                    fontSize: '0.75rem',
-                                                    fontWeight: '600',
-                                                    border: 'none',
-                                                    boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
-                                                }}
+                                                className="std-btn std-btn-primary"
                                             >
                                                 View PDF
                                             </button>
                                         ) : (
                                             <button
                                                 onClick={() => handleCreatePackingList(order)}
-                                                style={{
-                                                    width: '85px',
-                                                    height: '28px',
-                                                    backgroundColor: 'var(--primary)',
-                                                    color: 'white',
-                                                    padding: '0',
-                                                    borderRadius: '50px',
-                                                    fontSize: '0.75rem',
-                                                    fontWeight: '600',
-                                                    border: 'none',
-                                                    boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
-                                                }}
+                                                className="std-btn std-btn-primary"
                                             >
                                                 Create List
                                             </button>
@@ -275,36 +237,14 @@ const ResellerOrderList = () => {
                                         {order.hasCOA ? (
                                             <button
                                                 onClick={() => handleViewCOA(order)}
-                                                style={{
-                                                    width: '85px',
-                                                    height: '28px',
-                                                    backgroundColor: 'var(--primary)',
-                                                    color: 'white',
-                                                    padding: '0',
-                                                    borderRadius: '50px',
-                                                    fontSize: '0.75rem',
-                                                    fontWeight: '600',
-                                                    border: 'none',
-                                                    boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
-                                                }}
+                                                className="std-btn std-btn-primary"
                                             >
                                                 View COA
                                             </button>
                                         ) : (
                                             <button
                                                 onClick={() => handleOpenCOAModal(order)}
-                                                style={{
-                                                    width: '85px',
-                                                    height: '28px',
-                                                    backgroundColor: 'var(--primary)',
-                                                    color: 'white',
-                                                    padding: '0',
-                                                    borderRadius: '50px',
-                                                    fontSize: '0.75rem',
-                                                    fontWeight: '600',
-                                                    border: 'none',
-                                                    boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
-                                                }}
+                                                className="std-btn std-btn-primary"
                                             >
                                                 Create COA
                                             </button>
@@ -315,7 +255,7 @@ const ResellerOrderList = () => {
                                             <select
                                                 value={order.status}
                                                 onChange={(e) => handleStatusChange(order.id, e.target.value)}
-                                                className={`status - badge status - ${order.status.toLowerCase()} cursor - pointer border - none`}
+                                                className={`std-badge-select status-${order.status.toLowerCase()}`}
                                                 style={{ flex: 1 }}
                                             >
                                                 <option value="Unread">Unread</option>
@@ -323,22 +263,22 @@ const ResellerOrderList = () => {
                                                 <option value="Processing">Processing</option>
                                                 <option value="Completed">Completed</option>
                                             </select>
-                                            <button
-                                                onClick={() => handleEditOrder(order)}
-                                                className="icon-btn p-1"
-                                                title="Edit Order"
-                                                style={{ width: 'auto', minWidth: 'unset' }}
-                                            >
-                                                <Edit2 size={16} />
-                                            </button>
-                                            <button
-                                                onClick={() => handleDeleteOrder(order)}
-                                                className="icon-btn p-1 text-danger"
-                                                title="Delete Order"
-                                                style={{ width: 'auto', minWidth: 'unset' }}
-                                            >
-                                                <Trash2 size={16} />
-                                            </button>
+                                            <div className="std-action-wrapper">
+                                                <button
+                                                    onClick={() => handleEditOrder(order)}
+                                                    className="std-icon-btn"
+                                                    title="Edit Order"
+                                                >
+                                                    <Edit2 size={18} />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDeleteOrder(order)}
+                                                    className="std-icon-btn danger"
+                                                    title="Delete Order"
+                                                >
+                                                    <Trash2 size={18} />
+                                                </button>
+                                            </div>
                                         </div>
                                     </td>
                                 </tr>

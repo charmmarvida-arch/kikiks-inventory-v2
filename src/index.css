@@ -84,6 +84,25 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Slim Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--gray-300);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--gray-400);
+}
+
 button {
   font-family: inherit;
   cursor: pointer;
@@ -108,15 +127,25 @@ button {
 }
 
 /* Sidebar Styles - Premium & Modern */
+/* Sidebar Styles - Premium & Modern Floating */
 .sidebar {
   width: var(--sidebar-width);
   background-color: var(--bg-sidebar);
   border-right: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
-  height: 100%;
+  height: calc(100vh - 2rem);
+  /* Floating height */
+  margin: 1rem;
+  /* Floating margin */
+  border-radius: var(--radius-xl);
+  /* Rounded corners */
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  /* Deep shadow */
   transition: transform 0.3s ease;
   z-index: 50;
+  backdrop-filter: blur(10px);
+  /* Subtle glass effect if bg is translucent */
 }
 
 .sidebar-header {
@@ -428,7 +457,16 @@ button {
 }
 
 .inventory-table tr:hover td {
-  background-color: var(--gray-50);
+  background-color: var(--base-white);
+  /* Keep white but lift */
+  transform: scale(1.005);
+  /* Subtle scale up */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  /* Lift shadow */
+  z-index: 10;
+  position: relative;
+  /* Needed for z-index */
+  cursor: default;
 }
 
 /* Center alignment utilities */
@@ -536,15 +574,19 @@ select {
   justify-content: center;
   gap: 0.5rem;
   background-color: var(--gray-900);
-  /* Dark/Black button for enterprise feel */
   color: white;
-  padding: 0.75rem 1.5rem;
+  padding: 0.4rem 0.8rem;
   border-radius: var(--radius-md);
   border: 1px solid transparent;
   font-weight: 500;
-  font-size: 0.9375rem;
+  font-size: 0.8rem;
   box-shadow: var(--shadow-sm);
   transition: all 0.15s ease;
+}
+
+.submit-btn:active {
+  transform: scale(0.95);
+  /* Tactile click effect */
 }
 
 .submit-btn:hover {
@@ -583,14 +625,21 @@ select {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 28px;
+  /* Smaller (was 36px) */
+  height: 28px;
+  /* Smaller (was 36px) */
   border: 1px solid var(--border-color);
   background: var(--base-white);
   border-radius: var(--radius-md);
   color: var(--text-secondary);
   transition: all 0.2s;
   cursor: pointer;
+}
+
+.icon-btn:active {
+  transform: scale(0.95);
+  /* Tactile click effect */
 }
 
 .icon-btn:hover {
@@ -1619,4 +1668,105 @@ select {
   .product-categories-grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* --- OCD PROTOCOL: STRICT UNIFORMITY --- */
+
+/* Standard Button - Fixed Dimensions */
+.std-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+  /* Fixed Height */
+  min-width: 100px;
+  /* Fixed Minimum Width */
+  padding: 0 1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 9999px;
+  /* Capsule Shape */
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  /* NO WRAPPING */
+  transition: all 0.2s ease;
+  box-shadow: var(--shadow-sm);
+  text-decoration: none;
+  /* For anchor tags */
+  line-height: 1;
+}
+
+.std-btn:active {
+  transform: scale(0.96);
+}
+
+.std-btn-primary {
+  background-color: var(--primary);
+  color: white;
+}
+
+.std-btn-primary:hover {
+  background-color: var(--primary-hover);
+  box-shadow: 0 2px 8px rgba(234, 88, 12, 0.3);
+}
+
+.std-btn-light {
+  background-color: var(--gray-100);
+  color: var(--gray-700);
+  border: 1px solid var(--border-color);
+}
+
+.std-btn-light:hover {
+  background-color: var(--gray-200);
+  color: var(--gray-900);
+}
+
+/* Standard Badge/Status - Mimics Button Dimensions */
+.std-badge-select {
+  height: 36px;
+  min-width: 120px;
+  /* Slightly wider for text */
+  padding: 0 1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 9999px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  appearance: none;
+  text-align: center;
+  text-align-last: center;
+  transition: all 0.2s ease;
+}
+
+/* Standard Action Icon Wrapper - For Vertical Alignment */
+.std-action-wrapper {
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.std-icon-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  background-color: transparent;
+  color: var(--text-secondary);
+  transition: all 0.2s;
+}
+
+.std-icon-btn:hover {
+  background-color: var(--gray-100);
+  color: var(--text-main);
+}
+
+.std-icon-btn.danger:hover {
+  background-color: var(--danger-bg);
+  color: var(--danger);
 }

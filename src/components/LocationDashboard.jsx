@@ -231,24 +231,9 @@ const LocationDashboard = () => {
                                     <td className="text-center">
                                         <button
                                             onClick={() => setSelectedOrder(order)}
-                                            style={{
-                                                backgroundColor: '#E5562E',
-                                                color: 'white',
-                                                border: 'none',
-                                                padding: '0.5rem 1rem',
-                                                borderRadius: '9999px',
-                                                fontSize: '0.875rem',
-                                                fontWeight: '500',
-                                                cursor: 'pointer',
-                                                boxShadow: '0 2px 4px rgba(229, 86, 46, 0.2)',
-                                                display: 'inline-flex',
-                                                alignItems: 'center',
-                                                gap: '0.5rem',
-                                                width: '120px',
-                                                justifyContent: 'center'
-                                            }}
+                                            className="std-btn std-btn-primary"
                                         >
-                                            View Details
+                                            Details
                                         </button>
                                     </td>
                                     {/* Packing List Column */}
@@ -256,44 +241,14 @@ const LocationDashboard = () => {
                                         {order.hasPackingList ? (
                                             <button
                                                 onClick={() => handleViewPackingList(order)}
-                                                style={{
-                                                    backgroundColor: '#E5562E',
-                                                    color: 'white',
-                                                    border: 'none',
-                                                    padding: '0.5rem 1rem',
-                                                    borderRadius: '9999px',
-                                                    fontSize: '0.875rem',
-                                                    fontWeight: '500',
-                                                    cursor: 'pointer',
-                                                    boxShadow: '0 2px 4px rgba(229, 86, 46, 0.2)',
-                                                    display: 'inline-flex',
-                                                    alignItems: 'center',
-                                                    gap: '0.5rem',
-                                                    width: '120px',
-                                                    justifyContent: 'center'
-                                                }}
+                                                className="std-btn std-btn-primary"
                                             >
                                                 View PDF
                                             </button>
                                         ) : (
                                             <button
                                                 onClick={() => handleCreatePackingList(order)}
-                                                style={{
-                                                    backgroundColor: '#E5562E',
-                                                    color: 'white',
-                                                    border: 'none',
-                                                    padding: '0.5rem 1rem',
-                                                    borderRadius: '9999px',
-                                                    fontSize: '0.875rem',
-                                                    fontWeight: '500',
-                                                    cursor: 'pointer',
-                                                    boxShadow: '0 2px 4px rgba(229, 86, 46, 0.2)',
-                                                    display: 'inline-flex',
-                                                    alignItems: 'center',
-                                                    gap: '0.5rem',
-                                                    width: '120px',
-                                                    justifyContent: 'center'
-                                                }}
+                                                className="std-btn std-btn-primary"
                                             >
                                                 Create
                                             </button>
@@ -305,14 +260,8 @@ const LocationDashboard = () => {
                                                 value={order.status}
                                                 onChange={(e) => handleStatusChange(order.id, e.target.value)}
                                                 disabled={processingOrderId === order.id}
-                                                className={`status-badge status-${order.status.toLowerCase().replace(' ', '-')}`}
+                                                className={`std-badge-select status-${order.status.toLowerCase().replace(' ', '-')}`}
                                                 style={{
-                                                    border: 'none',
-                                                    cursor: processingOrderId === order.id ? 'wait' : 'pointer',
-                                                    appearance: 'none',
-                                                    paddingRight: '1.5rem',
-                                                    textAlign: 'center',
-                                                    fontSize: '0.75rem',
                                                     opacity: processingOrderId === order.id ? 0.7 : 1
                                                 }}
                                             >
@@ -326,22 +275,20 @@ const LocationDashboard = () => {
                                     </td>
                                     {/* Actions Column */}
                                     <td className="text-center">
-                                        <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
+                                        <div className="std-action-wrapper">
                                             <button
                                                 onClick={() => handleEditOrder(order)}
-                                                className="icon-btn p-1"
+                                                className="std-icon-btn"
                                                 title="Edit Order"
-                                                style={{ width: 'auto', minWidth: 'unset' }}
                                             >
-                                                <Edit2 size={16} />
+                                                <Edit2 size={18} />
                                             </button>
                                             <button
                                                 onClick={() => handleDeleteOrder(order)}
-                                                className="icon-btn p-1 text-danger"
+                                                className="std-icon-btn danger"
                                                 title="Delete Order"
-                                                style={{ width: 'auto', minWidth: 'unset' }}
                                             >
-                                                <Trash2 size={16} />
+                                                <Trash2 size={18} />
                                             </button>
                                         </div>
                                     </td>

@@ -639,7 +639,7 @@ const ResellerDashboard = () => {
                                                 textAlign: 'center'
                                             }}>
                                                 <button
-                                                    className="text-btn text-primary"
+                                                    className="std-btn std-btn-primary"
                                                     onClick={() => {
                                                         setSelectedReseller(reseller);
                                                         setShowModal(true);
@@ -708,17 +708,17 @@ const ResellerDashboard = () => {
                                             </td>
                                             <td className="text-center">
                                                 {data.status === 'met' && (
-                                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                    <span className="std-btn" style={{ backgroundColor: '#dcfce7', color: '#166534', cursor: 'default', minWidth: '80px' }}>
                                                         ✓ Met
                                                     </span>
                                                 )}
                                                 {data.status === 'pending' && (
-                                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                                    <span className="std-btn" style={{ backgroundColor: '#fef9c3', color: '#854d0e', cursor: 'default', minWidth: '80px' }}>
                                                         ⏳ Pending
                                                     </span>
                                                 )}
                                                 {data.status === 'not_met' && (
-                                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                                    <span className="std-btn" style={{ backgroundColor: '#fee2e2', color: '#991b1b', cursor: 'default', minWidth: '80px' }}>
                                                         ✗ Not Met
                                                     </span>
                                                 )}
