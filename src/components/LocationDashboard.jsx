@@ -148,10 +148,22 @@ const LocationDashboard = () => {
         if (!editingOrder) return;
 
         try {
+            // Calculate new total amount
+            let newTotalAmount = 0;
+            const destination = editingOrder.destination;
+
+            // Calculate total using location SRPs if available
+            if (locationSRPs[destination]) {
+                Object.entries(editingOrder.items).forEach(([sku, qty]) => {
+                    const price = locationSRPs[destination][sku] || 0;
+                    newTotalAmount += price * qty;
+                });
+            }
+
             // Update the order in database
             await updateTransferOrder(editingOrder.id, {
                 items: editingOrder.items,
-                total_amount: editingOrder.total_amount
+                total_amount: newTotalAmount
             });
 
             alert('Transfer updated successfully!');

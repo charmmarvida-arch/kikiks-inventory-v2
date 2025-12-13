@@ -302,7 +302,7 @@ export const InventoryProvider = ({ children }) => {
             // Optional: Revert local state if critical
         } else {
             // Send Discord notification on successful order
-            await sendOrderNotification(newOrder);
+            await sendOrderNotification(newOrder, inventory);
         }
     };
 

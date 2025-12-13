@@ -1,6 +1,4 @@
-import { Resend } from 'resend';
-
-const resend = new Resend('re_F9e8HACY_AgKFRHHxBYFw2gPARTaVrmNs');
+import nodemailer from 'nodemailer';
 
 export default async function handler(request, response) {
     if (request.method !== 'POST') {
@@ -10,21 +8,29 @@ export default async function handler(request, response) {
     try {
         const { to, subject, html, attachments } = request.body;
 
-        const { data, error } = await resend.emails.send({
-            from: 'Kikiks Inventory <onboarding@resend.dev>', // Default testing domain
-            // In production with a verified domain, change this to 'orders@yourdomain.com'
-            to: [to],
-            subject: subject || 'New Order Receipt',
-            html: html || '<p>Thank you for your order!</p>',
-            attachments: attachments || [],
+        // Create a transporter using Gmail
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: process.env.EMAIL_USER, // Your Gmail address
+                pass: process.env.EMAIL_PASS  // Your Gmail App Password
+            }
         });
 
-        if (error) {
-            return response.status(400).json({ error });
-        }
+        const mailOptions = {
+            from: `"Kikiks Inventory" <${process.env.EMAIL_USER}>`,
+            to: to,
+            subject: subject || 'New Order Receipt',
+            html: html || '<p>Thank you for your order!</p>',
+            attachments: attachments || []
+        };
 
-        return response.status(200).json({ data });
+        const info = await transporter.sendMail(mailOptions);
+
+        return response.status(200).json({ success: true, messageId: info.messageId });
+
     } catch (error) {
+        console.error('Email error:', error);
         return response.status(500).json({ error: error.message });
     }
 }

@@ -295,18 +295,60 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
                             to: selectedReseller.email,
                             subject: `New Order Receipt - ${selectedReseller.name}`,
                             html: `
-                                <h1>Order Confirmation</h1>
-                                <p>Hi ${selectedReseller.name},</p>
-                                <p>Thank you for your order! We have received your request.</p>
-                                <h3>Order Summary:</h3>
-                                <ul>
-                                    <li><strong>Order ID:</strong> ${finalOrderId.slice(0, 8)}</li>
-                                    <li><strong>Total Items:</strong> ${orderTotalQuantity}</li>
-                                    <li><strong>Total Amount:</strong> ₱${cartTotal.toLocaleString()}</li>
-                                </ul>
-                                <p>Please find the official receipt attached.</p>
-                                <br/>
-                                <p>Best regards,<br/>Kikik's Inventory System</p>
+                                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+                                    <h1 style="color: #510813; border-bottom: 2px solid #E5562E; padding-bottom: 10px;">Order Confirmation</h1>
+                                    <p>Hi <strong>${selectedReseller.name}</strong>,</p>
+                                    <p>Thank you for your order! We have received your request and it is now being processed.</p>
+                                    
+                                    <div style="background-color: #f9fafb; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                                        <h3 style="margin-top: 0; color: #510813;">Order Details</h3>
+                                        <p style="margin: 5px 0;"><strong>Order ID:</strong> ${finalOrderId.slice(0, 8)}</p>
+                                        <p style="margin: 5px 0;"><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
+                                        <p style="margin: 5px 0;"><strong>Location:</strong> ${currentZone ? currentZone.name : 'N/A'}</p>
+                                    </div>
+
+                                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                                        <thead>
+                                            <tr style="background-color: #510813; color: white;">
+                                                <th style="padding: 10px; text-align: left; border-radius: 6px 0 0 6px;">Product</th>
+                                                <th style="padding: 10px; text-align: center;">Qty</th>
+                                                <th style="padding: 10px; text-align: right;">Price</th>
+                                                <th style="padding: 10px; text-align: right; border-radius: 0 6px 6px 0;">Total</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            ${Object.entries(orderItems).map(([sku, qty]) => {
+                                const item = inventory.find(i => i.sku === sku);
+                                const description = item ? item.description : sku;
+                                const price = getPrice(sku);
+                                const total = price * qty;
+                                return `
+                                                    <tr style="border-bottom: 1px solid #eee;">
+                                                        <td style="padding: 10px;">
+                                                            <div style="font-weight: bold;">${description}</div>
+                                                            <div style="font-size: 12px; color: #666;">${sku}</div>
+                                                        </td>
+                                                        <td style="padding: 10px; text-align: center;">${qty}</td>
+                                                        <td style="padding: 10px; text-align: right;">₱${price.toLocaleString()}</td>
+                                                        <td style="padding: 10px; text-align: right; font-weight: bold;">₱${total.toLocaleString()}</td>
+                                                    </tr>
+                                                `;
+                            }).join('')}
+                                        </tbody>
+                                        <tfoot>
+                                            <tr style="background-color: #f9fafb;">
+                                                <td colspan="3" style="padding: 15px; text-align: right; font-weight: bold;">Grand Total:</td>
+                                                <td style="padding: 15px; text-align: right; font-weight: bold; color: #E5562E; font-size: 18px;">₱${cartTotal.toLocaleString()}</td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+
+                                    <p>Please find the official receipt attached as a PDF.</p>
+                                    
+                                    <div style="margin-top: 40px; text-align: center; font-size: 12px; color: #999; border-top: 1px solid #eee; padding-top: 20px;">
+                                        <p>Kikik's Inventory System<br/> Automated Notification</p>
+                                    </div>
+                                </div>
                             `,
                             attachments: [
                                 {

@@ -8,7 +8,7 @@ const DISCORD_WEBHOOK_URL = import.meta.env.VITE_DISCORD_WEBHOOK_URL;
  * @param {Object} orderData - The order data object
  * @returns {Promise\u003cvoid\u003e}
  */
-export const sendOrderNotification = async (orderData) => {
+export const sendOrderNotification = async (orderData, inventory = []) => {
     if (!DISCORD_WEBHOOK_URL) {
         console.warn('Discord webhook URL not configured. Skipping notification.');
         return;
@@ -19,7 +19,11 @@ export const sendOrderNotification = async (orderData) => {
 
         // Format items list
         const itemsList = Object.entries(items)
-            .map(([sku, qty]) => `   • ${sku} x ${qty}`)
+            .map(([sku, qty]) => {
+                const item = inventory.find(i => i.sku === sku);
+                const description = item ? item.description : sku;
+                return `   • ${description} x ${qty}`;
+            })
             .join('\n');
 
         // Format date
