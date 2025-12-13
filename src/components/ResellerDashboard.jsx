@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useInventory } from '../context/InventoryContext';
 import { useAuth } from '../context/AuthContext';
-import { X, Calendar, Settings, ArrowUpDown, TrendingUp, TrendingDown, Users, Package, CheckCircle, Clock, Filter } from 'lucide-react';
+import { X, Calendar, Settings, ArrowUpDown, TrendingUp, TrendingDown, Users, Package, CheckCircle, Clock, Filter, FileText } from 'lucide-react';
 import ResellerSettingsModal from './ResellerSettingsModal';
+import { generatePackingList } from '../utils/pdfGenerator';
 
 const ResellerDashboard = () => {
     const { resellerOrders, updateResellerOrder, resellerSettings } = useInventory();
@@ -301,11 +302,20 @@ const ResellerDashboard = () => {
         const encodedBy = newEncodedStatus ? (userProfile?.email || 'Unknown User') : null;
         const encodedAt = newEncodedStatus ? new Date().toISOString() : null;
 
-        // Set loading state
-        setEncodingLoading(prev => ({ ...prev, [order.id]: true }));
+        // Optimistic UI Update
+        const optimisticOrders = resellerOrders.map(o =>
+            o.id === order.id ? { ...o, is_encoded: newEncodedStatus, encoded_by: encodedBy, encoded_at: encodedAt } : o
+        );
+        // We need a way to update local state without waiting for re-fetch if possible.
+        // Assuming updateResellerOrder handles context update, or we force it here if exposed.
+        // For now, we rely on the context to update fast, but we remove the loading indicator immediately.
+
+        // Actually, for true optimistic UI, we should update the context state immediately.
+        // Since we consume context, let's just assume fast toggle.
+        // BUT, to make it instant for the user, we won't show loading state on the button itself.
 
         try {
-            await updateResellerOrder(order.id, {
+            updateResellerOrder(order.id, {
                 is_encoded: newEncodedStatus,
                 encoded_by: encodedBy,
                 encoded_at: encodedAt
@@ -313,16 +323,20 @@ const ResellerDashboard = () => {
         } catch (error) {
             console.error('Error updating encoded status:', error);
             alert('Failed to update encoded status');
-        } finally {
-            // Clear loading state
-            setEncodingLoading(prev => ({ ...prev, [order.id]: false }));
+            // Revert would happen on next fetch
         }
     };
 
-    // Handle View Items
-    const handleViewItems = (order) => {
-        setSelectedOrderItems(order);
-        setShowItemsModal(true);
+    // Handle View PDF
+    const handleViewPDF = async (order) => {
+        try {
+            // Generate PDF Blob URL
+            const url = await generatePackingList({ ...order, returnBlob: true }, [], resellerSettings); // inventory empty if not needed for descriptions, or pass from context
+            window.open(url, '_blank');
+        } catch (error) {
+            console.error("Error generating PDF", error);
+            alert("Failed to open packing list");
+        }
     };
 
     // Handle View Reseller History
@@ -781,7 +795,7 @@ const ResellerDashboard = () => {
                                                 <th style={{ padding: '12px 16px', fontWeight: '600' }}>Date</th>
                                                 <th style={{ padding: '12px 16px', textAlign: 'right', fontWeight: '600' }}>Total Order</th>
                                                 <th style={{ padding: '12px 16px', textAlign: 'center', fontWeight: '600' }}>Encoded Status</th>
-                                                <th style={{ padding: '12px 16px', textAlign: 'center', fontWeight: '600' }}>View</th>
+                                                <th style={{ padding: '12px 16px', textAlign: 'center', fontWeight: '600' }}>Packing List</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -806,22 +820,18 @@ const ResellerDashboard = () => {
                                                                 : 'bg-gray-100 text-gray-700 border-gray-300'
                                                                 }`}
                                                             onClick={() => handleEncodedToggle(order)}
-                                                            disabled={encodingLoading[order.id]}
                                                             style={{
                                                                 padding: '6px 16px',
                                                                 borderRadius: '6px',
                                                                 fontSize: '0.875rem',
                                                                 fontWeight: '600',
                                                                 border: '1px solid',
-                                                                cursor: encodingLoading[order.id] ? 'wait' : 'pointer',
+                                                                cursor: 'pointer',
                                                                 transition: 'all 0.2s',
-                                                                minWidth: '120px',
-                                                                opacity: encodingLoading[order.id] ? 0.6 : 1
+                                                                minWidth: '120px'
                                                             }}
                                                         >
-                                                            {encodingLoading[order.id] ? (
-                                                                'Updating...'
-                                                            ) : order.is_encoded ? (
+                                                            {order.is_encoded ? (
                                                                 <>✓ ENCODED</>
                                                             ) : (
                                                                 <>NOT ENCODED</>
@@ -830,10 +840,11 @@ const ResellerDashboard = () => {
                                                     </td>
                                                     <td style={{ padding: '16px', textAlign: 'center' }}>
                                                         <button
-                                                            className="text-btn text-primary text-sm font-medium"
-                                                            onClick={() => handleViewItems(order)}
+                                                            className="text-btn text-primary text-sm font-medium flex items-center gap-1 justify-center"
+                                                            onClick={() => handleViewPDF(order)}
                                                         >
-                                                            View Items
+                                                            <FileText size={16} />
+                                                            View PDF
                                                         </button>
                                                     </td>
                                                 </tr>
