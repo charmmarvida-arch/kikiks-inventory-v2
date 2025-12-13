@@ -33,6 +33,9 @@ const ResellerDashboard = () => {
     // Loading state for encoding toggle
     const [encodingLoading, setEncodingLoading] = useState({});
 
+    // Optimistic UI state for encoding
+    const [encodedOverrides, setEncodedOverrides] = useState({});
+
     // Settings Modal State  
     const [showSettingsModal, setShowSettingsModal] = useState(false);
 
@@ -799,57 +802,61 @@ const ResellerDashboard = () => {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {selectedReseller.orders.map((order, index) => (
-                                                <tr
-                                                    key={order.id}
-                                                    style={{
-                                                        borderBottom: index < selectedReseller.orders.length - 1 ? '1px solid #f0f0f0' : 'none',
-                                                        backgroundColor: index % 2 === 0 ? 'white' : '#fafafa'
-                                                    }}
-                                                >
-                                                    <td style={{ padding: '16px' }}>
-                                                        {new Date(order.date).toLocaleDateString()}
-                                                    </td>
-                                                    <td style={{ padding: '16px', textAlign: 'right', fontWeight: 'bold' }}>
-                                                        ₱{order.totalAmount?.toLocaleString() || '0'}
-                                                    </td>
-                                                    <td style={{ padding: '16px', textAlign: 'center' }}>
-                                                        <button
-                                                            className={`${order.is_encoded
-                                                                ? 'bg-green-100 text-green-700 border-green-300'
-                                                                : 'bg-gray-100 text-gray-700 border-gray-300'
-                                                                }`}
-                                                            onClick={() => handleEncodedToggle(order)}
+                                            <tbody>
+                                                {selectedReseller.orders.map((order, index) => {
+                                                    const isEncoded = encodedOverrides.hasOwnProperty(order.id) ? encodedOverrides[order.id] : order.is_encoded;
+                                                    return (
+                                                        <tr
+                                                            key={order.id}
                                                             style={{
-                                                                padding: '6px 16px',
-                                                                borderRadius: '6px',
-                                                                fontSize: '0.875rem',
-                                                                fontWeight: '600',
-                                                                border: '1px solid',
-                                                                cursor: 'pointer',
-                                                                transition: 'all 0.2s',
-                                                                minWidth: '120px'
+                                                                borderBottom: index < selectedReseller.orders.length - 1 ? '1px solid #f0f0f0' : 'none',
+                                                                backgroundColor: index % 2 === 0 ? 'white' : '#fafafa'
                                                             }}
                                                         >
-                                                            {order.is_encoded ? (
-                                                                <>✓ ENCODED</>
-                                                            ) : (
-                                                                <>NOT ENCODED</>
-                                                            )}
-                                                        </button>
-                                                    </td>
-                                                    <td style={{ padding: '16px', textAlign: 'center' }}>
-                                                        <button
-                                                            className="text-btn text-primary text-sm font-medium flex items-center gap-1 justify-center"
-                                                            onClick={() => handleViewPDF(order)}
-                                                        >
-                                                            <FileText size={16} />
-                                                            View PDF
-                                                        </button>
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
+                                                            <td style={{ padding: '16px' }}>
+                                                                {new Date(order.date).toLocaleDateString()}
+                                                            </td>
+                                                            <td style={{ padding: '16px', textAlign: 'right', fontWeight: 'bold' }}>
+                                                                ₱{order.totalAmount?.toLocaleString() || '0'}
+                                                            </td>
+                                                            <td style={{ padding: '16px', textAlign: 'center' }}>
+                                                                <button
+                                                                    className={`${isEncoded
+                                                                        ? 'bg-green-100 text-green-700 border-green-300'
+                                                                        : 'bg-gray-100 text-gray-700 border-gray-300'
+                                                                        }`}
+                                                                    onClick={() => handleEncodedToggle(order)}
+                                                                    style={{
+                                                                        padding: '6px 16px',
+                                                                        borderRadius: '6px',
+                                                                        fontSize: '0.875rem',
+                                                                        fontWeight: '600',
+                                                                        border: '1px solid',
+                                                                        cursor: 'pointer',
+                                                                        transition: 'all 0.2s',
+                                                                        minWidth: '120px'
+                                                                    }}
+                                                                >
+                                                                    {isEncoded ? (
+                                                                        <>✓ ENCODED</>
+                                                                    ) : (
+                                                                        <>NOT ENCODED</>
+                                                                    )}
+                                                                </button>
+                                                            </td>
+                                                            <td style={{ padding: '16px', textAlign: 'center' }}>
+                                                                <button
+                                                                    className="text-btn text-primary text-sm font-medium flex items-center gap-1 justify-center"
+                                                                    onClick={() => handleViewPDF(order)}
+                                                                >
+                                                                    <FileText size={16} />
+                                                                    View PDF
+                                                                </button>
+                                                            </td>
+                                                        </tr>
+                                                    )
+                                                })}
+                                            </tbody>
                                     </table>
                                 </div>
                                 <div style={{
