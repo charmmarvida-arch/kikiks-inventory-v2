@@ -231,25 +231,69 @@ const LocationDashboard = () => {
                                     <td className="text-center">
                                         <button
                                             onClick={() => setSelectedOrder(order)}
-                                            className="icon-btn text-primary inline-flex items-center gap-1 w-auto px-2"
-                                            title="View Details"
+                                            style={{
+                                                backgroundColor: '#E5562E',
+                                                color: 'white',
+                                                border: 'none',
+                                                padding: '0.5rem 1rem',
+                                                borderRadius: '9999px',
+                                                fontSize: '0.875rem',
+                                                fontWeight: '500',
+                                                cursor: 'pointer',
+                                                boxShadow: '0 2px 4px rgba(229, 86, 46, 0.2)',
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                gap: '0.5rem',
+                                                width: '120px',
+                                                justifyContent: 'center'
+                                            }}
                                         >
-                                            <Eye size={16} /> View
+                                            View Details
                                         </button>
                                     </td>
                                     {/* Packing List Column */}
                                     <td className="text-center">
                                         {order.hasPackingList ? (
                                             <button
-                                                className="text-btn text-primary font-medium text-sm inline-flex items-center gap-1"
                                                 onClick={() => handleViewPackingList(order)}
+                                                style={{
+                                                    backgroundColor: '#E5562E',
+                                                    color: 'white',
+                                                    border: 'none',
+                                                    padding: '0.5rem 1rem',
+                                                    borderRadius: '9999px',
+                                                    fontSize: '0.875rem',
+                                                    fontWeight: '500',
+                                                    cursor: 'pointer',
+                                                    boxShadow: '0 2px 4px rgba(229, 86, 46, 0.2)',
+                                                    display: 'inline-flex',
+                                                    alignItems: 'center',
+                                                    gap: '0.5rem',
+                                                    width: '120px',
+                                                    justifyContent: 'center'
+                                                }}
                                             >
-                                                <Eye size={14} /> View
+                                                View PDF
                                             </button>
                                         ) : (
                                             <button
-                                                className="text-btn text-secondary underline text-sm"
                                                 onClick={() => handleCreatePackingList(order)}
+                                                style={{
+                                                    backgroundColor: '#E5562E',
+                                                    color: 'white',
+                                                    border: 'none',
+                                                    padding: '0.5rem 1rem',
+                                                    borderRadius: '9999px',
+                                                    fontSize: '0.875rem',
+                                                    fontWeight: '500',
+                                                    cursor: 'pointer',
+                                                    boxShadow: '0 2px 4px rgba(229, 86, 46, 0.2)',
+                                                    display: 'inline-flex',
+                                                    alignItems: 'center',
+                                                    gap: '0.5rem',
+                                                    width: '120px',
+                                                    justifyContent: 'center'
+                                                }}
                                             >
                                                 Create
                                             </button>
