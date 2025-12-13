@@ -1249,8 +1249,9 @@ select {
 }
 
 .status-unread {
-  background-color: var(--gray-100);
-  color: var(--text-secondary);
+  background-color: var(--primary);
+  color: white;
+  border: 1px solid var(--primary);
 }
 
 .status-read {

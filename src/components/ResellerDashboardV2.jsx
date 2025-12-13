@@ -542,19 +542,26 @@ const ResellerDashboardV2 = () => {
                                 ) : (
                                     aggregatedData.map(reseller => (
                                         <tr key={reseller.resellerName} style={{ borderBottom: '1px solid var(--border-color)' }}>
-                                            <td style={{
-                                                padding: '12px 16px',
-                                                fontWeight: '500',
-                                                whiteSpace: 'normal',
-                                                wordBreak: 'break-word',
-                                                lineHeight: '1.4',
-                                                cursor: 'pointer',
-                                                color: 'var(--primary)',
-                                                textDecoration: 'underline'
-                                            }}
-                                                onClick={() => handleViewResellerHistory(reseller)}
-                                            >
-                                                {reseller.resellerName}
+                                            <td style={{ padding: '12px 16px' }}>
+                                                <button
+                                                    onClick={() => handleViewResellerHistory(reseller)}
+                                                    style={{
+                                                        backgroundColor: 'var(--primary)',
+                                                        color: 'white',
+                                                        padding: '4px 12px',
+                                                        borderRadius: '50px',
+                                                        fontSize: '0.9em',
+                                                        fontWeight: '500',
+                                                        border: 'none',
+                                                        boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
+                                                        whiteSpace: 'normal',
+                                                        wordBreak: 'break-word',
+                                                        textAlign: 'left',
+                                                        cursor: 'pointer'
+                                                    }}
+                                                >
+                                                    {reseller.resellerName}
+                                                </button>
                                             </td>
                                             <td style={{
                                                 padding: '12px 16px',

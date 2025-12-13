@@ -209,24 +209,56 @@ const ResellerOrderList = () => {
                                     <td className="text-center">
                                         <button
                                             onClick={() => setSelectedOrder(order)}
-                                            className="icon-btn text-primary inline-flex items-center gap-1 w-auto px-2"
+                                            className="icon-btn"
+                                            style={{
+                                                width: 'auto',
+                                                padding: '4px 12px',
+                                                height: '32px',
+                                                border: 'none',
+                                                color: 'white',
+                                                background: 'var(--primary)',
+                                                fontSize: '0.85rem',
+                                                fontWeight: '500',
+                                                borderRadius: '50px',
+                                                boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
+                                            }}
                                             title="View Details"
                                         >
-                                            <Eye size={16} /> View
+                                            <Eye size={14} style={{ marginRight: '4px' }} /> View
                                         </button>
                                     </td>
                                     {/* Create Document Columns */}
                                     <td className="text-center">
                                         {order.hasPackingList ? (
                                             <button
-                                                className="text-btn text-primary font-medium text-sm inline-flex items-center gap-1"
+                                                className="text-btn"
+                                                style={{
+                                                    backgroundColor: 'var(--primary)',
+                                                    color: 'white',
+                                                    padding: '4px 12px',
+                                                    borderRadius: '12px',
+                                                    fontSize: '0.75rem',
+                                                    fontWeight: '600',
+                                                    border: 'none',
+                                                    boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
+                                                }}
                                                 onClick={() => handleViewPackingList(order)}
                                             >
-                                                <Eye size={14} /> View
+                                                View
                                             </button>
                                         ) : (
                                             <button
-                                                className="text-btn text-secondary underline text-sm"
+                                                className="text-btn"
+                                                style={{
+                                                    backgroundColor: 'var(--primary)',
+                                                    color: 'white',
+                                                    padding: '4px 12px',
+                                                    borderRadius: '12px',
+                                                    fontSize: '0.75rem',
+                                                    fontWeight: '600',
+                                                    border: 'none',
+                                                    boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
+                                                }}
                                                 onClick={() => handleCreatePackingList(order)}
                                             >
                                                 Create
@@ -236,14 +268,34 @@ const ResellerOrderList = () => {
                                     <td className="text-center">
                                         {order.hasCOA ? (
                                             <button
-                                                className="text-btn text-primary font-medium text-sm inline-flex items-center gap-1"
+                                                className="text-btn"
+                                                style={{
+                                                    backgroundColor: 'var(--primary)',
+                                                    color: 'white',
+                                                    padding: '4px 12px',
+                                                    borderRadius: '12px',
+                                                    fontSize: '0.75rem',
+                                                    fontWeight: '600',
+                                                    border: 'none',
+                                                    boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
+                                                }}
                                                 onClick={() => handleViewCOA(order)}
                                             >
-                                                <Eye size={14} /> View
+                                                View
                                             </button>
                                         ) : (
                                             <button
-                                                className="text-btn text-secondary underline text-sm"
+                                                className="text-btn"
+                                                style={{
+                                                    backgroundColor: 'var(--primary)',
+                                                    color: 'white',
+                                                    padding: '4px 12px',
+                                                    borderRadius: '12px',
+                                                    fontSize: '0.75rem',
+                                                    fontWeight: '600',
+                                                    border: 'none',
+                                                    boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
+                                                }}
                                                 onClick={() => handleOpenCOAModal(order)}
                                             >
                                                 Create
