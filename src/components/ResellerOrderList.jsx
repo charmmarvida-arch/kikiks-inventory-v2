@@ -30,7 +30,7 @@ const ResellerOrderList = () => {
     };
 
     const handleEditOrder = (order) => {
-        navigate(`/ reseller - order / edit / ${order.id} `);
+        navigate(`/reseller-order/edit/${order.id}`);
     };
 
     const handleDeleteOrder = async (order) => {

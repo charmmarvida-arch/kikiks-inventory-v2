@@ -387,28 +387,33 @@ button {
 }
 
 .inventory-table th {
-  background-color: transparent;
-  /* Clean look */
-  color: var(--text-muted);
-  /* Softer text */
-  padding: 0.75rem 1rem;
+  background-color: var(--base-white);
+  /* Ensure background for sticky */
+  color: var(--text-secondary);
+  /* Slightly darker for readability */
+  padding: 1rem 1.5rem;
+  /* Premium spacing */
   text-align: left;
   font-weight: 600;
   text-transform: uppercase;
-  font-size: 0.7rem;
+  font-size: 0.75rem;
+  /* Slightly larger */
   letter-spacing: 0.05em;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--gray-100);
+  /* Lighter border */
   white-space: nowrap;
-  height: 40px;
+  height: 48px;
 }
 
 .inventory-table td {
-  padding: 0.75rem 1rem;
-  border-bottom: 1px solid var(--border-color);
+  padding: 1rem 1.5rem;
+  /* Premium spacing */
+  border-bottom: 1px solid var(--gray-100);
+  /* Lighter border */
   color: var(--text-main);
   vertical-align: middle;
-  height: 48px;
-  /* Consistent row height */
+  height: 60px;
+  /* Taller rows for elegance */
   transition: background-color 0.15s ease;
 }
 

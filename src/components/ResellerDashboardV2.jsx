@@ -519,6 +519,13 @@ const ResellerDashboardV2 = () => {
                 <div className="dashboard-card">
                     <div className="card-header">
                         <h3 className="card-title">Reseller Summary</h3>
+                        <button
+                            onClick={() => setSortDescending(!sortDescending)}
+                            className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-1 px-3 rounded-full text-xs flex items-center gap-1 transition-colors"
+                        >
+                            <ArrowUpDown size={12} />
+                            {sortDescending ? 'Highest First' : 'Lowest First'}
+                        </button>
                     </div>
                     <div className="table-container shadow-none border-0">
                         <table className="inventory-table" style={{ tableLayout: 'fixed', width: '100%' }}>
