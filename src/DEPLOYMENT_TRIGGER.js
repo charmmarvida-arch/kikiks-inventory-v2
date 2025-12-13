@@ -3,7 +3,7 @@
 // Created: 2025-12-01 08:14
 // Version: 2.0.0 - FTF Manufacturing Redesign
 
-export const DEPLOYMENT_VERSION = '2.1.0';
+export const DEPLOYMENT_VERSION = '2.1.1';
 export const DEPLOYMENT_DATE = '2025-12-01';
 export const DEPLOYMENT_FEATURES = [
     'FTF Manufacturing Redesign',
@@ -20,5 +20,6 @@ export const DEPLOYMENT_FEATURES = [
     'Background Refinement (White Page, Colorful Cards)',
     'Modal Table: Centered Hyphen for Zero Totals',
     'Fixed Order Edit Functionality',
-    'Verified Order Delete Functionality'
+    'Verified Order Delete Functionality',
+    'Reseller Summary: YTD Sales Badge'
 ];

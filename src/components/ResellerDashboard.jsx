@@ -611,12 +611,21 @@ const ResellerDashboard = () => {
                                             </td>
                                             <td style={{
                                                 padding: '12px 2px',
-                                                textAlign: 'right',
-                                                fontWeight: '500',
-                                                color: 'var(--text-secondary)',
-                                                fontSize: '0.9em'
+                                                textAlign: 'right'
                                             }}>
-                                                ₱{reseller.ytdAmount?.toLocaleString() || '0'}
+                                                <div style={{
+                                                    display: 'inline-block',
+                                                    padding: '4px 12px',
+                                                    backgroundColor: 'rgba(79, 70, 229, 0.1)', // Light primary tint
+                                                    color: 'var(--primary)',
+                                                    borderRadius: '6px',
+                                                    fontWeight: '600',
+                                                    fontSize: '0.85em',
+                                                    minWidth: '80px',
+                                                    textAlign: 'center'
+                                                }}>
+                                                    ₱{reseller.ytdAmount?.toLocaleString() || '0'}
+                                                </div>
                                             </td>
                                             <td style={{
                                                 padding: '12px 2px',
