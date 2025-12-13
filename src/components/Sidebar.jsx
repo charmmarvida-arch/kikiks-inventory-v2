@@ -135,7 +135,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                 <span className="nav-icon"><ClipboardList size={20} /></span>
                 Order History
               </NavLink>
-              <NavLink to="/reseller-dashboard-v2" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`} onClick={onClose}>
+              <NavLink to="/reseller-dashboard-final" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`} onClick={onClose}>
                 <span className="nav-icon"><ClipboardList size={20} /></span>
                 Reseller Dashboard
               </NavLink>

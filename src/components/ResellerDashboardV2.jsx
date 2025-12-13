@@ -519,13 +519,6 @@ const ResellerDashboardV2 = () => {
                 <div className="dashboard-card">
                     <div className="card-header">
                         <h3 className="card-title">Reseller Summary</h3>
-                        <button
-                            onClick={() => setSortDescending(!sortDescending)}
-                            className="text-btn text-primary text-sm flex items-center gap-1 font-medium bg-gray-50 px-3 py-1 rounded-full hover:bg-gray-100 transition-colors"
-                        >
-                            <ArrowUpDown size={14} />
-                            <span>{sortDescending ? 'Highest First' : 'Lowest First'}</span>
-                        </button>
                     </div>
                     <div className="table-container shadow-none border-0">
                         <table className="inventory-table" style={{ tableLayout: 'fixed', width: '100%' }}>
@@ -570,13 +563,14 @@ const ResellerDashboardV2 = () => {
                                                 <div style={{
                                                     display: 'inline-block',
                                                     padding: '6px 16px',
-                                                    backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                                                    backgroundColor: 'var(--primary-light)',
                                                     color: 'var(--primary)',
                                                     borderRadius: '6px',
                                                     fontWeight: '600',
                                                     fontSize: '0.9em',
                                                     minWidth: '100px',
-                                                    textAlign: 'center'
+                                                    textAlign: 'center',
+                                                    border: '1px solid var(--primary-subtle)'
                                                 }}>
                                                     ₱{reseller.ytdAmount?.toLocaleString() || '0'}
                                                 </div>

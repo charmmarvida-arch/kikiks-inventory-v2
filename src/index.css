@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
-  /* Modern Enterprise Palette (Mercury/Claude/Linear inspired) */
+  /* Minimalist Orange/Grey/White Palette */
   --base-white: #ffffff;
   --base-black: #000000;
 
@@ -17,22 +17,22 @@
   --gray-800: #1f2937;
   --gray-900: #111827;
 
-  /* Primary Brand Color - Sophisticated Indigo/Blurple */
-  --primary: #4f46e5;
-  /* Indigo 600 */
-  --primary-hover: #4338ca;
-  /* Indigo 700 */
-  --primary-light: #eef2ff;
-  /* Indigo 50 */
-  --primary-subtle: #e0e7ff;
-  /* Indigo 100 */
+  /* Primary Brand Color - Vibrant Orange */
+  --primary: #EA580C;
+  /* Orange 600 - Main Brand Color */
+  --primary-hover: #C2410C;
+  /* Orange 700 */
+  --primary-light: #FFF7ED;
+  /* Orange 50 - Very light background */
+  --primary-subtle: #FFEDD5;
+  /* Orange 100 */
 
   /* Semantic Colors */
-  --bg-body: var(--gray-50);
+  --bg-body: var(--base-white);
   --bg-surface: var(--base-white);
   --bg-sidebar: var(--base-white);
 
-  --text-main: var(--gray-900);
+  --text-main: var(--gray-800);
   --text-secondary: var(--gray-500);
   --text-muted: var(--gray-400);
   --text-on-primary: var(--base-white);
@@ -50,16 +50,13 @@
 
   /* Layout */
   --sidebar-width: 16.25rem;
-  /* 260px -> 16.25rem */
   --header-height: 4rem;
-  /* 64px -> 4rem */
 
   /* Effects */
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
   --shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
   --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-
   --radius-sm: 0.375rem;
   --radius-md: 0.5rem;
   --radius-lg: 0.75rem;
