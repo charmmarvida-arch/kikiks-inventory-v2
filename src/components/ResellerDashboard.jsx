@@ -22,6 +22,10 @@ const ResellerDashboard = () => {
     const [selectedReseller, setSelectedReseller] = useState(null);
     const [showModal, setShowModal] = useState(false);
 
+    // Items Modal State
+    const [selectedOrderItems, setSelectedOrderItems] = useState(null);
+    const [showItemsModal, setShowItemsModal] = useState(false);
+
     // Sorting State
     const [sortDescending, setSortDescending] = useState(true);
 
@@ -553,10 +557,17 @@ const ResellerDashboard = () => {
                                             <td style={{
                                                 padding: '12px 2px',
                                                 fontWeight: '500',
-                                                whiteSpace: 'nowrap',
                                                 overflow: 'hidden',
-                                                textOverflow: 'ellipsis'
-                                            }} title={reseller.resellerName}>{reseller.resellerName}</td>
+                                                textOverflow: 'ellipsis',
+                                                cursor: 'pointer',
+                                                color: 'var(--primary)',
+                                                textDecoration: 'underline'
+                                            }}
+                                                title={reseller.resellerName}
+                                                onClick={() => handleViewResellerHistory(reseller)}
+                                            >
+                                                {reseller.resellerName}
+                                            </td>
                                             <td style={{
                                                 padding: '12px 2px',
                                                 textAlign: 'right',
@@ -740,14 +751,25 @@ const ResellerDashboard = () => {
                                 </button>
                             </div>
                             <div className="modal-body">
+                                <div className="bg-blue-50 p-4 rounded-lg mb-4 flex justify-between items-center">
+                                    <div>
+                                        <div className="text-secondary text-sm font-medium">Total Order (YTD)</div>
+                                        <div className="text-2xl font-bold text-primary">₱{selectedReseller.ytdAmount?.toLocaleString()}</div>
+                                    </div>
+                                    <div className="text-right">
+                                        <div className="text-secondary text-sm">Reseller Name</div>
+                                        <div className="font-semibold">{selectedReseller.resellerName}</div>
+                                    </div>
+                                </div>
+
                                 <div className="scrollable-table-container" style={{ maxHeight: '500px' }}>
                                     <table className="w-full" style={{ borderCollapse: 'separate', borderSpacing: 0 }}>
                                         <thead style={{ position: 'sticky', top: 0, backgroundColor: 'white', zIndex: 1 }}>
                                             <tr className="text-left text-sm text-secondary" style={{ borderBottom: '2px solid var(--border-color)' }}>
                                                 <th style={{ padding: '12px 16px', fontWeight: '600' }}>Date</th>
                                                 <th style={{ padding: '12px 16px', textAlign: 'right', fontWeight: '600' }}>Total Order</th>
-                                                <th style={{ padding: '12px 16px', fontWeight: '600' }}>COA Created By</th>
                                                 <th style={{ padding: '12px 16px', textAlign: 'center', fontWeight: '600' }}>Encoded Status</th>
+                                                <th style={{ padding: '12px 16px', textAlign: 'center', fontWeight: '600' }}>View</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -764,9 +786,6 @@ const ResellerDashboard = () => {
                                                     </td>
                                                     <td style={{ padding: '16px', textAlign: 'right', fontWeight: 'bold' }}>
                                                         ₱{order.totalAmount?.toLocaleString() || '0'}
-                                                    </td>
-                                                    <td style={{ padding: '16px', color: 'var(--text-secondary)' }}>
-                                                        {order.created_by || 'N/A'}
                                                     </td>
                                                     <td style={{ padding: '16px', textAlign: 'center' }}>
                                                         <button
@@ -795,6 +814,14 @@ const ResellerDashboard = () => {
                                                             ) : (
                                                                 <>NOT ENCODED</>
                                                             )}
+                                                        </button>
+                                                    </td>
+                                                    <td style={{ padding: '16px', textAlign: 'center' }}>
+                                                        <button
+                                                            className="text-btn text-primary text-sm font-medium"
+                                                            onClick={() => handleViewItems(order)}
+                                                        >
+                                                            View Items
                                                         </button>
                                                     </td>
                                                 </tr>
