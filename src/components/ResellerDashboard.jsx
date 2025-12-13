@@ -299,6 +299,16 @@ const ResellerDashboard = () => {
         return result;
     }, [filteredOrders, sortDescending]);
 
+    // Sync selectedReseller with aggregatedData when data changes
+    useEffect(() => {
+        if (selectedReseller) {
+            const updatedReseller = aggregatedData.find(r => r.resellerName === selectedReseller.resellerName);
+            if (updatedReseller) {
+                setSelectedReseller(updatedReseller);
+            }
+        }
+    }, [aggregatedData, selectedReseller]);
+
     // Handle encoded toggle
     const handleEncodedToggle = async (order) => {
         // Determine current status (checking override first)
@@ -312,18 +322,6 @@ const ResellerDashboard = () => {
 
         // Optimistic UI Update: Set override immediately
         setEncodedOverrides(prev => ({ ...prev, [order.id]: newEncodedStatus }));
-
-        // Optimistic UI Update
-        const optimisticOrders = resellerOrders.map(o =>
-            o.id === order.id ? { ...o, is_encoded: newEncodedStatus, encoded_by: encodedBy, encoded_at: encodedAt } : o
-        );
-        // We need a way to update local state without waiting for re-fetch if possible.
-        // Assuming updateResellerOrder handles context update, or we force it here if exposed.
-        // For now, we rely on the context to update fast, but we remove the loading indicator immediately.
-
-        // Actually, for true optimistic UI, we should update the context state immediately.
-        // Since we consume context, let's just assume fast toggle.
-        // BUT, to make it instant for the user, we won't show loading state on the button itself.
 
         try {
             await updateResellerOrder(order.id, {
