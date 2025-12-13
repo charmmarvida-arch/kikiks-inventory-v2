@@ -473,6 +473,8 @@ export const InventoryProvider = ({ children }) => {
         const dbUpdates = {};
         if (updates.hasPackingList !== undefined) dbUpdates.has_packing_list = updates.hasPackingList;
         if (updates.status !== undefined) dbUpdates.status = updates.status;
+        if (updates.items !== undefined) dbUpdates.items = updates.items;
+        if (updates.total_amount !== undefined) dbUpdates.total_amount = updates.total_amount;
 
         if (Object.keys(dbUpdates).length > 0) {
             const { error } = await supabase.from('transfer_orders').update(dbUpdates).eq('id', id);
