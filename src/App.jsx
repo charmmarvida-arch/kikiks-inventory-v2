@@ -16,7 +16,7 @@ import ResellerOrderRedesigned from './components/ResellerOrderRedesigned';
 import OrderPdfView from './components/OrderPdfView';
 import ResellerOrderList from './components/ResellerOrderList';
 import OrderHistory from './components/OrderHistory';
-import ResellerDashboard from './components/ResellerDashboard';
+import ResellerDashboard from './components/ResellerDashboardV2';
 import SettingsSku from './components/SettingsSku';
 import FTFManufacturing from './components/FTFManufacturing';
 import LegazpiStorage from './components/LegazpiStorage';
