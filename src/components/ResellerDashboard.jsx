@@ -301,9 +301,17 @@ const ResellerDashboard = () => {
 
     // Handle encoded toggle
     const handleEncodedToggle = async (order) => {
-        const newEncodedStatus = !order.is_encoded;
+        // Determine current status (checking override first)
+        const currentStatus = encodedOverrides.hasOwnProperty(order.id)
+            ? encodedOverrides[order.id]
+            : order.is_encoded;
+
+        const newEncodedStatus = !currentStatus;
         const encodedBy = newEncodedStatus ? (userProfile?.email || 'Unknown User') : null;
         const encodedAt = newEncodedStatus ? new Date().toISOString() : null;
+
+        // Optimistic UI Update: Set override immediately
+        setEncodedOverrides(prev => ({ ...prev, [order.id]: newEncodedStatus }));
 
         // Optimistic UI Update
         const optimisticOrders = resellerOrders.map(o =>
@@ -318,7 +326,7 @@ const ResellerDashboard = () => {
         // BUT, to make it instant for the user, we won't show loading state on the button itself.
 
         try {
-            updateResellerOrder(order.id, {
+            await updateResellerOrder(order.id, {
                 is_encoded: newEncodedStatus,
                 encoded_by: encodedBy,
                 encoded_at: encodedAt
@@ -326,7 +334,13 @@ const ResellerDashboard = () => {
         } catch (error) {
             console.error('Error updating encoded status:', error);
             alert('Failed to update encoded status');
-            // Revert would happen on next fetch
+
+            // Revert override on error
+            setEncodedOverrides(prev => {
+                const newOverrides = { ...prev };
+                delete newOverrides[order.id];
+                return newOverrides;
+            });
         }
     };
 
