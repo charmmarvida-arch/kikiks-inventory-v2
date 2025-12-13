@@ -6,7 +6,7 @@ import ResellerSettingsModal from './ResellerSettingsModal';
 import { generatePackingList } from '../utils/pdfGenerator';
 
 const ResellerDashboard = () => {
-    const { resellerOrders, updateResellerOrder, resellerSettings } = useInventory();
+    const { resellerOrders, updateResellerOrder, resellerSettings, inventory } = useInventory();
     const { userProfile } = useAuth();
 
     // PIN Protection State
@@ -331,7 +331,7 @@ const ResellerDashboard = () => {
     const handleViewPDF = async (order) => {
         try {
             // Generate PDF Blob URL
-            const url = await generatePackingList({ ...order, returnBlob: true }, [], resellerSettings); // inventory empty if not needed for descriptions, or pass from context
+            const url = await generatePackingList({ ...order, returnBlob: true }, inventory, resellerSettings); // inventory passed for descriptions
             window.open(url, '_blank');
         } catch (error) {
             console.error("Error generating PDF", error);
