@@ -250,7 +250,8 @@ button {
 .dashboard-card {
   background-color: var(--bg-surface);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  /* Darker/More noticeable shadow */
   border: 1px solid transparent;
   padding: 1.5rem;
   margin-bottom: 1.5rem;
@@ -316,6 +317,11 @@ button {
   color: var(--text-main);
   margin-bottom: 0.25rem;
   letter-spacing: -0.03em;
+  flex-grow: 1;
+  /* Fill available space */
+  display: flex;
+  align-items: center;
+  /* Vertically center */
 }
 
 .metric-trend {
