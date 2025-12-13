@@ -148,25 +148,17 @@ const LocationDashboard = () => {
         if (!editingOrder) return;
 
         try {
-            // Calculate new total amount using STANDARD PRICES (to match PDF Generator)
-            // Cup: 23, Pint: 85, Liter: 170, Gallon: 680
+            // Calculate new total amount
             let newTotalAmount = 0;
+            const destination = editingOrder.destination;
 
-            Object.entries(editingOrder.items).forEach(([sku, qty]) => {
-                let price = 0;
-                const upperSku = sku.toUpperCase();
-
-                if (upperSku.startsWith('FGC')) price = 23;      // Cups
-                else if (upperSku.startsWith('FGP')) price = 85; // Pints
-                else if (upperSku.startsWith('FGL')) price = 170;// Liters
-                else if (upperSku.startsWith('FGG')) price = 680;// Gallons
-                // Fallback: use location SRP if available (for Other items)
-                else if (locationSRPs[editingOrder.destination]?.[sku]) {
-                    price = locationSRPs[editingOrder.destination][sku];
-                }
-
-                newTotalAmount += price * qty;
-            });
+            // Calculate total using location SRPs if available
+            if (locationSRPs[destination]) {
+                Object.entries(editingOrder.items).forEach(([sku, qty]) => {
+                    const price = locationSRPs[destination][sku] || 0;
+                    newTotalAmount += price * qty;
+                });
+            }
 
             // Update the order in database
             await updateTransferOrder(editingOrder.id, {
