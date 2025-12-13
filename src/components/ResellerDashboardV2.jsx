@@ -530,14 +530,14 @@ const ResellerDashboardV2 = () => {
                     <div className="table-container shadow-none border-0">
                         <table className="inventory-table" style={{ tableLayout: 'fixed', width: '100%' }}>
                             <colgroup>
-                                <col style={{ width: '35%' }} />
+                                <col style={{ width: '40%' }} />
                                 <col style={{ width: '25%' }} />
-                                <col style={{ width: '25%' }} />
+                                <col style={{ width: '20%' }} />
                                 <col style={{ width: '15%' }} />
                             </colgroup>
                             <thead>
                                 <tr>
-                                    <th>Reseller Name</th>
+                                    <th style={{ paddingLeft: '16px' }}>Reseller Name</th>
                                     <th className="text-right">Sales (YTD)</th>
                                     <th className="text-right">Sales</th>
                                     <th className="text-center">Actions</th>
@@ -554,10 +554,11 @@ const ResellerDashboardV2 = () => {
                                     aggregatedData.map(reseller => (
                                         <tr key={reseller.resellerName} style={{ borderBottom: '1px solid var(--border-color)' }}>
                                             <td style={{
-                                                padding: '12px 2px',
+                                                padding: '12px 16px', // Increased padding
                                                 fontWeight: '500',
-                                                overflow: 'hidden',
-                                                textOverflow: 'ellipsis',
+                                                whiteSpace: 'normal', // Allow wrapping
+                                                wordBreak: 'break-word', // Break long words if needed
+                                                lineHeight: '1.4',
                                                 cursor: 'pointer',
                                                 color: 'var(--primary)',
                                                 textDecoration: 'underline'
