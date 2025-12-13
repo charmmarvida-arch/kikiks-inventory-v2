@@ -26,7 +26,6 @@
   /* Orange 50 - Very light background */
   --primary-subtle: #FFEDD5;
   /* Orange 100 */
-  --merlot: #510813;
 
 
   /* Semantic Colors */
@@ -252,7 +251,7 @@ button {
   background-color: var(--bg-surface);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
-  border: 1px solid var(--merlot);
+  border: 1px solid var(--border-color);
   padding: 1.5rem;
   margin-bottom: 1.5rem;
   transition: box-shadow 0.2s ease, transform 0.2s ease;
@@ -598,10 +597,6 @@ select {
 /* Page Headers */
 .header-section {
   margin-bottom: 2rem;
-}
-
-.merlot-border {
-  border-color: var(--merlot) !important;
 }
 
 .page-title {

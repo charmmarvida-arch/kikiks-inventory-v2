@@ -1,3 +1,4 @@
+```
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useInventory } from '../context/InventoryContext';
@@ -29,11 +30,11 @@ const ResellerOrderList = () => {
     };
 
     const handleEditOrder = (order) => {
-        navigate(`/reseller-order/edit/${order.id}`);
+        navigate(`/ reseller - order / edit / ${ order.id } `);
     };
 
     const handleDeleteOrder = async (order) => {
-        if (window.confirm(`Are you sure you want to delete the order for ${order.resellerName}?`)) {
+        if (window.confirm(`Are you sure you want to delete the order for ${ order.resellerName } ? `)) {
             try {
                 await deleteResellerOrder(order.id);
                 alert('Order deleted successfully');
@@ -106,7 +107,7 @@ const ResellerOrderList = () => {
         try {
             const url = await generatePackingList({ ...order, returnBlob: true }, inventory, resellerPrices);
             setPreviewUrl(url);
-            setPreviewTitle(`Packing List - ${order.resellerName}`);
+            setPreviewTitle(`Packing List - ${ order.resellerName } `);
             setShowPreviewModal(true);
         } catch (error) {
             console.error("Error viewing packing list:", error);
@@ -157,7 +158,7 @@ const ResellerOrderList = () => {
             // Use saved data for view
             const url = await generateCOA({ ...order, returnBlob: true }, order.coaData || {}, inventory);
             setPreviewUrl(url);
-            setPreviewTitle(`COA - ${order.resellerName}`);
+            setPreviewTitle(`COA - ${ order.resellerName } `);
             setShowPreviewModal(true);
         } catch (error) {
             console.error("Error viewing COA:", error);
@@ -234,10 +235,10 @@ const ResellerOrderList = () => {
                                     <td className="text-center">
                                         {order.hasPackingList ? (
                                             <button
-                                                className="text-btn"
+                                                onClick={() => handleViewPackingList(order)}
                                                 style={{
-                                                    width: '100px',
-                                                    height: '32px',
+                                                    width: '85px',
+                                                    height: '28px',
                                                     backgroundColor: 'var(--primary)',
                                                     color: 'white',
                                                     padding: '0',
@@ -247,16 +248,15 @@ const ResellerOrderList = () => {
                                                     border: 'none',
                                                     boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
                                                 }}
-                                                onClick={() => handleViewPackingList(order)}
                                             >
-                                                View
+                                                View PDF
                                             </button>
                                         ) : (
                                             <button
-                                                className="text-btn"
+                                                onClick={() => handleCreatePackingList(order)}
                                                 style={{
-                                                    width: '100px',
-                                                    height: '32px',
+                                                    width: '85px',
+                                                    height: '28px',
                                                     backgroundColor: 'var(--primary)',
                                                     color: 'white',
                                                     padding: '0',
@@ -266,19 +266,18 @@ const ResellerOrderList = () => {
                                                     border: 'none',
                                                     boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
                                                 }}
-                                                onClick={() => handleCreatePackingList(order)}
                                             >
-                                                Create
+                                                Create List
                                             </button>
                                         )}
                                     </td>
                                     <td className="text-center">
                                         {order.hasCOA ? (
                                             <button
-                                                className="text-btn"
+                                                onClick={() => handleViewCOA(order)}
                                                 style={{
-                                                    width: '100px',
-                                                    height: '32px',
+                                                    width: '85px',
+                                                    height: '28px',
                                                     backgroundColor: 'var(--primary)',
                                                     color: 'white',
                                                     padding: '0',
@@ -288,16 +287,15 @@ const ResellerOrderList = () => {
                                                     border: 'none',
                                                     boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
                                                 }}
-                                                onClick={() => handleViewCOA(order)}
                                             >
-                                                View
+                                                View COA
                                             </button>
                                         ) : (
                                             <button
-                                                className="text-btn"
+                                                onClick={() => handleOpenCOAModal(order)}
                                                 style={{
-                                                    width: '100px',
-                                                    height: '32px',
+                                                    width: '85px',
+                                                    height: '28px',
                                                     backgroundColor: 'var(--primary)',
                                                     color: 'white',
                                                     padding: '0',
@@ -307,9 +305,8 @@ const ResellerOrderList = () => {
                                                     border: 'none',
                                                     boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
                                                 }}
-                                                onClick={() => handleOpenCOAModal(order)}
                                             >
-                                                Create
+                                                Create COA
                                             </button>
                                         )}
                                     </td>
@@ -318,7 +315,7 @@ const ResellerOrderList = () => {
                                             <select
                                                 value={order.status}
                                                 onChange={(e) => handleStatusChange(order.id, e.target.value)}
-                                                className={`status-badge status-${order.status.toLowerCase()} cursor-pointer border-none`}
+                                                className={`status - badge status - ${ order.status.toLowerCase() } cursor - pointer border - none`}
                                                 style={{ flex: 1 }}
                                             >
                                                 <option value="Unread">Unread</option>
@@ -410,7 +407,7 @@ const ResellerOrderList = () => {
                                 <select
                                     value={order.status}
                                     onChange={(e) => handleStatusChange(order.id, e.target.value)}
-                                    className={`status-badge status-${order.status.toLowerCase()}`}
+                                    className={`status - badge status - ${ order.status.toLowerCase() } `}
                                     style={{ fontSize: '0.75rem', padding: '0.5rem', width: '100%' }}
                                 >
                                     <option value="Unread">Unread</option>
@@ -634,7 +631,7 @@ const ResellerOrderList = () => {
                             <div className="flex gap-2">
                                 <a
                                     href={previewUrl}
-                                    download={`${previewTitle.replace(/\s+/g, '_')}.pdf`}
+                                    download={`${ previewTitle.replace(/\s+/g, '_') }.pdf`}
                                     className="icon-btn text-primary"
                                     title="Download PDF"
                                     style={{ padding: '4px 8px', height: 'auto', fontSize: '0.8rem' }}

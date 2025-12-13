@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useInventory } from '../context/InventoryContext';
-import { Eye, X, Search } from 'lucide-react';
+import { Eye, X, Search, FileText } from 'lucide-react';
 import { generatePackingList, generateCOA } from '../utils/pdfGenerator';
 
 const OrderHistory = () => {
@@ -106,7 +106,7 @@ const OrderHistory = () => {
                     </div>
                 </div>
 
-                <div className="table-container merlot-border" style={{ flex: 1, overflowY: 'auto', overflowX: 'auto', margin: 0, borderRadius: 0, border: '1px solid var(--merlot)', boxShadow: 'none' }}>
+                <div className="table-container" style={{ flex: 1, overflowY: 'auto', overflowX: 'auto', margin: 0, borderRadius: 0, border: 'none', boxShadow: 'none' }}>
                     <table className="inventory-table">
                         <thead style={{ position: 'sticky', top: 0, zIndex: 10, backgroundColor: 'var(--base-white)' }}>
                             <tr>
@@ -135,108 +135,44 @@ const OrderHistory = () => {
                                         <td className="font-bold">₱{order.totalAmount.toLocaleString()}</td>
                                         <td className="text-center">
                                             <button
-                                                onClick={() => setSelectedOrder(order)}
-                                                className="icon-btn"
-                                                style={{
-                                                    width: '85px',
-                                                    padding: '0',
-                                                    height: '28px',
-                                                    border: 'none',
-                                                    color: 'white',
-                                                    background: 'var(--primary)',
-                                                    fontSize: '0.75rem',
-                                                    fontWeight: '500',
-                                                    borderRadius: '50px',
-                                                    boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
-                                                    display: 'inline-flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center'
+                                                onClick={() => {
+                                                    setSelectedOrder(order);
+                                                    setShowDetailsModal(true);
                                                 }}
+                                                className="icon-btn text-blue-600 hover:text-blue-800 hover:bg-blue-50"
                                                 title="View Details"
                                             >
-                                                <Eye size={14} style={{ marginRight: '4px' }} /> View
+                                                <Eye size={18} />
                                             </button>
                                         </td>
                                         <td className="text-center">
-                                            {order.hasPackingList ? (
+                                            {order.packing_list_generated ? (
                                                 <button
-                                                    className="text-btn"
-                                                    style={{
-                                                        width: '100px',
-                                                        height: '32px',
-                                                        backgroundColor: 'var(--primary)',
-                                                        color: 'white',
-                                                        padding: '0',
-                                                        borderRadius: '50px',
-                                                        fontSize: '0.75rem',
-                                                        fontWeight: '600',
-                                                        border: 'none',
-                                                        boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
-                                                    }}
                                                     onClick={() => handleViewPackingList(order)}
+                                                    className="icon-btn text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                                                    title="View Packing List"
                                                 >
-                                                    View
+                                                    <FileText size={18} />
                                                 </button>
                                             ) : (
-                                                <div
-                                                    style={{
-                                                        width: '85px',
-                                                        height: '28px',
-                                                        backgroundColor: 'var(--gray-100)',
-                                                        color: 'var(--text-muted)',
-                                                        padding: '0',
-                                                        borderRadius: '50px',
-                                                        fontSize: '0.65rem',
-                                                        fontWeight: '600',
-                                                        border: '1px solid var(--border-color)',
-                                                        display: 'inline-flex',
-                                                        alignItems: 'center',
-                                                        justifyContent: 'center'
-                                                    }}
-                                                >
+                                                <span className="status-badge status-read" style={{ fontSize: '0.75rem' }}>
                                                     Not Created
-                                                </div>
+                                                </span>
                                             )}
                                         </td>
                                         <td className="text-center">
-                                            {order.hasCOA ? (
+                                            {order.coa_generated ? (
                                                 <button
-                                                    className="text-btn"
-                                                    style={{
-                                                        width: '100px',
-                                                        height: '32px',
-                                                        backgroundColor: 'var(--primary)',
-                                                        color: 'white',
-                                                        padding: '0',
-                                                        borderRadius: '50px',
-                                                        fontSize: '0.75rem',
-                                                        fontWeight: '600',
-                                                        border: 'none',
-                                                        boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
-                                                    }}
                                                     onClick={() => handleViewCOA(order)}
+                                                    className="icon-btn text-purple-600 hover:text-purple-800 hover:bg-purple-50"
+                                                    title="View COA"
                                                 >
-                                                    View
+                                                    <FileText size={18} />
                                                 </button>
                                             ) : (
-                                                <div
-                                                    style={{
-                                                        width: '100px',
-                                                        height: '32px',
-                                                        backgroundColor: 'var(--gray-100)',
-                                                        color: 'var(--text-muted)',
-                                                        padding: '0',
-                                                        borderRadius: '50px',
-                                                        fontSize: '0.75rem',
-                                                        fontWeight: '600',
-                                                        border: '1px solid var(--border-color)',
-                                                        display: 'inline-flex',
-                                                        alignItems: 'center',
-                                                        justifyContent: 'center'
-                                                    }}
-                                                >
+                                                <span className="status-badge status-read" style={{ fontSize: '0.75rem' }}>
                                                     Not Created
-                                                </div>
+                                                </span>
                                             )}
                                         </td>
                                     </tr>
