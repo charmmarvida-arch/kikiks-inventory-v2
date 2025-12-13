@@ -319,6 +319,18 @@ const ResellerDashboard = () => {
         }
     };
 
+    // Handle View Items
+    const handleViewItems = (order) => {
+        setSelectedOrderItems(order);
+        setShowItemsModal(true);
+    };
+
+    // Handle View Reseller History
+    const handleViewResellerHistory = (reseller) => {
+        setSelectedReseller(reseller);
+        setShowModal(true);
+    };
+
     // Metric Card Component
     const MetricCard = ({ title, value, change, icon: Icon, format = 'number' }) => {
         const isPositive = change >= 0;
