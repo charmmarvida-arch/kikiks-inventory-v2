@@ -106,7 +106,7 @@ const OrderHistory = () => {
                     </div>
                 </div>
 
-                <div className="table-container" style={{ flex: 1, overflowY: 'auto', overflowX: 'auto', margin: 0, borderRadius: 0, border: 'none', boxShadow: 'none' }}>
+                <div className="table-container merlot-border" style={{ flex: 1, overflowY: 'auto', overflowX: 'auto', margin: 0, borderRadius: 0, border: '1px solid var(--merlot)', boxShadow: 'none' }}>
                     <table className="inventory-table">
                         <thead style={{ position: 'sticky', top: 0, zIndex: 10, backgroundColor: 'var(--base-white)' }}>
                             <tr>
@@ -138,16 +138,19 @@ const OrderHistory = () => {
                                                 onClick={() => setSelectedOrder(order)}
                                                 className="icon-btn"
                                                 style={{
-                                                    width: 'auto',
-                                                    padding: '4px 12px',
-                                                    height: '32px',
+                                                    width: '85px',
+                                                    padding: '0',
+                                                    height: '28px',
                                                     border: 'none',
                                                     color: 'white',
                                                     background: 'var(--primary)',
-                                                    fontSize: '0.85rem',
+                                                    fontSize: '0.75rem',
                                                     fontWeight: '500',
                                                     borderRadius: '50px',
-                                                    boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
+                                                    boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
+                                                    display: 'inline-flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center'
                                                 }}
                                                 title="View Details"
                                             >
@@ -159,10 +162,12 @@ const OrderHistory = () => {
                                                 <button
                                                     className="text-btn"
                                                     style={{
+                                                        width: '100px',
+                                                        height: '32px',
                                                         backgroundColor: 'var(--primary)',
                                                         color: 'white',
-                                                        padding: '4px 12px',
-                                                        borderRadius: '12px',
+                                                        padding: '0',
+                                                        borderRadius: '50px',
                                                         fontSize: '0.75rem',
                                                         fontWeight: '600',
                                                         border: 'none',
@@ -175,14 +180,18 @@ const OrderHistory = () => {
                                             ) : (
                                                 <div
                                                     style={{
+                                                        width: '85px',
+                                                        height: '28px',
                                                         backgroundColor: 'var(--gray-100)',
                                                         color: 'var(--text-muted)',
-                                                        padding: '4px 12px',
-                                                        borderRadius: '12px',
-                                                        fontSize: '0.75rem',
+                                                        padding: '0',
+                                                        borderRadius: '50px',
+                                                        fontSize: '0.65rem',
                                                         fontWeight: '600',
                                                         border: '1px solid var(--border-color)',
-                                                        display: 'inline-block'
+                                                        display: 'inline-flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center'
                                                     }}
                                                 >
                                                     Not Created
@@ -194,9 +203,11 @@ const OrderHistory = () => {
                                                 <button
                                                     className="text-btn"
                                                     style={{
+                                                        width: '100px',
+                                                        height: '32px',
                                                         backgroundColor: 'var(--primary)',
                                                         color: 'white',
-                                                        padding: '4px 12px',
+                                                        padding: '0',
                                                         borderRadius: '50px',
                                                         fontSize: '0.75rem',
                                                         fontWeight: '600',
@@ -210,14 +221,18 @@ const OrderHistory = () => {
                                             ) : (
                                                 <div
                                                     style={{
+                                                        width: '100px',
+                                                        height: '32px',
                                                         backgroundColor: 'var(--gray-100)',
                                                         color: 'var(--text-muted)',
-                                                        padding: '4px 12px',
-                                                        borderRadius: '12px',
+                                                        padding: '0',
+                                                        borderRadius: '50px',
                                                         fontSize: '0.75rem',
                                                         fontWeight: '600',
                                                         border: '1px solid var(--border-color)',
-                                                        display: 'inline-block'
+                                                        display: 'inline-flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center'
                                                     }}
                                                 >
                                                     Not Created
