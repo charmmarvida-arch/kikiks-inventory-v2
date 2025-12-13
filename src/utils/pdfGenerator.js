@@ -244,7 +244,8 @@ export const generatePackingList = async (order, inventory, resellerPrices = {})
 };
 
 // New function for Transfer Orders (matches reseller packing list format)
-export const generateTransferPackingList = async (order, inventory = []) => {
+// New function for Transfer Orders (matches reseller packing list format)
+export const generateTransferPackingList = async (order, inventory = [], locationPrices = null) => {
     const doc = new jsPDF();
 
     // 1. Header with Logo
@@ -351,6 +352,7 @@ export const generateTransferPackingList = async (order, inventory = []) => {
 
             groupedItems[category].push({
                 name: getDisplayName(itemName),
+                sku: itemName, // Store SKU for price lookup
                 qty
             });
         }
@@ -365,7 +367,13 @@ export const generateTransferPackingList = async (order, inventory = []) => {
             // Add items
             items.forEach(item => {
                 const numPacks = config.packSize > 1 ? (item.qty / config.packSize).toFixed(1) : '';
-                const totalCost = config.price * item.qty;
+
+                // Determine price: Use location specific price if available, otherwise fallback to config default
+                const itemPrice = (locationPrices && locationPrices[item.sku] !== undefined)
+                    ? locationPrices[item.sku]
+                    : config.price;
+
+                const totalCost = itemPrice * item.qty;
                 grandTotalBill += totalCost;
 
                 tableBody.push([
@@ -373,7 +381,7 @@ export const generateTransferPackingList = async (order, inventory = []) => {
                     numPacks,
                     config.packSize,
                     item.qty,
-                    `P ${config.price.toLocaleString()}`,
+                    `P ${itemPrice.toLocaleString()}`,
                     `P ${totalCost.toLocaleString()}`
                 ]);
             });
