@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useInventory } from '../context/InventoryContext';
-import { Eye, X, Search, FileText } from 'lucide-react';
+import { Eye, X, Search } from 'lucide-react';
 import { generatePackingList, generateCOA } from '../utils/pdfGenerator';
 
 const OrderHistory = () => {
@@ -139,40 +139,104 @@ const OrderHistory = () => {
                                                     setSelectedOrder(order);
                                                     setShowDetailsModal(true);
                                                 }}
-                                                className="icon-btn text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                                                style={{
+                                                    width: '85px',
+                                                    padding: '0',
+                                                    height: '28px',
+                                                    border: 'none',
+                                                    color: 'white',
+                                                    background: 'var(--primary)',
+                                                    fontSize: '0.75rem',
+                                                    fontWeight: '500',
+                                                    borderRadius: '50px',
+                                                    boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
+                                                    display: 'inline-flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center'
+                                                }}
                                                 title="View Details"
                                             >
-                                                <Eye size={18} />
+                                                View Details
                                             </button>
                                         </td>
                                         <td className="text-center">
-                                            {order.packing_list_generated ? (
+                                            {order.hasPackingList ? (
                                                 <button
                                                     onClick={() => handleViewPackingList(order)}
-                                                    className="icon-btn text-blue-600 hover:text-blue-800 hover:bg-blue-50"
-                                                    title="View Packing List"
+                                                    style={{
+                                                        width: '85px',
+                                                        height: '28px',
+                                                        backgroundColor: 'var(--primary)',
+                                                        color: 'white',
+                                                        padding: '0',
+                                                        borderRadius: '50px',
+                                                        fontSize: '0.75rem',
+                                                        fontWeight: '600',
+                                                        border: 'none',
+                                                        boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
+                                                    }}
                                                 >
-                                                    <FileText size={18} />
+                                                    View PDF
                                                 </button>
                                             ) : (
-                                                <span className="status-badge status-read" style={{ fontSize: '0.75rem' }}>
+                                                <div
+                                                    style={{
+                                                        width: '85px',
+                                                        height: '28px',
+                                                        backgroundColor: 'var(--gray-100)',
+                                                        color: 'var(--text-muted)',
+                                                        padding: '0',
+                                                        borderRadius: '50px',
+                                                        fontSize: '0.65rem',
+                                                        fontWeight: '600',
+                                                        border: '1px solid var(--border-color)',
+                                                        display: 'inline-flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center'
+                                                    }}
+                                                >
                                                     Not Created
-                                                </span>
+                                                </div>
                                             )}
                                         </td>
                                         <td className="text-center">
-                                            {order.coa_generated ? (
+                                            {order.hasCOA ? (
                                                 <button
                                                     onClick={() => handleViewCOA(order)}
-                                                    className="icon-btn text-purple-600 hover:text-purple-800 hover:bg-purple-50"
-                                                    title="View COA"
+                                                    style={{
+                                                        width: '85px',
+                                                        height: '28px',
+                                                        backgroundColor: 'var(--primary)',
+                                                        color: 'white',
+                                                        padding: '0',
+                                                        borderRadius: '50px',
+                                                        fontSize: '0.75rem',
+                                                        fontWeight: '600',
+                                                        border: 'none',
+                                                        boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
+                                                    }}
                                                 >
-                                                    <FileText size={18} />
+                                                    View COA
                                                 </button>
                                             ) : (
-                                                <span className="status-badge status-read" style={{ fontSize: '0.75rem' }}>
+                                                <div
+                                                    style={{
+                                                        width: '85px',
+                                                        height: '28px',
+                                                        backgroundColor: 'var(--gray-100)',
+                                                        color: 'var(--text-muted)',
+                                                        padding: '0',
+                                                        borderRadius: '50px',
+                                                        fontSize: '0.65rem',
+                                                        fontWeight: '600',
+                                                        border: '1px solid var(--border-color)',
+                                                        display: 'inline-flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center'
+                                                    }}
+                                                >
                                                     Not Created
-                                                </span>
+                                                </div>
                                             )}
                                         </td>
                                     </tr>

@@ -251,7 +251,7 @@ button {
   background-color: var(--bg-surface);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
-  border: 1px solid var(--border-color);
+  border: 1px solid transparent;
   padding: 1.5rem;
   margin-bottom: 1.5rem;
   transition: box-shadow 0.2s ease, transform 0.2s ease;
@@ -370,7 +370,7 @@ button {
 /* Premium Table Styles */
 .table-container {
   background: var(--base-white);
-  border: 1px solid var(--border-color);
+  border: 1px solid transparent;
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
   overflow: hidden;
