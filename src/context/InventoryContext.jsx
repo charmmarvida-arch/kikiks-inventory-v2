@@ -373,8 +373,8 @@ export const InventoryProvider = ({ children }) => {
 
     const addTransferOrder = async (order) => {
         const newOrder = { ...order, id: order.id || crypto.randomUUID(), date: order.date || new Date().toISOString() };
-        // Mark as deducted immediately in local state
-        newOrder.isDeducted = true;
+        // Do NOT deduct immediately. Deduction happens on "Completed" status.
+        newOrder.isDeducted = false;
 
         setTransferOrders(prev => [newOrder, ...prev]);
 
@@ -387,7 +387,7 @@ export const InventoryProvider = ({ children }) => {
             total_amount: newOrder.total_amount,
             date: newOrder.date,
             status: newOrder.status,
-            is_deducted: true
+            is_deducted: false // Set to false initially
         };
 
         console.log('=== SAVING TRANSFER TO DATABASE ===');
@@ -401,13 +401,6 @@ export const InventoryProvider = ({ children }) => {
             alert("Failed to save transfer order: " + error.message);
         } else {
             console.log('✅ Transfer saved successfully!', data);
-        }
-
-        // Deduct stock immediately after successful save
-        if (!error) {
-            for (const [sku, qty] of Object.entries(newOrder.items)) {
-                await addStock(sku, -qty);
-            }
         }
     };
 
