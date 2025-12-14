@@ -627,6 +627,7 @@ export const InventoryProvider = ({ children }) => {
 
     const addLegazpiProduct = async (product) => {
         const newProduct = {
+            sku: product.sku, // Added SKU
             product_name: product.product_name,
             flavor: product.flavor,
             quantity: Number(product.quantity) || 0,

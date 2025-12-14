@@ -174,9 +174,10 @@ const LegazpiStorage = () => {
     const saveEdit = async () => {
         if (!editingProduct) return;
 
-        const { id, product_name, flavor, quantity, unit } = editingProduct;
+        const { id, sku, product_name, flavor, quantity, unit } = editingProduct;
 
         await updateLegazpiProduct(id, {
+            sku, // Added SKU
             product_name,
             flavor,
             quantity: Number(quantity),
@@ -504,6 +505,16 @@ const LegazpiStorage = () => {
                             </button>
                         </div>
                         <div className="modal-body">
+                            <div className="mb-4">
+                                <label className="text-sm text-secondary mb-1">SKU</label>
+                                <input
+                                    type="text"
+                                    value={editingProduct.sku || ''}
+                                    onChange={(e) => setEditingProduct({ ...editingProduct, sku: e.target.value })}
+                                    className="premium-input"
+                                    placeholder="Enter SKU (e.g., FGC-001)"
+                                />
+                            </div>
                             <div className="mb-4">
                                 <label className="text-sm text-secondary mb-1">Product Name *</label>
                                 <input

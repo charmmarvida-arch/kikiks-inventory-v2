@@ -186,7 +186,7 @@ const TransferLocation = ({ isPublic = false }) => {
             return inventory;
         } else if (fromLocation === 'Legazpi Storage') {
             return legazpiInventory.map(item => ({
-                sku: `${item.product_name}-${item.flavor || 'Default'}`,
+                sku: item.sku || `${item.product_name}-${item.flavor || 'Default'}`, // Use valid SKU if available
                 description: `${item.product_name} ${item.flavor || ''}`.trim(),
                 quantity: item.quantity,
                 uom: item.unit,
