@@ -1,12 +1,15 @@
-import Toast from './Toast'; // Added import
+import React, { useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Edit2, Trash2, X } from 'lucide-react';
+import { useInventory } from '../context/InventoryContext';
+import { generateTransferPackingList } from '../utils/pdfGenerator';
+import Toast from './Toast';
 
 const LocationDashboard = () => {
-    // ... imports and existing code ...
+    const { location } = useParams();
+    const navigate = useNavigate();
     const [showToast, setShowToast] = useState(false);
     const [toastMessage, setToastMessage] = useState('');
-
-    // ... existing code ...
-
 
     const {
         transferOrders,
@@ -17,7 +20,8 @@ const LocationDashboard = () => {
         locationSRPs,
         addStock,
         addLegazpiStock,
-        legazpiInventory
+        legazpiInventory,
+        loading // Add loading
     } = useInventory();
     const [selectedOrder, setSelectedOrder] = useState(null);
 
@@ -31,8 +35,17 @@ const LocationDashboard = () => {
     const [showEditModal, setShowEditModal] = useState(false);
     const [processingOrderId, setProcessingOrderId] = useState(null); // Prevent double-clicks
 
+    if (loading) {
+        return (
+            <div className="flex justify-center items-center h-64">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                <span className="ml-2 text-gray-500">Loading transactions...</span>
+            </div>
+        );
+    }
+
     // Filter and sort orders for this location
-    const filteredOrders = transferOrders.filter(order => {
+    const filteredOrders = (transferOrders || []).filter(order => {
         const orderLocation = order.destination;
         return orderLocation === location ||
             orderLocation?.toLowerCase() === location.toLowerCase() ||

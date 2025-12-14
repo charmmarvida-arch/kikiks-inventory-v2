@@ -1,8 +1,9 @@
 // DEPLOYMENT TRIGGER
-// Current Version: 2.1.5
+// Current Version: 2.1.6
 // Last Updated: 2025-12-14
 //
 // Change Log:
+// - 2.1.6: Fix LocationDashboard Crash (Missing Imports)
 // - 2.1.5: Implemented Toast Notifications and Cleaned up Duplicate Code
 // - 2.1.4: Stock Reversal: Undo "Completed" Transfer Status
 // - 2.1.3: Fix Transfer Deduction (Legazpi & logic)
@@ -20,7 +21,7 @@
 // - 2.0.1: Fix Email Delivery Issues
 // - 2.0.0: Initial Deployment
 
-export const DEPLOYMENT_VERSION = '2.1.5';
+export const DEPLOYMENT_VERSION = '2.1.6';
 export const DEPLOYMENT_DATE = '2025-12-14';
 export const DEPLOYMENT_FEATURES = [
     'Stock Reversal: Undo "Completed" Transfer Status', // Added
