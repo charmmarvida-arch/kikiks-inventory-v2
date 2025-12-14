@@ -131,6 +131,8 @@ const LocationDashboard = () => {
                     } else if (fromLocation === 'Legazpi Storage') {
                         const product = legazpiInventory.find(p => p.sku === sku || `${p.product_name}-${p.flavor || 'Default'}` === sku);
                         if (product) {
+                            // DEBUG: Alert before adding
+                            alert(`DEBUG: Found product! Returning ${qty} to ${product.product_name} (ID: ${product.id})`);
                             await addLegazpiStock(product.id, qty); // Add back (positive)
                             console.log(`Returned ${qty} of ${sku} to Legazpi Storage`);
                         } else {
