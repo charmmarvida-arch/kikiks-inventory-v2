@@ -4,6 +4,7 @@ import { Settings, Edit2, Save, X, Search, Download, Plus, Trash2, History, Eye 
 import { supabase } from '../supabaseClient';
 import { useAuth } from '../context/AuthContext';
 import { generateTransferPackingList } from '../utils/pdfGenerator';
+import Toast from './Toast'; // Added import
 
 const LegazpiStorage = () => {
     const {
@@ -36,6 +37,8 @@ const LegazpiStorage = () => {
     const [showPreviewModal, setShowPreviewModal] = useState(false);
     const [previewTitle, setPreviewTitle] = useState('');
     const [processingOrderId, setProcessingOrderId] = useState(null); // Prevent double-clicks
+    const [showToast, setShowToast] = useState(false);
+    const [toastMessage, setToastMessage] = useState('');
 
     // Filter transfers for Legazpi Storage
     const legazpiTransfers = transferOrders
@@ -100,6 +103,9 @@ const LegazpiStorage = () => {
                 }
 
                 console.log('Transfer completed! Stock has been adjusted.');
+                // Show Success Toast
+                setToastMessage('Transfer Completed! Stock deducted.');
+                setShowToast(true);
             } catch (error) {
                 console.error('Error adjusting stock:', error);
                 alert('Failed to adjust stock: ' + error.message);
@@ -133,13 +139,8 @@ const LegazpiStorage = () => {
                     } else if (fromLocation === 'Legazpi Storage') {
                         const product = legazpiInventory.find(p => p.sku === sku || `${p.product_name}-${p.flavor || 'Default'}` === sku);
                         if (product) {
-                            // DEBUG: Alert before adding
-                            alert(`DEBUG: Found product! Returning ${qty} to ${product.product_name} (ID: ${product.id})`);
                             await addLegazpiStock(product.id, qty); // Add back (positive)
                             console.log(`Returned ${qty} of ${sku} to Legazpi Storage`);
-                        } else {
-                            // DEBUG
-                            alert(`DEBUG: Could not find Legazpi product to RETURN: ${sku}. Inventory size: ${legazpiInventory.length}`);
                         }
                     }
 
@@ -156,6 +157,9 @@ const LegazpiStorage = () => {
                     }
                 }
                 console.log('Transfer reversal completed!');
+                // Show Success Toast
+                setToastMessage('Transfer Reverted! Stock returned.');
+                setShowToast(true);
             } catch (error) {
                 console.error('Error reversing stock:', error);
                 alert('Failed to reverse stock: ' + error.message);
@@ -167,7 +171,10 @@ const LegazpiStorage = () => {
         }
 
         // Update the order status for non-Completed changes
+        // Standard status update
         updateTransferOrderStatus(id, newStatus);
+        setToastMessage(`Status updated to ${newStatus}`);
+        setShowToast(true);
     };
 
     const handleCreatePackingList = async (order) => {
@@ -816,6 +823,14 @@ const LegazpiStorage = () => {
                         </div>
                     </div>
                 </div>
+            )}
+            {/* Toast Notification */}
+            {showToast && (
+                <Toast
+                    message={toastMessage}
+                    onClose={() => setShowToast(false)}
+                    duration={3000}
+                />
             )}
         </div>
     );

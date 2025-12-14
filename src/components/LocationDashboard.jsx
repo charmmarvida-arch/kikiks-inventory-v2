@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { useInventory } from '../context/InventoryContext';
-import { Eye, X, Edit2, Trash2 } from 'lucide-react';
-import { generateTransferPackingList } from '../utils/pdfGenerator';
+import Toast from './Toast'; // Added import
 
 const LocationDashboard = () => {
-    const { location } = useParams();
+    // ... imports and existing code ...
+    const [showToast, setShowToast] = useState(false);
+    const [toastMessage, setToastMessage] = useState('');
+
+    // ... existing code ...
+
+
     const {
         transferOrders,
         updateTransferOrderStatus,
@@ -131,13 +133,8 @@ const LocationDashboard = () => {
                     } else if (fromLocation === 'Legazpi Storage') {
                         const product = legazpiInventory.find(p => p.sku === sku || `${p.product_name}-${p.flavor || 'Default'}` === sku);
                         if (product) {
-                            // DEBUG: Alert before adding
-                            alert(`DEBUG: Found product! Returning ${qty} to ${product.product_name} (ID: ${product.id})`);
                             await addLegazpiStock(product.id, qty); // Add back (positive)
                             console.log(`Returned ${qty} of ${sku} to Legazpi Storage`);
-                        } else {
-                            // DEBUG
-                            alert(`DEBUG: Could not find Legazpi product to RETURN: ${sku}. Inventory size: ${legazpiInventory.length}`);
                         }
                     }
 
@@ -528,6 +525,14 @@ const LocationDashboard = () => {
                         </div>
                     </div>
                 </div>
+            )}
+            {/* Toast Notification */}
+            {showToast && (
+                <Toast
+                    message={toastMessage}
+                    onClose={() => setShowToast(false)}
+                    duration={3000}
+                />
             )}
         </div>
     );
