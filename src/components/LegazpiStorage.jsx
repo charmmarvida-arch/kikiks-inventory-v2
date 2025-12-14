@@ -77,7 +77,8 @@ const LegazpiStorage = () => {
                         await addStock(sku, -qty);
                         console.log(`Deducted ${qty} of ${sku} from FTF Manufacturing`);
                     } else if (fromLocation === 'Legazpi Storage') {
-                        const product = legazpiInventory.find(p => p.sku === sku);
+                        // Support both SKU and Name-Flavor fallback for older records
+                        const product = legazpiInventory.find(p => p.sku === sku || `${p.product_name}-${p.flavor || 'Default'}` === sku);
                         if (product) {
                             await addLegazpiStock(product.id, -qty);
                             console.log(`Deducted ${qty} of ${sku} from Legazpi Storage`);
@@ -86,7 +87,8 @@ const LegazpiStorage = () => {
 
                     // Add to destination location
                     if (toLocation === 'Legazpi Storage') {
-                        const product = legazpiInventory.find(p => p.sku === sku);
+                        // Support both SKU and Name-Flavor fallback for older records
+                        const product = legazpiInventory.find(p => p.sku === sku || `${p.product_name}-${p.flavor || 'Default'}` === sku);
                         if (product) {
                             await addLegazpiStock(product.id, qty);
                             console.log(`Added ${qty} of ${sku} to Legazpi Storage`);
