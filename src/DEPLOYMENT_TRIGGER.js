@@ -3,10 +3,11 @@
 // Created: 2025-12-01 08:14
 // Version: 2.0.0 - FTF Manufacturing Redesign
 
-export const DEPLOYMENT_VERSION = '2.1.3';
+export const DEPLOYMENT_VERSION = '2.1.4';
 export const DEPLOYMENT_DATE = '2025-12-14';
 export const DEPLOYMENT_FEATURES = [
-    'Fixed Legazpi Transfer Deduction (SKU/Name Fallback)', // Added
+    'Stock Reversal: Undo "Completed" Transfer Status', // Added
+    'Fixed Legazpi Transfer Deduction (SKU/Name Fallback)',
     'Transfer Logic: Deduct Stock AFTER Completion (Fix)',
     'FTF Manufacturing Redesign',
     'Standalone Navigation Position',

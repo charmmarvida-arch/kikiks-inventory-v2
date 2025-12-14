@@ -109,6 +109,56 @@ const LocationDashboard = () => {
             return; // Already updated status above
         }
 
+        // Check if status is changing FROM "Completed" (Undo/Reversal)
+        if (order.status === 'Completed' && newStatus !== 'Completed') {
+            if (!confirm(`Are you sure you want to revert this Completed order? Stock will be RETURNED to ${order.from_location}.`)) {
+                return;
+            }
+
+            setProcessingOrderId(id);
+            updateTransferOrderStatus(id, newStatus); // Optimistic update
+
+            try {
+                // Reverse inventory adjustments
+                for (const [sku, qty] of Object.entries(order.items || {})) {
+                    const fromLocation = order.from_location || 'FTF Manufacturing';
+                    const toLocation = order.destination || order.to_location;
+
+                    // RETURN to source location
+                    if (fromLocation === 'FTF Manufacturing') {
+                        await addStock(sku, qty); // Add back (positive)
+                        console.log(`Returned ${qty} of ${sku} to FTF Manufacturing`);
+                    } else if (fromLocation === 'Legazpi Storage') {
+                        const product = legazpiInventory.find(p => p.sku === sku || `${p.product_name}-${p.flavor || 'Default'}` === sku);
+                        if (product) {
+                            await addLegazpiStock(product.id, qty); // Add back (positive)
+                            console.log(`Returned ${qty} of ${sku} to Legazpi Storage`);
+                        }
+                    }
+
+                    // REMOVE from destination location
+                    if (toLocation === 'Legazpi Storage') {
+                        const product = legazpiInventory.find(p => p.sku === sku || `${p.product_name}-${p.flavor || 'Default'}` === sku);
+                        if (product) {
+                            await addLegazpiStock(product.id, -qty); // Remove (negative)
+                            console.log(`Removed ${qty} of ${sku} from Legazpi Storage (Reversal)`);
+                        }
+                    } else if (toLocation === 'FTF Manufacturing') {
+                        await addStock(sku, -qty); // Remove (negative)
+                        console.log(`Removed ${qty} of ${sku} from FTF Manufacturing (Reversal)`);
+                    }
+                }
+                console.log('Transfer reversal completed!');
+            } catch (error) {
+                console.error('Error reversing stock:', error);
+                alert('Failed to reverse stock: ' + error.message);
+                updateTransferOrderStatus(id, order.status); // Revert on error
+            } finally {
+                setProcessingOrderId(null);
+            }
+            return;
+        }
+
         // Update the order status for non-Completed changes
         updateTransferOrderStatus(id, newStatus);
     };
