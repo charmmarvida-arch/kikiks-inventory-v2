@@ -135,6 +135,9 @@ const LegazpiStorage = () => {
                         if (product) {
                             await addLegazpiStock(product.id, qty); // Add back (positive)
                             console.log(`Returned ${qty} of ${sku} to Legazpi Storage`);
+                        } else {
+                            // DEBUG
+                            alert(`DEBUG: Could not find Legazpi product to RETURN: ${sku}. Inventory size: ${legazpiInventory.length}`);
                         }
                     }
 
