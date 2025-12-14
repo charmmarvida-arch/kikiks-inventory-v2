@@ -1,9 +1,26 @@
-// DEPLOYMENT TRIGGER - DO NOT DELETE
-// This file forces GitHub Desktop to detect changes
-// Created: 2025-12-01 08:14
-// Version: 2.0.0 - FTF Manufacturing Redesign
+// DEPLOYMENT TRIGGER
+// Current Version: 2.1.5
+// Last Updated: 2025-12-14
+//
+// Change Log:
+// - 2.1.5: Implemented Toast Notifications and Cleaned up Duplicate Code
+// - 2.1.4: Stock Reversal: Undo "Completed" Transfer Status
+// - 2.1.3: Fix Transfer Deduction (Legazpi & logic)
+// - 2.1.2: Add Stock Deduction Logic for Transfers
+// - 2.1.1: Fix Branch Transaction Status & Edit Mode
+// - 2.1.0: Fix Branch Transaction Logic & Packing List 
+// - 2.0.9: Fix Discord Transfer Notifications
+// - 2.0.8: Fix Legazpi Storage Sorting (Size-based)
+// - 2.0.7: Fix Branch Transactions Table
+// - 2.0.6: Enforce "Single Line" Button UI
+// - 2.0.5: Standardize Button UI & Alignment
+// - 2.0.4: Refine UI aesthetics (Modern Sidebar, Slim Scrollbar)
+// - 2.0.3: Fix Encoded Button Reactivity
+// - 2.0.2: Refine Email Notifications
+// - 2.0.1: Fix Email Delivery Issues
+// - 2.0.0: Initial Deployment
 
-export const DEPLOYMENT_VERSION = '2.1.4';
+export const DEPLOYMENT_VERSION = '2.1.5';
 export const DEPLOYMENT_DATE = '2025-12-14';
 export const DEPLOYMENT_FEATURES = [
     'Stock Reversal: Undo "Completed" Transfer Status', // Added

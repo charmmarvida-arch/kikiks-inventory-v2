@@ -100,6 +100,9 @@ const LocationDashboard = () => {
                 }
 
                 console.log('Transfer completed! Stock has been adjusted.');
+                // Show Success Toast
+                setToastMessage('Transfer Completed! Stock deducted.');
+                setShowToast(true);
             } catch (error) {
                 console.error('Error adjusting stock:', error);
                 alert('Failed to adjust stock: ' + error.message);
@@ -151,6 +154,9 @@ const LocationDashboard = () => {
                     }
                 }
                 console.log('Transfer reversal completed!');
+                // Show Success Toast
+                setToastMessage('Transfer Reverted! Stock returned.');
+                setShowToast(true);
             } catch (error) {
                 console.error('Error reversing stock:', error);
                 alert('Failed to reverse stock: ' + error.message);
@@ -162,7 +168,10 @@ const LocationDashboard = () => {
         }
 
         // Update the order status for non-Completed changes
+        // Update the order status for non-Completed changes
         updateTransferOrderStatus(id, newStatus);
+        setToastMessage(`Status updated to ${newStatus}`);
+        setShowToast(true);
     };
 
     // Packing List Handlers
