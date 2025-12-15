@@ -426,7 +426,7 @@ button {
   /* Ensure background for sticky */
   color: var(--text-secondary);
   /* Slightly darker for readability */
-  padding: 1rem 1.5rem;
+  padding: 1rem 0.75rem;
   /* Premium spacing */
   text-align: left;
   font-weight: 600;
@@ -441,7 +441,7 @@ button {
 }
 
 .inventory-table td {
-  padding: 1rem 1.5rem;
+  padding: 1rem 0.75rem;
   /* Premium spacing */
   border-bottom: 1px solid var(--gray-100);
   /* Lighter border */
