@@ -13,6 +13,7 @@ const ResellerOrderList = () => {
     const [selectedOrder, setSelectedOrder] = useState(null);
     const [showCOAModal, setShowCOAModal] = useState(false);
     const [selectedCOAOrder, setSelectedCOAOrder] = useState(null);
+    const [showConfirmCOA, setShowConfirmCOA] = useState(false);
     const [bestBeforeDates, setBestBeforeDates] = useState({});
     const [preparedBy, setPreparedBy] = useState('');
     const [preparedDate, setPreparedDate] = useState('');
@@ -153,6 +154,14 @@ const ResellerOrderList = () => {
 
     // --- COA Handlers ---
     const handleGenerateCOA = async () => {
+        if (!preparedBy.trim()) {
+            alert("Please enter 'Prepared by' name.");
+            return;
+        }
+        setShowConfirmCOA(true);
+    };
+
+    const handleConfirmGenerateCOA = async () => {
         if (selectedCOAOrder) {
             try {
                 console.log('Starting COA generation...');
@@ -181,10 +190,16 @@ const ResellerOrderList = () => {
                 });
 
                 console.log('COA generation completed!');
+                setShowConfirmCOA(false);
                 setShowCOAModal(false);
+                // Show success message or just close? User requested success alert?
+                // "if yes,it will create the ordersuccessfully with apop up modal alert"
+                alert("COA Generated Successfully!");
+
             } catch (error) {
                 console.error('Error generating COA:', error);
                 alert('Error generating COA: ' + error.message);
+                setShowConfirmCOA(false);
             }
         }
     };
@@ -499,64 +514,73 @@ const ResellerOrderList = () => {
                                 <table className="w-full">
                                     <thead>
                                         <tr className="text-left text-sm text-secondary">
-                                            <th className="pb-2">Product</th>
-                                            <th className="pb-2">Best Before Date</th>
+                                            <th className="pb-2 w-1/2">Product</th>
+                                            <th className="pb-2 text-center w-1/6">Qty</th>
+                                            <th className="pb-2 w-1/3">Best Before Date</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {Object.entries(selectedCOAOrder.items).map(([sku, qty]) => {
-                                            if (qty > 0) {
-                                                // Ensure dates is an array
-                                                const dates = Array.isArray(bestBeforeDates[sku]) ? bestBeforeDates[sku] : [''];
+                                        {Object.entries(selectedCOAOrder.items)
+                                            .sort(([skuA], [skuB]) => {
+                                                const order = ['FGC', 'FGP', 'FGL', 'FGG', 'FGT'];
+                                                const prefixA = skuA.split('-')[0];
+                                                const prefixB = skuB.split('-')[0];
+                                                return order.indexOf(prefixA) - order.indexOf(prefixB);
+                                            })
+                                            .map(([sku, qty]) => {
+                                                if (qty > 0) {
+                                                    // Ensure dates is an array
+                                                    const dates = Array.isArray(bestBeforeDates[sku]) ? bestBeforeDates[sku] : [''];
 
-                                                return (
-                                                    <tr key={sku} className="border-b border-gray-50 last:border-0">
-                                                        <td className="py-2 align-top pt-3">{getProductDescription(sku)}</td>
-                                                        <td className="py-2">
-                                                            <div className="flex flex-col gap-2">
-                                                                {dates.map((date, index) => (
-                                                                    <div key={index} className="flex gap-2 items-center">
-                                                                        <input
-                                                                            type="date"
-                                                                            className="premium-input w-full"
-                                                                            value={date}
-                                                                            onChange={(e) => {
-                                                                                const newDates = [...dates];
-                                                                                newDates[index] = e.target.value;
-                                                                                handleDateChange(sku, newDates);
-                                                                            }}
-                                                                        />
-                                                                        {/* Only show remove button if more than 1 date */}
-                                                                        {dates.length > 1 && (
-                                                                            <button
-                                                                                onClick={() => {
-                                                                                    const newDates = dates.filter((_, i) => i !== index);
+                                                    return (
+                                                        <tr key={sku} className="border-b border-gray-50 last:border-0">
+                                                            <td className="py-2 align-top pt-3">{getProductDescription(sku)}</td>
+                                                            <td className="py-2 align-top pt-3 text-center font-bold text-lg">{qty}</td>
+                                                            <td className="py-2">
+                                                                <div className="flex flex-col gap-2">
+                                                                    {dates.map((date, index) => (
+                                                                        <div key={index} className="flex gap-2 items-center">
+                                                                            <input
+                                                                                type="date"
+                                                                                className="premium-input w-full"
+                                                                                value={date}
+                                                                                onChange={(e) => {
+                                                                                    const newDates = [...dates];
+                                                                                    newDates[index] = e.target.value;
                                                                                     handleDateChange(sku, newDates);
                                                                                 }}
-                                                                                className="text-red-500 hover:bg-red-50 p-1 rounded"
-                                                                                title="Remove date"
-                                                                            >
-                                                                                <X size={16} />
-                                                                            </button>
-                                                                        )}
-                                                                    </div>
-                                                                ))}
-                                                                <button
-                                                                    onClick={() => {
-                                                                        const newDates = [...dates, ''];
-                                                                        handleDateChange(sku, newDates);
-                                                                    }}
-                                                                    className="text-xs text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1 mt-1 w-fit"
-                                                                >
-                                                                    + Add Another Date
-                                                                </button>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                );
-                                            }
-                                            return null;
-                                        })}
+                                                                            />
+                                                                            {/* Only show remove button if more than 1 date */}
+                                                                            {dates.length > 1 && (
+                                                                                <button
+                                                                                    onClick={() => {
+                                                                                        const newDates = dates.filter((_, i) => i !== index);
+                                                                                        handleDateChange(sku, newDates);
+                                                                                    }}
+                                                                                    className="text-red-500 hover:bg-red-50 p-1 rounded"
+                                                                                    title="Remove date"
+                                                                                >
+                                                                                    <X size={16} />
+                                                                                </button>
+                                                                            )}
+                                                                        </div>
+                                                                    ))}
+                                                                    <button
+                                                                        onClick={() => {
+                                                                            const newDates = [...dates, ''];
+                                                                            handleDateChange(sku, newDates);
+                                                                        }}
+                                                                        className="text-xs text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1 mt-1 w-fit"
+                                                                    >
+                                                                        + Add Another Date
+                                                                    </button>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    );
+                                                }
+                                                return null;
+                                            })}
                                     </tbody>
                                 </table>
                             </div>
@@ -578,9 +602,9 @@ const ResellerOrderList = () => {
                                         <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
                                         <input
                                             type="date"
-                                            className="premium-input w-full"
+                                            className="premium-input w-full bg-gray-50"
                                             value={preparedDate}
-                                            onChange={(e) => setPreparedDate(e.target.value)}
+                                            readOnly
                                         />
                                     </div>
                                 </div>
@@ -626,6 +650,28 @@ const ResellerOrderList = () => {
                         </div>
                         <div className="modal-body" style={{ flex: 1, padding: 0, overflow: 'hidden' }}>
                             <iframe src={previewUrl} style={{ width: '100%', height: '100%', border: 'none' }} title="Document Preview" />
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Confirmation Modal */}
+            {showConfirmCOA && (
+                <div className="modal-overlay" style={{ zIndex: 60 }} onClick={() => setShowConfirmCOA(false)}>
+                    <div className="modal-content small-modal" onClick={e => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <h3 className="modal-title">Confirm COA Generation</h3>
+                        </div>
+                        <div className="modal-body text-center">
+                            <p className="mb-6">Are you sure you want to generate the COA? <br /> This will save the encoded data.</p>
+                            <div className="flex justify-center gap-4">
+                                <button className="icon-btn" onClick={() => setShowConfirmCOA(false)}>
+                                    No, Cancel
+                                </button>
+                                <button className="submit-btn" onClick={handleConfirmGenerateCOA}>
+                                    Yes, Generate
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
