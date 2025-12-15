@@ -1,0 +1,2 @@
+Fix: Adjusted table height to ensure scrollbar visibility (calc 100vh - 280px)
+Timestamp: 2025-12-15 20:20
