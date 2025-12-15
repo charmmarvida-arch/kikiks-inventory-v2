@@ -861,7 +861,6 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
                                     Edit Order
                                 </button>
                                 <button
-                                    {/* PROCEED calls the confirmation modal instead of direct submit */}
                                     onClick={() => setIsFinalConfirmOpen(true)}
                                     className="flex-[2] py-3 rounded-xl bg-[#E5562E] text-white font-bold shadow-lg hover:bg-[#d4451d] transition-all flex items-center justify-center gap-2"
                                 >
