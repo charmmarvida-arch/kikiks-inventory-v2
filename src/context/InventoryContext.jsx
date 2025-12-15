@@ -299,10 +299,11 @@ export const InventoryProvider = ({ children }) => {
         if (error) {
             console.error("Error saving reseller order:", error);
             alert(`Failed to save order to database: ${error.message} \n\nPlease check your internet connection or contact support.`);
-            // Optional: Revert local state if critical
+            return { error };
         } else {
             // Send Discord notification on successful order
             await sendOrderNotification(newOrder, inventory);
+            return { data: dbOrder, error: null };
         }
     };
 
@@ -367,8 +368,10 @@ export const InventoryProvider = ({ children }) => {
             if (error) {
                 console.error("Error updating reseller order:", error);
                 alert(`Error updating order: ${error.message}`);
+                return { error };
             }
         }
+        return { error: null };
     };
 
     const addTransferOrder = async (order) => {

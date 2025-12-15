@@ -4,7 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import {
     Settings, Search, ShoppingCart,
     Coffee, IceCream, Droplet, Box, Grid,
-    ChevronRight, Save, X, Trash2, AlertCircle, FileText
+    ChevronRight, Save, X, Trash2, AlertCircle, FileText, CheckCircle, Loader2
 } from 'lucide-react';
 import ResellerSettingsModal from './ResellerSettingsModal';
 import { generatePackingList } from '../utils/pdfGenerator';
@@ -93,6 +93,12 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
 
     // Mobile sidebar state
     const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+
+    // --- State for Custom Modals & Submission ---
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isFinalConfirmOpen, setIsFinalConfirmOpen] = useState(false);
+    const [isSuccessOpen, setIsSuccessOpen] = useState(false);
+    const [createdOrderId, setCreatedOrderId] = useState(null);
 
     // Auto-Save to localStorage
     useEffect(() => {
@@ -231,61 +237,67 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
         setIsConfirmOpen(true);
     };
 
-    const handleProceedOrder = async () => {
-        // Prepare Order Data
-        const orderItems = {};
-        let orderTotalQuantity = 0;
-        Object.entries(cart).forEach(([sku, qty]) => {
-            if (qty > 0) {
-                orderItems[sku] = qty;
-                orderTotalQuantity += qty;
-            }
-        });
+    const handleFinalSubmit = async () => {
+        if (isSubmitting) return;
+        setIsSubmitting(true);
 
-        const orderData = {
-            resellerId: selectedResellerId,
-            resellerName: selectedReseller.name,
-            location: currentZone ? currentZone.name : 'Unknown Area/Type',
-            address: address,
-            items: orderItems,
-            totalAmount: cartTotal,
-            date: new Date().toISOString(),
-            status: 'Pending'
-        };
-
-        // Save to DB
-        let finalOrderId = orderId;
-        if (orderId) {
-            // Update Existing Order
-            await updateResellerOrder(orderId, {
-                ...orderData,
-                id: orderId,
-                status: 'Pending'
+        try {
+            // Prepare Order Data
+            const orderItems = {};
+            let orderTotalQuantity = 0;
+            Object.entries(cart).forEach(([sku, qty]) => {
+                if (qty > 0) {
+                    orderItems[sku] = qty;
+                    orderTotalQuantity += qty;
+                }
             });
-            navigate(`/order-pdf/${orderId}`);
-        } else {
-            // Create New Order
-            const newOrderId = crypto.randomUUID();
-            orderData.id = newOrderId;
-            finalOrderId = newOrderId;
-            await addResellerOrder(orderData);
 
-            // Clear draft after successful submission
-            localStorage.removeItem(DRAFT_KEY);
+            const orderData = {
+                resellerId: selectedResellerId,
+                resellerName: selectedReseller.name,
+                location: currentZone ? currentZone.name : 'Unknown Area/Type',
+                address: address,
+                items: orderItems,
+                totalAmount: cartTotal,
+                date: new Date().toISOString(),
+                status: 'Pending'
+            };
+
+            let finalOrderId = orderId;
+            let submissionError = null;
+
+            // Save to DB
+            if (orderId) {
+                // Update Existing Order
+                const res = await updateResellerOrder(orderId, {
+                    ...orderData,
+                    id: orderId,
+                    status: 'Pending'
+                });
+                if (res && res.error) submissionError = res.error;
+            } else {
+                // Create New Order
+                const newOrderId = crypto.randomUUID();
+                orderData.id = newOrderId;
+                finalOrderId = newOrderId;
+                const res = await addResellerOrder(orderData);
+                if (res && res.error) submissionError = res.error;
+            }
+
+            if (submissionError) {
+                throw new Error(submissionError.message || "Database Error");
+            }
 
             // --- EMAIL NOTIFICATION LOGIC ---
-            if (selectedReseller && selectedReseller.email) {
+            if (finalOrderId && selectedReseller && selectedReseller.email) {
                 try {
                     // 1. Generate PDF Base64
                     const pdfDataUri = await generatePackingList({
                         ...orderData,
+                        id: finalOrderId, // Ensure ID is passed
                         returnBase64: true,
-                        skipLogo: true // Compressing size for email
+                        skipLogo: true
                     }, inventory, resellerPrices);
-
-                    // Debug Size
-                    console.log("PDF Base64 Length:", pdfDataUri.length);
-                    // alert("Debug: Generated PDF Size: " + Math.round(pdfDataUri.length / 1024) + "KB");
 
                     // 2. Send to API
                     fetch('/api/send-email', {
@@ -361,24 +373,45 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
                     }).then(async res => {
                         const result = await res.json();
                         if (res.ok) {
-                            console.log('Email sent successfully', result);
-                            alert(`Email Sent Successfully to ${selectedReseller.email}!`);
+                            console.log('Email sent successfully');
                         } else {
                             console.error('Failed to send email', result);
-                            alert(`Email Failed: ${JSON.stringify(result)}`);
                         }
                     }).catch(err => {
                         console.error('Error sending email:', err);
-                        alert(`Email Error: ${err.message}`);
                     });
 
                 } catch (emailErr) {
                     console.error("Email sequence failed:", emailErr);
-                    // Don't block navigation on email fail
+                    // Don't block success state on email fail
                 }
             }
 
-            navigate(`/order-pdf/${newOrderId}`);
+            // Success State
+            setCreatedOrderId(finalOrderId);
+            localStorage.removeItem(DRAFT_KEY); // Clear draft
+            setIsFinalConfirmOpen(false); // Close Confirmation Modal
+            setIsConfirmOpen(false); // Close Summary Modal
+            setIsSubmitting(false); // Stop loading
+            setIsSuccessOpen(true); // Open Success Modal
+
+        } catch (error) {
+            console.error("Order Submission Critical Error:", error);
+            setIsSubmitting(false);
+            // Alert is already handled by InventoryContext for DB errors, but for safety:
+            if (!error.message.includes("Failed to save order")) {
+                alert("An unexpected error occurred: " + error.message);
+            }
+        }
+    };
+
+    const handleSuccessDismiss = () => {
+        setIsSuccessOpen(false);
+        if (createdOrderId) {
+            navigate(`/order-pdf/${createdOrderId}`);
+        } else {
+            // Fallback
+            navigate('/reseller-orders');
         }
     };
 
@@ -828,13 +861,73 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
                                     Edit Order
                                 </button>
                                 <button
-                                    onClick={handleProceedOrder}
+                                    {/* PROCEED calls the confirmation modal instead of direct submit */}
+                                    onClick={() => setIsFinalConfirmOpen(true)}
                                     className="flex-[2] py-3 rounded-xl bg-[#E5562E] text-white font-bold shadow-lg hover:bg-[#d4451d] transition-all flex items-center justify-center gap-2"
                                 >
                                     PROCEED <ChevronRight size={18} />
                                 </button>
                             </div>
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* --- FINAL CONFIRMATION MODAL --- */}
+            {isFinalConfirmOpen && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[70] flex items-center justify-center p-4">
+                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 text-center animate-in fade-in zoom-in duration-200">
+                        <div className="mx-auto w-12 h-12 bg-[#F3EBD8] rounded-full flex items-center justify-center mb-4">
+                            <AlertCircle className="text-[#510813]" size={24} />
+                        </div>
+                        <h3 className="text-xl font-bold text-[#510813] mb-2">Confirm Order</h3>
+                        <p className="text-gray-600 mb-6">
+                            Are you sure you want to submit your order?
+                        </p>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setIsFinalConfirmOpen(false)}
+                                disabled={isSubmitting}
+                                className="flex-1 py-2.5 rounded-lg border border-gray-300 font-medium text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
+                            >
+                                No, Cancel
+                            </button>
+                            <button
+                                onClick={handleFinalSubmit}
+                                disabled={isSubmitting}
+                                className="flex-1 py-2.5 rounded-lg bg-[#E5562E] text-white font-bold shadow-lg hover:bg-[#d4451d] transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-wait"
+                            >
+                                {isSubmitting ? (
+                                    <>
+                                        <Loader2 size={18} className="animate-spin" />
+                                        Submitting...
+                                    </>
+                                ) : (
+                                    'Yes, Submit'
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* --- SUCCESS MODAL --- */}
+            {isSuccessOpen && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[80] flex items-center justify-center p-4">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-8 text-center animate-in fade-in zoom-in duration-300">
+                        <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-6">
+                            <CheckCircle className="text-green-600" size={32} />
+                        </div>
+                        <h3 className="text-2xl font-bold text-[#510813] mb-2">Order Confirmed!</h3>
+                        <p className="text-gray-600 mb-8">
+                            Transaction completed successfully. A copy of the receipt has been sent to the reseller.
+                        </p>
+                        <button
+                            onClick={handleSuccessDismiss}
+                            className="w-full py-3 rounded-xl bg-[#E5562E] text-white font-bold shadow-lg hover:bg-[#d4451d] transition-all"
+                        >
+                            View Receipt
+                        </button>
                     </div>
                 </div>
             )}
