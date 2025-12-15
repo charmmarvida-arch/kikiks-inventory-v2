@@ -7,7 +7,7 @@ import { Eye, X, Edit2, Trash2 } from 'lucide-react';
 import { generatePackingList, generateCOA } from '../utils/pdfGenerator';
 
 const ResellerOrderList = () => {
-    const { resellerOrders, updateResellerOrderStatus, updateResellerOrder, inventory, resellerPrices, deleteResellerOrder } = useInventory();
+    const { resellerOrders, updateResellerOrderStatus, updateResellerOrder, inventory, resellerPrices, deleteResellerOrder, resellers, resellerZones, zonePrices } = useInventory();
     const { userProfile } = useAuth();
     const navigate = useNavigate();
     const [selectedOrder, setSelectedOrder] = useState(null);
@@ -91,10 +91,45 @@ const ResellerOrderList = () => {
         }));
     };
 
+    // Helper to resolve prices for specific order based on Zone/Reseller logic
+    const getEffectivePdfPrices = (order) => {
+        const itemPrices = {};
+        const prefixes = ['FGC', 'FGP', 'FGL', 'FGG', 'FGT'];
+
+        // Find zone info
+        const reseller = resellers.find(r => r.id === order.resellerId);
+        const zone = reseller ? resellerZones.find(z => z.id === reseller.zone_id) : null;
+
+        // Key must match order.location for PDF generator
+        const locationKey = order.location || 'Unknown';
+        itemPrices[locationKey] = {};
+
+        prefixes.forEach(prefix => {
+            let price = 0;
+            // 1. Zone Specific
+            if (zone && zonePrices[zone.id] && zonePrices[zone.id][prefix]) {
+                price = Number(zonePrices[zone.id][prefix]);
+            }
+            // 2. Global Reseller Setting
+            else if (resellerPrices[prefix]) {
+                price = Number(resellerPrices[prefix]);
+            }
+            // 3. Fallback
+            else {
+                const BASE_PRICES = { 'FGC': 23, 'FGP': 85, 'FGL': 170, 'FGG': 680, 'FGT': 1000 };
+                price = BASE_PRICES[prefix] || 0;
+            }
+            itemPrices[locationKey][prefix] = price;
+        });
+
+        return itemPrices;
+    };
+
     // --- Packing List Handlers ---
     const handleCreatePackingList = async (order) => {
         try {
-            await generatePackingList(order, inventory, resellerPrices);
+            const effectivePrices = getEffectivePdfPrices(order);
+            await generatePackingList(order, inventory, effectivePrices);
             // Update DB
             await updateResellerOrder(order.id, { hasPackingList: true });
         } catch (error) {
@@ -105,7 +140,8 @@ const ResellerOrderList = () => {
 
     const handleViewPackingList = async (order) => {
         try {
-            const url = await generatePackingList({ ...order, returnBlob: true }, inventory, resellerPrices);
+            const effectivePrices = getEffectivePdfPrices(order);
+            const url = await generatePackingList({ ...order, returnBlob: true }, inventory, effectivePrices);
             setPreviewUrl(url);
             setPreviewTitle(`Packing List - ${order.resellerName} `);
             setShowPreviewModal(true);

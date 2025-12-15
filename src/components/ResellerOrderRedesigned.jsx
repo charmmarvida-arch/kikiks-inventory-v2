@@ -292,12 +292,23 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
             if (finalOrderId && selectedReseller && selectedReseller.email) {
                 try {
                     // 1. Generate PDF Base64
+                    // Construct precise pricing map for PDF using current zone/reseller settings
+                    const pdfPrices = {};
+                    const locationName = currentZone ? currentZone.name : (orderData.location || 'Unknown');
+                    pdfPrices[locationName] = {};
+
+                    // Populate prices for this location using the getPrice helper which handles Zone/Reseller logic
+                    ['FGC', 'FGP', 'FGL', 'FGG', 'FGT'].forEach(prefix => {
+                        // We use a dummy SKU to trigger the prefix logic in getPrice
+                        pdfPrices[locationName][prefix] = getPrice(prefix + '-000');
+                    });
+
                     const pdfDataUri = await generatePackingList({
                         ...orderData,
                         id: finalOrderId, // Ensure ID is passed
                         returnBase64: true,
                         skipLogo: true
-                    }, inventory, resellerPrices);
+                    }, inventory, pdfPrices);
 
                     // 2. Send to API
                     fetch('/api/send-email', {
