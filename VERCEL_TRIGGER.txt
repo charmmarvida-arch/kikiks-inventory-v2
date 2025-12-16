@@ -1,2 +1,2 @@
-Fix: Manual deployment trigger
-Timestamp: 2025-12-16 21:45
+Fix: Optimize FTF table column widths
+Timestamp: 2025-12-16 22:00

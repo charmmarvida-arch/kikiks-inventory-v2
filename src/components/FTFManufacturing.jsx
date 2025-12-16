@@ -415,17 +415,17 @@ const FTFManufacturing = () => {
                     <table className="inventory-table">
                         <thead style={{ position: 'sticky', top: 0, zIndex: 10, backgroundColor: 'white' }}>
                             <tr>
-                                <th>Status</th>
-                                <th>SKU</th>
-                                <th>Product Description</th>
-                                <th>UOM</th>
-                                <th>Current Stock</th>
-                                {columnVisibility.showSRP && <th>SRP</th>}
-                                {columnVisibility.showCOGS && <th>COGS</th>}
-                                {columnVisibility.showProfitMargin && <th>Margin</th>}
-                                {columnVisibility.showTotalValue && <th>Total Value</th>}
-                                {columnVisibility.showProductionDate && <th>Production Date</th>}
-                                <th>Actions</th>
+                                <th style={{ width: '60px', textAlign: 'center' }}>Status</th>
+                                <th style={{ width: '100px' }}>SKU</th>
+                                <th style={{ width: 'auto' }}>Product Description</th>
+                                <th style={{ width: '80px' }}>UOM</th>
+                                <th style={{ width: '120px' }}>Current Stock</th>
+                                {columnVisibility.showSRP && <th style={{ width: '100px' }}>SRP</th>}
+                                {columnVisibility.showCOGS && <th style={{ width: '100px' }}>COGS</th>}
+                                {columnVisibility.showProfitMargin && <th style={{ width: '100px' }}>Margin</th>}
+                                {columnVisibility.showTotalValue && <th style={{ width: '120px' }}>Total Value</th>}
+                                {columnVisibility.showProductionDate && <th style={{ width: '120px' }}>Production Date</th>}
+                                <th style={{ width: '80px', textAlign: 'center' }}>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
