@@ -568,88 +568,105 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
                     </div>
                 </div>
 
-                {/* RIGHT: The 'Fun Zone' Sidebar */}
-                <div className="w-[450px] relative bg-[#E5562E] flex flex-col shadow-2xl z-20 overflow-hidden">
-                    {/* Pattern Background for Sidebar */}
-                    <TropicalPattern opacity={0.25} />
+                {/* RIGHT: The 'Fun Zone' Sidebar - Floating "Cookie" Card Style */}
+                <div className="w-[450px] relative z-20 flex flex-col h-full py-4 pr-4 pl-0">
+                    <div className="relative flex-1 flex flex-col drop-shadow-2xl" id="sidebar-container">
 
-                    {/* Wavy Shape Divider (CSS Clip-path or SVG) - Let's use a blurred gradient overlay for now to give depth */}
-                    <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-black/10 to-transparent pointer-events-none"></div>
-
-                    <div className="relative z-10 flex-1 flex flex-col p-8 text-white h-full">
-                        <div className="flex items-center gap-3 mb-8">
-                            <div className="bg-white text-[#E5562E] p-3 rounded-2xl shadow-lg rotate-3">
-                                <ShoppingCart size={28} strokeWidth={2.5} />
-                            </div>
-                            <div>
-                                <h3 className="text-2xl font-black tracking-tight">YOUR CART</h3>
-                                <p className="text-white/80 text-sm font-medium">{Object.values(cart).reduce((a, b) => a + b, 0)} Items added</p>
-                            </div>
+                        {/* The 'Wavy Box' Background Construction */}
+                        <div className="absolute inset-0 z-0">
+                            {/* 1. The Dots (The Scalloped Edge) */}
+                            <div className="absolute inset-0"
+                                style={{
+                                    backgroundImage: "radial-gradient(circle, #E5562E 20px, transparent 20.5px)",
+                                    backgroundSize: "40px 40px",
+                                    backgroundRepeat: "round"
+                                }}
+                            />
+                            {/* 2. The Filler (Solid Center) */}
+                            <div className="absolute inset-[20px] bg-[#E5562E]" />
                         </div>
 
-                        {/* Cart Items List */}
-                        <div className="flex-1 overflow-y-auto space-y-4 pr-2 -mr-2 custom-scrollbar-white">
-                            {Object.keys(cart).length === 0 ? (
-                                <div className="h-full flex flex-col items-center justify-center text-white/50 border-2 border-dashed border-white/20 rounded-3xl p-8">
-                                    <Box size={64} className="mb-4 opacity-50" />
-                                    <p className="text-center font-bold">Your cart is empty!</p>
-                                    <p className="text-center text-sm mt-2">Tap a colorful card on the left to start.</p>
-                                </div>
-                            ) : (
-                                CATEGORIES.map(cat => {
-                                    const catItems = Object.entries(cart).filter(([sku]) => sku.startsWith(cat.id));
-                                    if (catItems.length === 0) return null;
-                                    const totalQty = catItems.reduce((sum, [, q]) => sum + q, 0);
-                                    const totalPrice = catItems.reduce((sum, [sku, qty]) => sum + (qty * getPrice(sku)), 0);
+                        {/* Content Container (Padded to sit inside the waves) */}
+                        <div className="relative z-10 flex-1 flex flex-col overflow-hidden rounded-[40px] m-[10px]">
+                            {/* Pattern Background (Inside the safe zone) */}
+                            <TropicalPattern opacity={0.25} />
 
-                                    return (
-                                        <div key={cat.id} className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-4 hover:bg-white/20 transition-colors">
-                                            <div className="flex justify-between items-center mb-2">
-                                                <div className="flex items-center gap-2">
-                                                    <cat.icon size={18} />
-                                                    <span className="font-bold">{cat.label}</span>
-                                                </div>
-                                                <span className="font-bold bg-white text-[#E5562E] px-2 py-0.5 rounded text-sm">₱{totalPrice.toLocaleString()}</span>
-                                            </div>
-                                            <div className="text-sm opacity-80 pl-6 border-l-2 border-white/30 ml-2 space-y-1">
-                                                {catItems.map(([sku, qty]) => {
-                                                    const item = inventory.find(i => i.sku === sku);
-                                                    return (
-                                                        <div key={sku} className="flex justify-between">
-                                                            <span className="truncate w-32">{item?.description || sku}</span>
-                                                            <span>x{qty}</span>
-                                                        </div>
-                                                    );
-                                                })}
-                                            </div>
+                            <div className="absolute inset-0 z-20 flex flex-col p-6 text-white">
+                                <div className="flex-shrink-0 flex items-center gap-3 mb-6">
+                                    <div className="bg-white text-[#E5562E] p-3 rounded-2xl shadow-lg rotate-3">
+                                        <ShoppingCart size={28} strokeWidth={2.5} />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-2xl font-black tracking-tight">YOUR CART</h3>
+                                        <p className="text-white/80 text-sm font-medium">{Object.values(cart).reduce((a, b) => a + b, 0)} Items added</p>
+                                    </div>
+                                </div>
+
+                                {/* Cart Items List */}
+                                <div className="flex-1 min-h-0 overflow-y-auto space-y-4 pr-2 -mr-2 custom-scrollbar-white">
+                                    {Object.keys(cart).length === 0 ? (
+                                        <div className="h-full flex flex-col items-center justify-center text-white/50 border-2 border-dashed border-white/20 rounded-3xl p-8">
+                                            <Box size={64} className="mb-4 opacity-50" />
+                                            <p className="text-center font-bold">Your cart is empty!</p>
+                                            <p className="text-center text-sm mt-2">Tap a colorful card on the left to start.</p>
                                         </div>
-                                    )
-                                })
-                            )}
-                        </div>
+                                    ) : (
+                                        CATEGORIES.map(cat => {
+                                            const catItems = Object.entries(cart).filter(([sku]) => sku.startsWith(cat.id));
+                                            if (catItems.length === 0) return null;
+                                            const totalQty = catItems.reduce((sum, [, q]) => sum + q, 0);
+                                            const totalPrice = catItems.reduce((sum, [sku, qty]) => sum + (qty * getPrice(sku)), 0);
 
-                        {/* Total & Submit */}
-                        <div className="mt-8 pt-6 border-t border-white/20">
-                            <div className="flex justify-between items-end mb-6">
-                                <span className="opacity-80 font-medium">Grand Total</span>
-                                <span className="text-4xl font-black">₱{cartTotal.toLocaleString()}</span>
-                            </div>
-
-                            {currentZone && !isMinOrderMet && (
-                                <div className="bg-white/20 backdrop-blur p-3 rounded-xl mb-4 text-sm flex items-center gap-2">
-                                    <AlertCircle size={16} />
-                                    Add ₱{(minOrderAmount - cartTotal).toLocaleString()} to order
+                                            return (
+                                                <div key={cat.id} className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-4 hover:bg-white/20 transition-colors">
+                                                    <div className="flex justify-between items-center mb-2">
+                                                        <div className="flex items-center gap-2">
+                                                            <cat.icon size={18} />
+                                                            <span className="font-bold">{cat.label}</span>
+                                                        </div>
+                                                        <span className="font-bold bg-white text-[#E5562E] px-2 py-0.5 rounded text-sm">₱{totalPrice.toLocaleString()}</span>
+                                                    </div>
+                                                    <div className="text-sm opacity-80 pl-6 border-l-2 border-white/30 ml-2 space-y-1">
+                                                        {catItems.map(([sku, qty]) => {
+                                                            const item = inventory.find(i => i.sku === sku);
+                                                            return (
+                                                                <div key={sku} className="flex justify-between">
+                                                                    <span className="truncate w-32">{item?.description || sku}</span>
+                                                                    <span>x{qty}</span>
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </div>
+                                            )
+                                        })
+                                    )}
                                 </div>
-                            )}
 
-                            <button
-                                onClick={handleInitialSubmit}
-                                disabled={!isMinOrderMet || Object.keys(cart).length === 0}
-                                className="w-full bg-white text-[#E5562E] py-4 rounded-2xl font-black text-xl shadow-xl hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:hover:scale-100 flex items-center justify-center gap-2"
-                            >
-                                <FileText size={24} />
-                                SUBMIT ORDER
-                            </button>
+                                {/* Total & Submit */}
+                                <div className="flex-shrink-0 mt-4 pt-4 border-t border-white/20 bg-[#E5562E]/50 backdrop-blur-md rounded-xl p-4 -mx-2 mb-[-10px]">
+                                    <div className="flex justify-between items-end mb-4">
+                                        <span className="opacity-80 font-medium">Grand Total</span>
+                                        <span className="text-4xl font-black">₱{cartTotal.toLocaleString()}</span>
+                                    </div>
+
+                                    {currentZone && !isMinOrderMet && (
+                                        <div className="bg-white/20 backdrop-blur p-3 rounded-xl mb-4 text-sm flex items-center gap-2">
+                                            <AlertCircle size={16} />
+                                            Add ₱{(minOrderAmount - cartTotal).toLocaleString()} to order
+                                        </div>
+                                    )}
+
+                                    <button
+                                        onClick={handleInitialSubmit}
+                                        disabled={!isMinOrderMet || Object.keys(cart).length === 0}
+                                        className="w-full bg-white text-[#E5562E] py-4 rounded-2xl font-black text-xl shadow-xl hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:hover:scale-100 flex items-center justify-center gap-2"
+                                    >
+                                        <FileText size={24} />
+                                        SUBMIT ORDER
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
