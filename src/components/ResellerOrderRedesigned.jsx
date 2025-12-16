@@ -553,23 +553,23 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
                             <button
                                 key={cat.id}
                                 onClick={() => handleCategoryClick(cat.id)}
-                                className={`relative h-64 rounded-3xl p-6 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-[#510813]/20 group flex flex-col justify-between overflow-hidden ${cat.color} ${cat.shadow}`}
+                                className={`relative h-32 rounded-2xl p-4 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-[#510813]/20 group flex flex-col justify-between overflow-hidden ${cat.color} ${cat.shadow}`}
                             >
                                 {/* Decorative Big Icon in BG */}
-                                <cat.icon className="absolute -bottom-8 -right-8 opacity-20 rotate-[-15deg] transition-transform group-hover:rotate-0 group-hover:scale-110" size={160} />
+                                <cat.icon className="absolute -bottom-4 -right-4 opacity-20 rotate-[-15deg] transition-transform group-hover:rotate-0 group-hover:scale-110" size={100} />
 
                                 <div className="relative z-10 flex justify-between items-start">
-                                    <div className="bg-white/20 backdrop-blur-md p-3 rounded-2xl border border-white/30">
-                                        <cat.icon size={32} className="text-white drop-shadow-sm" />
+                                    <div className="bg-white/20 backdrop-blur-md p-2 rounded-xl border border-white/30">
+                                        <cat.icon size={20} className="text-white drop-shadow-sm" />
                                     </div>
-                                    <div className="bg-white text-[#510813] px-3 py-1 rounded-full text-xs font-bold shadow-sm">
+                                    <div className="bg-white text-[#510813] px-2 py-0.5 rounded-full text-[10px] font-bold shadow-sm">
                                         {Object.keys(cart).filter(sku => sku.startsWith(cat.id)).length} Items
                                     </div>
                                 </div>
 
-                                <div className="relative z-10">
-                                    <h4 className="text-3xl font-black tracking-wide drop-shadow-md">{cat.label}</h4>
-                                    <div className="h-1 w-12 bg-white/50 rounded-full mt-2 group-hover:w-full transition-all duration-500"></div>
+                                <div className="relative z-10 text-left">
+                                    <h4 className="text-xl font-black tracking-wide drop-shadow-md">{cat.label}</h4>
+                                    <div className="h-1 w-8 bg-white/50 rounded-full mt-1 group-hover:w-full transition-all duration-500"></div>
                                 </div>
                             </button>
                         ))}
