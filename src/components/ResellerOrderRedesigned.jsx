@@ -578,7 +578,7 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
 
                 {/* RIGHT: The 'Fun Zone' Sidebar - Floating "Cookie" Card Style */}
                 {/* Mobile: Sticky Bottom Bar (Floating Effect) / Desktop: Right Sidebar (Relative) */}
-                <div className={`fixed bottom-0 left-0 right-0 md:static w-full md:w-[450px] z-50 flex flex-col transition-all duration-300 ease-in-out ${isCartExpanded ? 'h-[60vh]' : 'h-auto'} md:h-full p-3 md:py-4 md:pr-4 md:pl-0 pointer-events-none md:pointer-events-auto`}>
+                <div className={`fixed bottom-0 left-0 right-0 md:static w-full md:w-[560px] z-50 flex flex-col transition-all duration-300 ease-in-out ${isCartExpanded ? 'h-[75vh]' : 'h-auto'} md:h-full p-3 md:py-4 md:pr-4 md:pl-0 pointer-events-none md:pointer-events-auto`}>
                     <div className="relative flex-1 flex flex-col drop-shadow-2xl pointer-events-auto" id="sidebar-container">
 
                         {/* Content Container (Simplified Buttermilk Square) */}
