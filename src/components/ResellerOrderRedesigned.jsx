@@ -486,7 +486,7 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
         : [];
 
     return (
-        <div className="fade-in h-screen flex flex-col bg-[#F3EBD8] overflow-hidden relative">
+        <div className="fade-in h-[100dvh] md:h-screen flex flex-col bg-[#F3EBD8] overflow-hidden relative">
 
             {/* NO global pattern here. We moved it to the sidebar for the 'Split' look */}
 
@@ -548,7 +548,7 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
                         />
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {CATEGORIES.filter(cat => inventory.some(i => i.sku.startsWith(cat.id) && i.isVisible !== false)).map(cat => (
                             <button
                                 key={cat.id}
@@ -578,11 +578,11 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
 
                 {/* RIGHT: The 'Fun Zone' Sidebar - Floating "Cookie" Card Style */}
                 {/* Mobile: Sticky Bottom Bar (Fixed) / Desktop: Right Sidebar (Relative) */}
-                <div className={`fixed bottom-0 left-0 right-0 md:static w-full md:w-[450px] z-50 flex flex-col transition-all duration-300 ease-in-out ${isCartExpanded ? 'h-[60vh]' : 'h-auto'} md:h-full py-2 md:py-4 pr-2 md:pr-4 pl-2 md:pl-0 pointer-events-none md:pointer-events-auto`}>
+                <div className={`fixed bottom-0 left-0 right-0 md:static w-full md:w-[450px] z-50 flex flex-col transition-all duration-300 ease-in-out ${isCartExpanded ? 'h-[60vh]' : 'h-auto'} md:h-full py-0 md:py-4 pr-0 md:pr-4 pl-0 md:pl-0 pointer-events-none md:pointer-events-auto`}>
                     <div className="relative flex-1 flex flex-col drop-shadow-2xl pointer-events-auto" id="sidebar-container">
 
-                        {/* The 'Wavy Box' Background Construction */}
-                        <div className="absolute inset-0 z-0">
+                        {/* The 'Wavy Box' Background Construction - Desktop Only */}
+                        <div className="absolute inset-0 z-0 hidden md:block">
                             {/* 1. The Dots (The Scalloped Edge) */}
                             <div className="absolute inset-0"
                                 style={{
@@ -595,12 +595,12 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
                             <div className="absolute inset-[20px] bg-[#E5562E]" />
                         </div>
 
-                        {/* Content Container (Padded to sit inside the waves) */}
-                        <div className="relative z-10 flex-1 flex flex-col overflow-hidden rounded-[40px] m-[10px] bg-[#E5562E]">
+                        {/* Content Container (Padded to sit inside the waves on desktop, full width on mobile) */}
+                        <div className="relative z-10 flex-1 flex flex-col overflow-hidden rounded-t-2xl md:rounded-[40px] m-0 md:m-[10px] bg-[#E5562E]">
                             {/* Pattern Background (Inside the safe zone) */}
                             <TropicalPattern opacity={0.25} />
 
-                            <div className="relative z-20 flex flex-col p-4 md:p-6 text-white text-left h-full">
+                            <div className="relative z-20 flex flex-col p-4 md:p-6 text-white text-left h-full pb-8 md:pb-6">
                                 {/* Header: Hidden on Mobile if Collapsed */}
                                 <div className={`flex-shrink-0 flex items-center gap-3 mb-4 md:mb-6 ${!isCartExpanded ? 'hidden md:flex' : 'flex'}`}>
                                     <div className="bg-white text-[#E5562E] p-2 md:p-3 rounded-2xl shadow-lg rotate-3">
