@@ -274,7 +274,7 @@ const LocationDashboard = () => {
                 <p className="page-subtitle">Transaction History</p>
             </div>
 
-            <div className="form-card p-0 overflow-hidden flex flex-col" style={{ height: 'calc(100vh - 280px)' }}>
+            <div className="form-card p-0 overflow-hidden flex flex-col" style={{ height: 'calc(100vh - 340px)' }}>
                 <div className="table-container" style={{ flex: 1, overflowY: 'auto', overflowX: 'auto', margin: 0, borderRadius: 0, border: 'none', boxShadow: 'none' }}>
                     <table className="inventory-table">
                         <thead style={{ position: 'sticky', top: 0, zIndex: 10, backgroundColor: 'white' }}>
