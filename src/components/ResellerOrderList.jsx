@@ -95,7 +95,7 @@ const ResellerOrderList = () => {
     // Helper to resolve prices for specific order based on Zone/Reseller logic
     const getEffectivePdfPrices = (order) => {
         const itemPrices = {};
-        const prefixes = ['FGC', 'FGP', 'FGL', 'FGG', 'FGT'];
+        const prefixes = ['FGC', 'FGP', 'FGL', 'FGG', 'FGT', 'OTH'];
 
         // Find zone info
         const reseller = resellers.find(r => r.id === order.resellerId);
@@ -117,7 +117,7 @@ const ResellerOrderList = () => {
             }
             // 3. Fallback
             else {
-                const BASE_PRICES = { 'FGC': 23, 'FGP': 85, 'FGL': 170, 'FGG': 680, 'FGT': 1000 };
+                const BASE_PRICES = { 'FGC': 23, 'FGP': 85, 'FGL': 170, 'FGG': 680, 'FGT': 1000, 'OTH': 0 };
                 price = BASE_PRICES[prefix] || 0;
             }
             itemPrices[locationKey][prefix] = price;

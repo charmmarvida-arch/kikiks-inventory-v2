@@ -1,7 +1,8 @@
-// Current Version: 2.1.9
+// Current Version: 2.2.0
 // Last Updated: 2025-12-16
 //
 // Change Log:
+// - 2.2.0: Fix Packing List Descriptions for Trays/Others & Update PDF Generator
 // - 2.1.9: Harden Table Layout with Flexible Box (Fix Scrollbar Missing)
 // - 2.1.8: Aggressively Fix Table Scroll (450px clearance)
 // - 2.1.7: Fix Scrolling Issue on Pending Orders & Location Dashboard
@@ -23,10 +24,10 @@
 // - 2.0.1: Fix Email Delivery Issues
 // - 2.0.0: Initial Deployment
 
-export const DEPLOYMENT_VERSION = '2.1.9';
+export const DEPLOYMENT_VERSION = '2.2.0';
 export const DEPLOYMENT_DATE = '2025-12-16';
 export const DEPLOYMENT_FEATURES = [
-    'Harden Table Layout with Flexible Box', // Added
+    'Fix Packing List Descriptions for Trays/Others', // Added
     'Stock Reversal: Undo "Completed" Transfer Status', // Added
     'Fixed Legazpi Transfer Deduction (SKU/Name Fallback)',
     'Transfer Logic: Deduct Stock AFTER Completion (Fix)',

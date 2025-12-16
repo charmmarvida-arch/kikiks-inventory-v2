@@ -6,22 +6,28 @@ const PACK_SIZES = {
     'FGC': 10, // Cups
     'FGP': 1,  // Pints (Default)
     'FGL': 1,  // Liters (Default)
-    'FGG': 1   // Gallons (Default)
+    'FGG': 1,   // Gallons (Default)
+    'FGT': 1,   // Trays
+    'OTH': 1    // Others
 };
 
 const PRICE_MAP = {
     'FGC': 23,   // Cup
     'FGP': 85,   // Pint
     'FGL': 170,  // Liter
-    'FGG': 680   // Gallon
+    'FGG': 680,  // Gallon
+    'FGT': 1000, // Tray (Base)
+    'OTH': 0     // Other
 };
 
-const CATEGORY_ORDER = ['FGC', 'FGP', 'FGL', 'FGG'];
+const CATEGORY_ORDER = ['FGC', 'FGP', 'FGL', 'FGG', 'FGT', 'OTH'];
 const CATEGORY_NAMES = {
     'FGC': 'CUPS',
     'FGP': 'PINTS',
     'FGL': 'LITERS',
-    'FGG': 'GALLONS'
+    'FGG': 'GALLONS',
+    'FGT': 'TRAYS',
+    'OTH': 'OTHER ITEMS'
 };
 
 const loadImage = (url) => {
@@ -301,6 +307,7 @@ export const generateTransferPackingList = async (order, inventory = [], locatio
         'Pint': { packSize: 1, price: 85, name: 'PINTS' },
         'Liter': { packSize: 1, price: 170, name: 'LITERS' },
         'Gallon': { packSize: 1, price: 680, name: 'GALLONS' },
+        'Tray': { packSize: 1, price: 1000, name: 'TRAYS' },
         'Other': { packSize: 1, price: 0, name: 'OTHER ITEMS' }
     };
 
@@ -310,6 +317,7 @@ export const generateTransferPackingList = async (order, inventory = [], locatio
         'Pint': [],
         'Liter': [],
         'Gallon': [],
+        'Tray': [],
         'Other': []
     };
 
@@ -320,13 +328,10 @@ export const generateTransferPackingList = async (order, inventory = [], locatio
 
     // Helper function to get product description from SKU or item name
     const getDisplayName = (itemName) => {
-        // Check if it looks like an SKU (starts with FG followed by letter)
-        if (/^FG[CPLG]/i.test(itemName)) {
-            // Look up in inventory
-            const product = inventory.find(p => p.sku === itemName);
-            if (product && product.description) {
-                return product.description;
-            }
+        // Look up in inventory for ANY item
+        const product = inventory.find(p => p.sku === itemName);
+        if (product && product.description) {
+            return product.description;
         }
         // Otherwise clean the name and return
         return cleanItemName(itemName);
@@ -344,11 +349,13 @@ export const generateTransferPackingList = async (order, inventory = [], locatio
             else if (lowerName.includes('pint')) category = 'Pint';
             else if (lowerName.includes('liter')) category = 'Liter';
             else if (lowerName.includes('gallon')) category = 'Gallon';
+            else if (lowerName.includes('tray')) category = 'Tray';
             // Also check for SKU prefixes (FGC=Cup, FGP=Pint, FGL=Liter, FGG=Gallon)
             else if (upperName.startsWith('FGC')) category = 'Cup';
             else if (upperName.startsWith('FGP')) category = 'Pint';
             else if (upperName.startsWith('FGL')) category = 'Liter';
             else if (upperName.startsWith('FGG')) category = 'Gallon';
+            else if (upperName.startsWith('FGT')) category = 'Tray';
 
             groupedItems[category].push({
                 name: getDisplayName(itemName),
@@ -358,8 +365,8 @@ export const generateTransferPackingList = async (order, inventory = [], locatio
         }
     });
 
-    // Process each category (in order: Cup, Pint, Liter, Gallon, Other)
-    ['Cup', 'Pint', 'Liter', 'Gallon', 'Other'].forEach(category => {
+    // Process each category (in order: Cup, Pint, Liter, Gallon, Tray, Other)
+    ['Cup', 'Pint', 'Liter', 'Gallon', 'Tray', 'Other'].forEach(category => {
         const items = groupedItems[category];
         const config = categoryConfig[category];
 
