@@ -10,8 +10,8 @@ import {
 import ResellerSettingsModal from './ResellerSettingsModal';
 import { generatePackingList } from '../utils/pdfGenerator';
 
-// --- Background Pattern Component ---
-const TropicalPattern = () => {
+// --- Background Pattern Component (Now White/Transparent for Colored Backgrounds) ---
+const TropicalPattern = ({ className, opacity = 0.2 }) => {
     // Fixed positions for a scattered look
     const icons = [
         { Icon: Leaf, top: '5%', left: '5%', rot: '45deg', size: 64 },
@@ -23,14 +23,17 @@ const TropicalPattern = () => {
         { Icon: Leaf, top: '75%', left: '30%', rot: '130deg', size: 70 },
         { Icon: Coffee, top: '85%', right: '5%', rot: '10deg', size: 55 },
         { Icon: Sun, top: '90%', left: '15%', rot: '0deg', size: 40 },
+        // Extra items for density
+        { Icon: Flower2, top: '65%', left: '50%', rot: '-45deg', size: 55 },
+        { Icon: IceCream, top: '25%', left: '60%', rot: '15deg', size: 45 },
     ];
 
     return (
-        <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden opacity-5">
+        <div className={`absolute inset-0 pointer-events-none z-0 overflow-hidden ${className}`} style={{ opacity }}>
             {icons.map((item, i) => (
                 <div
                     key={i}
-                    className="absolute text-[#E5562E]"
+                    className="absolute text-white"
                     style={{
                         top: item.top,
                         left: item.left,
@@ -45,21 +48,13 @@ const TropicalPattern = () => {
     );
 };
 
-// Category Configuration with Icons and Colors
-// Brand Palette:
-// Cream: #F3EBD8 (Background)
-// Merlot: #510813 (Text/Headings)
-// Cinnabar: #E5562E (Buttons/Gallons)
-// Citrus: #F49306 (Cups)
-// Bittersweet: #FF5A5F (Pints)
-// Lush: #888625 (Liters)
-
+// Category Configuration - SOLID COLOR BLOCK STYLE
 const CATEGORIES = [
-    { id: 'FGC', label: 'Cups', icon: Coffee, color: 'bg-[#F49306]/10 text-[#F49306]', border: 'border-[#F49306]', iconColor: 'text-[#F49306]', ring: 'ring-[#F49306]' },
-    { id: 'FGP', label: 'Pints', icon: IceCream, color: 'bg-[#FF5A5F]/10 text-[#FF5A5F]', border: 'border-[#FF5A5F]', iconColor: 'text-[#FF5A5F]', ring: 'ring-[#FF5A5F]' },
-    { id: 'FGL', label: 'Liters', icon: Droplet, color: 'bg-[#888625]/10 text-[#888625]', border: 'border-[#888625]', iconColor: 'text-[#888625]', ring: 'ring-[#888625]' },
-    { id: 'FGG', label: 'Gallons', icon: Box, color: 'bg-[#E5562E]/10 text-[#E5562E]', border: 'border-[#E5562E]', iconColor: 'text-[#E5562E]', ring: 'ring-[#E5562E]' },
-    { id: 'FGT', label: 'Trays', icon: Grid, color: 'bg-[#510813]/10 text-[#510813]', border: 'border-[#510813]', iconColor: 'text-[#510813]', ring: 'ring-[#510813]' }
+    { id: 'FGC', label: 'Cups', icon: Coffee, color: 'bg-[#F49306] text-white', border: 'border-white/20', shadow: 'shadow-[#F49306]/40', ring: 'ring-[#F49306]' },
+    { id: 'FGP', label: 'Pints', icon: IceCream, color: 'bg-[#FF5A5F] text-white', border: 'border-white/20', shadow: 'shadow-[#FF5A5F]/40', ring: 'ring-[#FF5A5F]' },
+    { id: 'FGL', label: 'Liters', icon: Droplet, color: 'bg-[#888625] text-white', border: 'border-white/20', shadow: 'shadow-[#888625]/40', ring: 'ring-[#888625]' },
+    { id: 'FGG', label: 'Gallons', icon: Box, color: 'bg-[#E5562E] text-white', border: 'border-white/20', shadow: 'shadow-[#E5562E]/40', ring: 'ring-[#E5562E]' },
+    { id: 'FGT', label: 'Trays', icon: Grid, color: 'bg-[#510813] text-white', border: 'border-white/20', shadow: 'shadow-[#510813]/40', ring: 'ring-[#510813]' }
 ];
 
 const ResellerOrderRedesigned = ({ isPublic = false }) => {
@@ -489,258 +484,173 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
 
     return (
         <div className="fade-in h-screen flex flex-col bg-[#F3EBD8] overflow-hidden relative">
-            <TropicalPattern />
+
+            {/* NO global pattern here. We moved it to the sidebar for the 'Split' look */}
 
             {/* Draft Notification */}
             {showDraftNotification && isDraftRestored && (
                 <div className="fixed top-4 right-4 z-50 bg-green-600 text-white px-6 py-3 rounded-lg shadow-xl flex items-center gap-3 animate-in slide-in-from-right">
-                    <div className="flex-1">
-                        <div className="font-bold">Draft Restored</div>
-                        <div className="text-xs opacity-90">Your previous order has been recovered</div>
+                    <CheckCircle size={20} />
+                    <div>
+                        <p className="font-bold">Draft Restored</p>
+                        <p className="text-xs opacity-90">Continue where you left off</p>
                     </div>
-                    <button onClick={() => setShowDraftNotification(false)} className="p-1 hover:bg-white/20 rounded">
-                        <X size={16} />
-                    </button>
+                    <button onClick={() => setShowDraftNotification(false)} className="ml-2 hover:bg-white/20 p-1 rounded"><X size={16} /></button>
                 </div>
             )}
 
-            {/* --- Top Bar: Context --- */}
-            <div className="bg-white/80 backdrop-blur-md border-b border-[#510813]/10 px-6 py-4 shadow-sm z-10 relative">
-                <div className="flex justify-between items-center mb-4">
-                    <div>
-                        <h2 className="text-2xl font-bold text-[#510813]">{orderId ? 'Edit Reseller Order' : 'Create Reseller Order'}</h2>
-                        {!orderId && lastSaved && (
-                            <p className="text-xs text-gray-500 mt-1">
-                                Draft saved at {lastSaved.toLocaleTimeString()}
-                            </p>
-                        )}
-                    </div>
-                    <div className="flex items-center gap-2">
-                        {!orderId && (isDraftRestored || Object.keys(cart).length > 0) && (
-                            <button
-                                onClick={handleClearDraft}
-                                className="px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors flex items-center gap-2"
-                            >
-                                <Trash2 size={16} />
-                                Clear Draft
-                            </button>
-                        )}
-                        {!isPublic && (
-                            <button onClick={handleSettingsClick} className="p-2 hover:bg-gray-100 rounded-full text-gray-600 transition-colors">
-                                <Settings size={24} />
-                            </button>
-                        )}
-                    </div>
+            {/* --- Top Bar --- */}
+            <div className="bg-[#F3EBD8] px-8 py-6 z-10 flex justify-between items-center">
+                <div>
+                    <h2 className="text-4xl font-black text-[#510813] tracking-tight">KIKIKS ORDER</h2>
+                    <p className="text-[#510813]/60 font-medium">Let's stock up on happiness!</p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="flex gap-4 items-center">
                     {/* Reseller Select */}
-                    <div>
-                        <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Reseller</label>
+                    <div className="relative group">
                         <select
                             value={selectedResellerId}
                             onChange={handleResellerChange}
-                            className="w-full p-2.5 bg-white/50 border border-[#510813]/10 rounded-lg focus:ring-2 focus:ring-[#E5562E] focus:border-[#E5562E] outline-none font-medium text-[#510813]"
+                            disabled={!!orderId}
+                            className="appearance-none bg-[#510813] text-white pl-6 pr-12 py-3 rounded-full font-bold shadow-lg hover:bg-[#6a0a19] transition-colors cursor-pointer outline-none focus:ring-4 ring-[#E5562E]/30"
                         >
                             <option value="">Select Reseller...</option>
-                            {resellers.map(r => (
-                                <option key={r.id} value={r.id}>{r.name}</option>
-                            ))}
+                            {resellers.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
                         </select>
+                        <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 rotate-90 text-white/50 pointer-events-none" size={20} />
                     </div>
-
-                    {/* Area/Type Info */}
-                    <div>
-                        <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Area / Type</label>
-                        <div className="w-full p-2.5 bg-gray-100 border border-gray-200 rounded-lg text-gray-700 font-medium flex justify-between items-center">
-                            {currentZone ? (
-                                <>
-                                    <span>{currentZone.name}</span>
-                                    <span className={`text-xs px-2 py-0.5 rounded-full ${isMinOrderMet ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
-                                        Min: ₱{minOrderAmount.toLocaleString()}
-                                    </span>
-                                </>
-                            ) : (
-                                <span className="text-gray-400 italic">--</span>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Address Input */}
-                    <div>
-                        <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Delivery Address</label>
-                        <input
-                            type="text"
-                            value={address}
-                            onChange={e => setAddress(e.target.value)}
-                            placeholder="Brgy., Province"
-                            className="w-full p-2.5 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                        />
-                    </div>
+                    <button onClick={handleSettingsClick} className="p-3 rounded-full bg-white text-[#510813] shadow-md hover:scale-110 transition-transform"><Settings size={24} /></button>
                 </div>
             </div>
 
-            {/* --- Main Content --- */}
-            <div className="flex-1 flex overflow-hidden z-10">
+            {/* --- Content Area (Split Screen) --- */}
+            <div className="flex-1 flex overflow-hidden">
 
-                {/* Floating Submit Button (Mobile Only) */}
-                <div className="mobile-submit-bar" style={{
-                    position: 'fixed',
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    backgroundColor: 'white',
-                    borderTop: '1px solid var(--border-color)',
-                    padding: '1rem',
-                    display: 'none',
-                    flexDirection: 'column',
-                    gap: '0.5rem',
-                    boxShadow: '0 -4px 12px rgba(0,0,0,0.1)',
-                    zIndex: 30
-                }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.875rem' }}>
-                        <span style={{ color: 'var(--text-secondary)' }}>Total Items: {Object.values(cart).reduce((a, b) => a + b, 0)}</span>
-                        <span style={{ fontSize: '1.25rem', fontWeight: 'bold', color: 'var(--primary)' }}>₱{cartTotal.toLocaleString()}</span>
+                {/* LEFT: Categories (The Interaction Zone) */}
+                <div className="flex-1 p-8 overflow-y-auto">
+                    {/* Address Field */}
+                    <div className="mb-8">
+                        <input
+                            type="text"
+                            placeholder="Delivery Address (Barangay, Province)"
+                            value={address}
+                            onChange={e => setAddress(e.target.value)}
+                            className="w-full bg-transparent border-b-2 border-[#510813]/20 py-2 text-xl font-bold text-[#510813] placeholder-[#510813]/30 focus:border-[#E5562E] focus:outline-none transition-colors"
+                        />
                     </div>
-                    {currentZone && !isMinOrderMet && (
-                        <div style={{ fontSize: '0.75rem', color: '#dc2626', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                            <AlertCircle size={14} />
-                            <span>Add ₱{(minOrderAmount - cartTotal).toLocaleString()} more to meet minimum</span>
-                        </div>
-                    )}
-                    <button
-                        onClick={handleInitialSubmit}
-                        disabled={!isMinOrderMet || Object.keys(cart).length === 0}
-                        style={{
-                            width: '100%',
-                            padding: '0.875rem',
-                            borderRadius: '0.75rem',
-                            fontWeight: 'bold',
-                            fontSize: '1rem',
-                            border: 'none',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '0.5rem',
-                            backgroundColor: isMinOrderMet && Object.keys(cart).length > 0 ? '#E5562E' : '#d1d5db',
-                            color: isMinOrderMet && Object.keys(cart).length > 0 ? 'white' : '#6b7280',
-                            cursor: isMinOrderMet && Object.keys(cart).length > 0 ? 'pointer' : 'not-allowed'
-                        }}
-                    >
-                        <FileText size={18} />
-                        {orderId ? 'Update Order' : 'Submit Order'}
-                    </button>
-                </div>
 
-                {/* LEFT: Category Menu */}
-                <div className="flex-1 p-6 overflow-y-auto">
-                    <h3 className="text-xl font-black text-[#510813] mb-4 tracking-tight">Product Categories</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {CATEGORIES.filter(cat => {
-                            const visibleSKUs = inventory.filter(item =>
-                                item.sku.startsWith(cat.id) && item.isVisible !== false
-                            );
-                            return visibleSKUs.length > 0;
-                        }).map(cat => (
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                        {CATEGORIES.filter(cat => inventory.some(i => i.sku.startsWith(cat.id) && i.isVisible !== false)).map(cat => (
                             <button
                                 key={cat.id}
                                 onClick={() => handleCategoryClick(cat.id)}
-                                className={`relative group p-6 rounded-2xl border-l-8 transition-all duration-300 shadow-sm hover:shadow-xl text-left flex flex-col justify-between h-44 backdrop-blur hover:-translate-y-2 hover:scale-[1.02] ${cat.border} ${cat.bgTint || 'bg-white'}`}
+                                className={`relative h-64 rounded-3xl p-6 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-[#510813]/20 group flex flex-col justify-between overflow-hidden ${cat.color} ${cat.shadow}`}
                             >
-                                <div className="flex justify-between items-start">
-                                    <div className={`p-4 rounded-full ${cat.color} shadow-md group-hover:scale-110 transition-transform`}>
-                                        <cat.icon size={28} />
+                                {/* Decorative Big Icon in BG */}
+                                <cat.icon className="absolute -bottom-8 -right-8 opacity-20 rotate-[-15deg] transition-transform group-hover:rotate-0 group-hover:scale-110" size={160} />
+
+                                <div className="relative z-10 flex justify-between items-start">
+                                    <div className="bg-white/20 backdrop-blur-md p-3 rounded-2xl border border-white/30">
+                                        <cat.icon size={32} className="text-white drop-shadow-sm" />
                                     </div>
-                                    <div className={`${cat.color} px-3 py-1 rounded-full text-xs font-bold`}>
+                                    <div className="bg-white text-[#510813] px-3 py-1 rounded-full text-xs font-bold shadow-sm">
                                         {Object.keys(cart).filter(sku => sku.startsWith(cat.id)).length} Items
                                     </div>
                                 </div>
-                                <div>
-                                    <h4 className="text-2xl font-bold text-[#510813]">{cat.label}</h4>
-                                    <p className="text-sm text-gray-600 font-medium">Click to add items</p>
+
+                                <div className="relative z-10">
+                                    <h4 className="text-3xl font-black tracking-wide drop-shadow-md">{cat.label}</h4>
+                                    <div className="h-1 w-12 bg-white/50 rounded-full mt-2 group-hover:w-full transition-all duration-500"></div>
                                 </div>
                             </button>
                         ))}
                     </div>
                 </div>
 
-                {/* RIGHT: Live Summary (Sidebar) */}
-                <div className="w-96 bg-white/95 backdrop-blur border-l border-[#510813]/10 flex flex-col shadow-2xl z-20">
-                    <div className="p-4 border-b border-gray-100">
-                        <h3 className="font-bold text-[#510813] flex items-center gap-2">
-                            <ShoppingCart size={20} />
-                            Your Cart
-                        </h3>
-                    </div>
+                {/* RIGHT: The 'Fun Zone' Sidebar */}
+                <div className="w-[450px] relative bg-[#E5562E] flex flex-col shadow-2xl z-20 overflow-hidden">
+                    {/* Pattern Background for Sidebar */}
+                    <TropicalPattern opacity={0.25} />
 
-                    <div className="flex-1 overflow-y-auto p-4 space-y-3">
-                        {Object.keys(cart).length === 0 ? (
-                            <div className="text-center text-gray-400 py-10">
-                                <ShoppingBagIcon size={48} className="mx-auto mb-2 opacity-20" />
-                                <p>Cart is empty</p>
-                                <p className="text-xs">Select a category to start</p>
+                    {/* Wavy Shape Divider (CSS Clip-path or SVG) - Let's use a blurred gradient overlay for now to give depth */}
+                    <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-black/10 to-transparent pointer-events-none"></div>
+
+                    <div className="relative z-10 flex-1 flex flex-col p-8 text-white h-full">
+                        <div className="flex items-center gap-3 mb-8">
+                            <div className="bg-white text-[#E5562E] p-3 rounded-2xl shadow-lg rotate-3">
+                                <ShoppingCart size={28} strokeWidth={2.5} />
                             </div>
-                        ) : (
-                            // Grouped Summary View
-                            CATEGORIES.map(cat => {
-                                const catItems = Object.entries(cart).filter(([sku]) => sku.startsWith(cat.id));
-                                if (catItems.length === 0) return null;
-
-                                const totalQty = catItems.reduce((sum, [, qty]) => sum + qty, 0);
-                                const totalPrice = catItems.reduce((sum, [sku, qty]) => sum + (qty * getPrice(sku)), 0);
-
-                                return (
-                                    <div key={cat.id} className={`p-3 rounded-xl border-l-4 ${cat.border} bg-white shadow-sm flex justify-between items-center group`}>
-                                        <div className="flex items-center gap-3">
-                                            <div className={`p-2 rounded-full ${cat.color}`}>
-                                                <cat.icon size={16} />
-                                            </div>
-                                            <div>
-                                                <div className="font-bold text-[#510813]">{cat.label}</div>
-                                                <div className="text-xs text-gray-500">{totalQty} items</div>
-                                            </div>
-                                        </div>
-                                        <div className="font-bold text-[#E5562E]">
-                                            ₱{totalPrice.toLocaleString()}
-                                        </div>
-                                    </div>
-                                );
-                            })
-                        )}
-                    </div>
-
-                    <div className="p-6 bg-gray-50 border-t border-gray-200">
-                        <div className="flex justify-between items-center mb-2 text-sm text-gray-600">
-                            <span>Total Items</span>
-                            <span>{Object.values(cart).reduce((a, b) => a + b, 0)}</span>
-                        </div>
-                        <div className="flex justify-between items-center mb-4">
-                            <span className="text-lg font-bold text-[#510813]">Grand Total</span>
-                            <span className="text-2xl font-black text-[#E5562E]">₱{cartTotal.toLocaleString()}</span>
+                            <div>
+                                <h3 className="text-2xl font-black tracking-tight">YOUR CART</h3>
+                                <p className="text-white/80 text-sm font-medium">{Object.values(cart).reduce((a, b) => a + b, 0)} Items added</p>
+                            </div>
                         </div>
 
-                        {/* Min Order Warning */}
-                        {currentZone && !isMinOrderMet && (
-                            <div className="mb-4 p-3 bg-red-50 border border-red-100 rounded-lg flex items-start gap-2 text-xs text-red-700">
-                                <AlertCircle size={16} className="shrink-0 mt-0.5" />
-                                <span>
-                                    Minimum order for <strong>{currentZone.name}</strong> is ₱{minOrderAmount.toLocaleString()}.
-                                    Add <strong>₱{(minOrderAmount - cartTotal).toLocaleString()}</strong> more.
-                                </span>
-                            </div>
-                        )}
+                        {/* Cart Items List */}
+                        <div className="flex-1 overflow-y-auto space-y-4 pr-2 -mr-2 custom-scrollbar-white">
+                            {Object.keys(cart).length === 0 ? (
+                                <div className="h-full flex flex-col items-center justify-center text-white/50 border-2 border-dashed border-white/20 rounded-3xl p-8">
+                                    <Box size={64} className="mb-4 opacity-50" />
+                                    <p className="text-center font-bold">Your cart is empty!</p>
+                                    <p className="text-center text-sm mt-2">Tap a colorful card on the left to start.</p>
+                                </div>
+                            ) : (
+                                CATEGORIES.map(cat => {
+                                    const catItems = Object.entries(cart).filter(([sku]) => sku.startsWith(cat.id));
+                                    if (catItems.length === 0) return null;
+                                    const totalQty = catItems.reduce((sum, [, q]) => sum + q, 0);
+                                    const totalPrice = catItems.reduce((sum, [sku, qty]) => sum + (qty * getPrice(sku)), 0);
 
-                        <button
-                            onClick={handleInitialSubmit}
-                            disabled={!isMinOrderMet || Object.keys(cart).length === 0}
-                            className={`w-full py-4 rounded-xl font-bold text-lg shadow-lg flex items-center justify-center gap-2 transition-all ${isMinOrderMet && Object.keys(cart).length > 0
-                                ? 'bg-[#E5562E] text-white hover:bg-[#d4451d] hover:scale-[1.02]'
-                                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                                }`}
-                        >
-                            <FileText size={20} />
-                            {orderId ? 'Update Order' : 'Submit Order'}
-                        </button>
+                                    return (
+                                        <div key={cat.id} className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-4 hover:bg-white/20 transition-colors">
+                                            <div className="flex justify-between items-center mb-2">
+                                                <div className="flex items-center gap-2">
+                                                    <cat.icon size={18} />
+                                                    <span className="font-bold">{cat.label}</span>
+                                                </div>
+                                                <span className="font-bold bg-white text-[#E5562E] px-2 py-0.5 rounded text-sm">₱{totalPrice.toLocaleString()}</span>
+                                            </div>
+                                            <div className="text-sm opacity-80 pl-6 border-l-2 border-white/30 ml-2 space-y-1">
+                                                {catItems.map(([sku, qty]) => {
+                                                    const item = inventory.find(i => i.sku === sku);
+                                                    return (
+                                                        <div key={sku} className="flex justify-between">
+                                                            <span className="truncate w-32">{item?.description || sku}</span>
+                                                            <span>x{qty}</span>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    )
+                                })
+                            )}
+                        </div>
+
+                        {/* Total & Submit */}
+                        <div className="mt-8 pt-6 border-t border-white/20">
+                            <div className="flex justify-between items-end mb-6">
+                                <span className="opacity-80 font-medium">Grand Total</span>
+                                <span className="text-4xl font-black">₱{cartTotal.toLocaleString()}</span>
+                            </div>
+
+                            {currentZone && !isMinOrderMet && (
+                                <div className="bg-white/20 backdrop-blur p-3 rounded-xl mb-4 text-sm flex items-center gap-2">
+                                    <AlertCircle size={16} />
+                                    Add ₱{(minOrderAmount - cartTotal).toLocaleString()} to order
+                                </div>
+                            )}
+
+                            <button
+                                onClick={handleInitialSubmit}
+                                disabled={!isMinOrderMet || Object.keys(cart).length === 0}
+                                className="w-full bg-white text-[#E5562E] py-4 rounded-2xl font-black text-xl shadow-xl hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:hover:scale-100 flex items-center justify-center gap-2"
+                            >
+                                <FileText size={24} />
+                                SUBMIT ORDER
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -796,32 +706,36 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
                                             const isSelected = qty > 0;
 
                                             return (
-                                                <tr key={item.sku} className={`hover:bg-[#F3EBD8]/50 transition-colors ${isSelected ? 'bg-[#F3EBD8]' : ''}`}>
-                                                    <td className="p-2 md:p-4 font-medium text-[#510813]">
-                                                        <div>{item.description}</div>
+                                                <tr key={item.sku} className={`hover:bg-[#F3EBD8]/50 transition-colors ${isSelected ? 'bg-[#F3EBD8]' : 'bg-white'}`}>
+                                                    <td className="p-3 md:p-4 align-middle">
+                                                        <div className="font-bold text-[#510813] text-lg leading-tight">{item.description}</div>
+                                                        <div className="text-xs text-gray-400 font-mono mt-1">{item.sku}</div>
                                                     </td>
-                                                    <td className="p-2 md:p-4 text-right text-gray-600">₱{price.toLocaleString()}</td>
-                                                    <td className="p-2 md:p-4">
-                                                        <input
-                                                            type="number"
-                                                            min="0"
-                                                            value={tempQuantities[item.sku] === undefined ? '' : tempQuantities[item.sku]}
-                                                            onChange={(e) => handleModalQuantityChange(item.sku, e.target.value)}
-                                                            className={`w-full p-2 text-center border rounded-lg focus:ring-2 focus:ring-[#E5562E] outline-none font-bold ${isSelected ? 'border-[#E5562E] bg-white' : 'border-gray-200 bg-gray-50'}`}
-                                                            placeholder="0"
-                                                            style={{ fontSize: '16px' }}
-                                                        />
+                                                    <td className="p-3 md:p-4 text-right align-middle text-sm font-bold text-gray-600">
+                                                        ₱{price.toLocaleString()}
                                                     </td>
-                                                    <td className={`p-2 md:p-4 font-bold text-gray-800 ${total > 0 ? 'text-right' : 'text-center'}`}>
-                                                        {total > 0 ? `₱${total.toLocaleString()}` : '-'}
+                                                    <td className="p-3 md:p-4 align-middle">
+                                                        <div className="flex justify-center">
+                                                            <input
+                                                                type="number"
+                                                                min="0"
+                                                                value={tempQuantities[item.sku] === undefined ? '' : tempQuantities[item.sku]}
+                                                                onChange={(e) => handleModalQuantityChange(item.sku, e.target.value)}
+                                                                className={`w-24 p-2 text-center rounded-lg border-2 focus:ring-4 focus:ring-[#E5562E]/20 outline-none transition-all font-black text-xl ${isSelected ? 'border-[#E5562E] text-[#E5562E] bg-white' : 'border-gray-200 focus:border-[#E5562E] text-gray-700 bg-gray-50'}`}
+                                                                placeholder="0"
+                                                            />
+                                                        </div>
+                                                    </td>
+                                                    <td className="p-3 md:p-4 text-right align-middle font-black text-[#E5562E] text-lg">
+                                                        {total > 0 && `₱${total.toLocaleString()}`}
                                                     </td>
                                                 </tr>
                                             );
                                         })}
                                         {modalItems.length === 0 && (
                                             <tr>
-                                                <td colSpan="4" className="p-10 text-center text-gray-400">
-                                                    No items found.
+                                                <td colSpan="4" className="p-12 text-center text-gray-400 font-medium">
+                                                    No items match your search.
                                                 </td>
                                             </tr>
                                         )}
