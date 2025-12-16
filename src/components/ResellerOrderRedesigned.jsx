@@ -65,6 +65,9 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
     // --- State ---
     const [selectedResellerId, setSelectedResellerId] = useState('');
     const [address, setAddress] = useState('');
+    const [isResellerModalOpen, setIsResellerModalOpen] = useState(false);
+    const [resellerSearchTerm, setResellerSearchTerm] = useState('');
+    const [isCartExpanded, setIsCartExpanded] = useState(false); // Mobile Cart State
 
     // Auto-Save State
     const [lastSaved, setLastSaved] = useState(null);
@@ -500,35 +503,40 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
             )}
 
             {/* --- Top Bar --- */}
-            <div className="bg-[#F3EBD8] px-8 py-6 z-10 flex justify-between items-center">
-                <div>
-                    <h2 className="text-4xl font-black text-[#510813] tracking-tight">KIKIKS ORDER</h2>
-                    <p className="text-[#510813]/60 font-medium">Let's stock up on happiness!</p>
+            <div className="bg-[#F3EBD8] px-4 md:px-8 py-4 md:py-6 z-10 flex flex-col-reverse md:flex-row justify-between items-center gap-4 md:gap-0">
+                <div className="flex gap-4 items-center w-full md:w-auto">
+                    {/* Reseller Select - converted to Button triggering Modal */}
+                    <div className="relative group w-full md:w-auto">
+                        <button
+                            onClick={() => !orderId && setIsResellerModalOpen(true)}
+                            disabled={!!orderId}
+                            className="flex items-center justify-between w-full md:min-w-[280px] bg-[#510813] text-white px-6 py-3 rounded-full font-bold shadow-lg hover:bg-[#6a0a19] transition-all disabled:opacity-80 disabled:cursor-not-allowed outline-none focus:ring-4 ring-[#E5562E]/30"
+                        >
+                            <span className="truncate max-w-[200px] text-left">
+                                {selectedResellerId
+                                    ? resellers.find(r => r.id === selectedResellerId)?.name
+                                    : "Select Reseller..."}
+                            </span>
+                            <ChevronRight className="rotate-90 text-white/50" size={20} />
+                        </button>
+                    </div>
                 </div>
 
-                <div className="flex gap-4 items-center">
-                    {/* Reseller Select */}
-                    <div className="relative group">
-                        <select
-                            value={selectedResellerId}
-                            onChange={handleResellerChange}
-                            disabled={!!orderId}
-                            className="appearance-none bg-[#510813] text-white pl-6 pr-12 py-3 rounded-full font-bold shadow-lg hover:bg-[#6a0a19] transition-colors cursor-pointer outline-none focus:ring-4 ring-[#E5562E]/30"
-                        >
-                            <option value="">Select Reseller...</option>
-                            {resellers.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
-                        </select>
-                        <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 rotate-90 text-white/50 pointer-events-none" size={20} />
+                <div className="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end">
+                    <div className="text-left md:text-right">
+                        <h2 className="text-2xl md:text-4xl font-black text-[#510813] tracking-tight">KIKIKS ORDER</h2>
+                        <p className="text-[#510813]/60 font-medium text-xs md:text-base">Let's stock up on happiness!</p>
                     </div>
-                    <button onClick={handleSettingsClick} className="p-3 rounded-full bg-white text-[#510813] shadow-md hover:scale-110 transition-transform"><Settings size={24} /></button>
+                    <button onClick={handleSettingsClick} className="p-3 rounded-full bg-white text-[#510813] shadow-md hover:scale-110 transition-transform"><Settings size={20} /></button>
                 </div>
             </div>
 
             {/* --- Content Area (Split Screen) --- */}
-            <div className="flex-1 flex overflow-hidden">
+            {/* --- Content Area (Split Screen) --- */}
+            <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
 
                 {/* LEFT: Categories (The Interaction Zone) */}
-                <div className="flex-1 p-8 overflow-y-auto">
+                <div className="flex-1 p-8 overflow-y-auto pb-40 md:pb-8">
                     {/* Address Field */}
                     <div className="mb-8">
                         <input
@@ -569,8 +577,9 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
                 </div>
 
                 {/* RIGHT: The 'Fun Zone' Sidebar - Floating "Cookie" Card Style */}
-                <div className="w-[450px] relative z-20 flex flex-col h-full py-4 pr-4 pl-0">
-                    <div className="relative flex-1 flex flex-col drop-shadow-2xl" id="sidebar-container">
+                {/* Mobile: Sticky Bottom Bar (Fixed) / Desktop: Right Sidebar (Relative) */}
+                <div className={`fixed bottom-0 left-0 right-0 md:static w-full md:w-[450px] z-50 flex flex-col transition-all duration-300 ease-in-out ${isCartExpanded ? 'h-[60vh]' : 'h-auto'} md:h-full py-2 md:py-4 pr-2 md:pr-4 pl-2 md:pl-0 pointer-events-none md:pointer-events-auto`}>
+                    <div className="relative flex-1 flex flex-col drop-shadow-2xl pointer-events-auto" id="sidebar-container">
 
                         {/* The 'Wavy Box' Background Construction */}
                         <div className="absolute inset-0 z-0">
@@ -591,22 +600,23 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
                             {/* Pattern Background (Inside the safe zone) */}
                             <TropicalPattern opacity={0.25} />
 
-                            <div className="absolute inset-0 z-20 flex flex-col p-6 text-white">
-                                <div className="flex-shrink-0 flex items-center gap-3 mb-6">
-                                    <div className="bg-white text-[#E5562E] p-3 rounded-2xl shadow-lg rotate-3">
-                                        <ShoppingCart size={28} strokeWidth={2.5} />
+                            <div className="absolute inset-0 z-20 flex flex-col p-4 md:p-6 text-white text-left">
+                                {/* Header: Hidden on Mobile if Collapsed */}
+                                <div className={`flex-shrink-0 flex items-center gap-3 mb-4 md:mb-6 ${!isCartExpanded ? 'hidden md:flex' : 'flex'}`}>
+                                    <div className="bg-white text-[#E5562E] p-2 md:p-3 rounded-2xl shadow-lg rotate-3">
+                                        <ShoppingCart size={24} strokeWidth={2.5} />
                                     </div>
                                     <div>
-                                        <h3 className="text-2xl font-black tracking-tight">YOUR CART</h3>
-                                        <p className="text-white/80 text-sm font-medium">{Object.values(cart).reduce((a, b) => a + b, 0)} Items added</p>
+                                        <h3 className="text-xl md:text-2xl font-black tracking-tight">YOUR CART</h3>
+                                        <p className="text-white/80 text-xs md:text-sm font-medium">{Object.values(cart).reduce((a, b) => a + b, 0)} Items added</p>
                                     </div>
                                 </div>
 
-                                {/* Cart Items List */}
-                                <div className="flex-1 min-h-0 overflow-y-auto space-y-4 pr-2 -mr-2 custom-scrollbar-white">
+                                {/* Cart Items List: Hidden on Mobile if Collapsed */}
+                                <div className={`flex-1 min-h-0 overflow-y-auto space-y-3 pr-2 -mr-2 custom-scrollbar-white ${!isCartExpanded ? 'hidden md:block' : 'block'}`}>
                                     {Object.keys(cart).length === 0 ? (
-                                        <div className="h-full flex flex-col items-center justify-center text-white/50 border-2 border-dashed border-white/20 rounded-3xl p-8">
-                                            <Box size={64} className="mb-4 opacity-50" />
+                                        <div className="h-full flex flex-col items-center justify-center text-white/50 border-2 border-dashed border-white/20 rounded-3xl p-6">
+                                            <Box size={48} className="mb-4 opacity-50" />
                                             <p className="text-center font-bold">Your cart is empty!</p>
                                             <p className="text-center text-sm mt-2">Tap a colorful card on the left to start.</p>
                                         </div>
@@ -618,20 +628,20 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
                                             const totalPrice = catItems.reduce((sum, [sku, qty]) => sum + (qty * getPrice(sku)), 0);
 
                                             return (
-                                                <div key={cat.id} className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-4 hover:bg-white/20 transition-colors">
-                                                    <div className="flex justify-between items-center mb-2">
+                                                <div key={cat.id} className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-3 md:p-4 hover:bg-white/20 transition-colors">
+                                                    <div className="flex justify-between items-center mb-1">
                                                         <div className="flex items-center gap-2">
-                                                            <cat.icon size={18} />
-                                                            <span className="font-bold">{cat.label}</span>
+                                                            <cat.icon size={16} />
+                                                            <span className="font-bold text-sm">{cat.label}</span>
                                                         </div>
-                                                        <span className="font-bold bg-white text-[#E5562E] px-2 py-0.5 rounded text-sm">₱{totalPrice.toLocaleString()}</span>
+                                                        <span className="font-bold bg-white text-[#E5562E] px-2 py-0.5 rounded text-xs">₱{totalPrice.toLocaleString()}</span>
                                                     </div>
-                                                    <div className="text-sm opacity-80 pl-6 border-l-2 border-white/30 ml-2 space-y-1">
+                                                    <div className="text-xs opacity-80 pl-6 border-l-2 border-white/30 ml-2 space-y-1">
                                                         {catItems.map(([sku, qty]) => {
                                                             const item = inventory.find(i => i.sku === sku);
                                                             return (
                                                                 <div key={sku} className="flex justify-between">
-                                                                    <span className="truncate w-32">{item?.description || sku}</span>
+                                                                    <span className="truncate w-24 md:w-32">{item?.description || sku}</span>
                                                                     <span>x{qty}</span>
                                                                 </div>
                                                             );
@@ -643,16 +653,34 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
                                     )}
                                 </div>
 
-                                {/* Total & Submit */}
-                                <div className="flex-shrink-0 mt-4 pt-4 border-t border-white/20 bg-[#E5562E]/50 backdrop-blur-md rounded-xl p-4 -mx-2 mb-[-10px]">
-                                    <div className="flex justify-between items-end mb-4">
-                                        <span className="opacity-80 font-medium">Grand Total</span>
-                                        <span className="text-4xl font-black">₱{cartTotal.toLocaleString()}</span>
+                                {/* Total & Submit - Always Visible */}
+                                <div className="flex-shrink-0 mt-auto pt-3 border-t border-white/20 bg-[#E5562E]/50 backdrop-blur-md rounded-xl p-3 -mx-2 mb-[-5px] md:mb-[-10px] flex flex-col gap-3">
+
+                                    {/* Mobile Expand Toggle */}
+                                    <button
+                                        onClick={() => setIsCartExpanded(!isCartExpanded)}
+                                        className="md:hidden flex items-center justify-center gap-2 text-white/80 hover:text-white transition-colors py-1"
+                                    >
+                                        <span className="text-xs font-bold uppercase tracking-widest">{isCartExpanded ? 'Hide Details' : 'View Cart Details'}</span>
+                                        <ChevronRight size={16} className={`transition-transform duration-300 ${isCartExpanded ? 'rotate-90' : '-rotate-90'}`} />
+                                    </button>
+
+                                    <div className="flex justify-between items-center">
+                                        <div className="flex flex-col">
+                                            <span className="opacity-80 font-medium text-xs md:text-sm">Grand Total</span>
+                                            <span className="text-2xl md:text-4xl font-black">₱{cartTotal.toLocaleString()}</span>
+                                        </div>
+                                        {/* Mobile Item Count Badge (Only visible when collapsed) */}
+                                        {!isCartExpanded && (
+                                            <div className="md:hidden bg-white/20 px-3 py-1 rounded-full text-xs font-bold">
+                                                {Object.values(cart).reduce((a, b) => a + b, 0)} Items
+                                            </div>
+                                        )}
                                     </div>
 
                                     {currentZone && !isMinOrderMet && (
-                                        <div className="bg-white/20 backdrop-blur p-3 rounded-xl mb-4 text-sm flex items-center gap-2">
-                                            <AlertCircle size={16} />
+                                        <div className="bg-white/20 backdrop-blur p-2 rounded-xl text-xs flex items-center gap-2 text-warning">
+                                            <AlertCircle size={14} />
                                             Add ₱{(minOrderAmount - cartTotal).toLocaleString()} to order
                                         </div>
                                     )}
@@ -660,9 +688,9 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
                                     <button
                                         onClick={handleInitialSubmit}
                                         disabled={!isMinOrderMet || Object.keys(cart).length === 0}
-                                        className="w-full bg-white text-[#E5562E] py-4 rounded-2xl font-black text-xl shadow-xl hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:hover:scale-100 flex items-center justify-center gap-2"
+                                        className="w-full bg-white text-[#E5562E] py-3 md:py-4 rounded-xl md:rounded-2xl font-black text-lg md:text-xl shadow-xl hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:hover:scale-100 flex items-center justify-center gap-2"
                                     >
-                                        <FileText size={24} />
+                                        <FileText size={20} />
                                         SUBMIT ORDER
                                     </button>
                                 </div>
@@ -917,6 +945,82 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
 
             {isSettingsOpen && (
                 <ResellerSettingsModal onClose={() => setIsSettingsOpen(false)} />
+            )}
+
+            {/* --- RESELLER SELECTION MODAL (Big Search) --- */}
+            {isResellerModalOpen && (
+                <div className="fixed inset-0 bg-[#510813]/90 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-in fade-in duration-200">
+                    <div className="bg-[#F3EBD8] rounded-3xl shadow-2xl w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden relative">
+                        {/* Modal Header */}
+                        <div className="p-4 md:p-8 pb-2 md:pb-4">
+                            <div className="flex justify-between items-center mb-4 md:mb-6">
+                                <div>
+                                    <h2 className="text-2xl md:text-3xl font-black text-[#510813]">Who is ordering?</h2>
+                                    <p className="text-[#510813]/60 font-medium text-xs md:text-base">Select your store to get started</p>
+                                </div>
+                                <button
+                                    onClick={() => setIsResellerModalOpen(false)}
+                                    className="p-2 hover:bg-[#510813]/10 rounded-full transition-colors"
+                                >
+                                    <X size={24} className="text-[#510813]" />
+                                </button>
+                            </div>
+
+                            {/* Big Search Bar */}
+                            <div className="relative">
+                                <Search className="absolute left-4 md:left-6 top-1/2 -translate-y-1/2 text-[#510813]/40" size={20} />
+                                <input
+                                    type="text"
+                                    autoFocus
+                                    placeholder="Type to search (e.g. 'Kap', 'Galactic')..."
+                                    value={resellerSearchTerm}
+                                    onChange={(e) => setResellerSearchTerm(e.target.value)}
+                                    className="w-full bg-white pl-12 md:pl-16 pr-6 py-3 md:py-5 rounded-2xl text-base md:text-xl font-bold text-[#510813] placeholder-[#510813]/30 shadow-inner focus:outline-none focus:ring-4 ring-[#E5562E]/30"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Modal Grid Content */}
+                        <div className="flex-1 overflow-y-auto p-4 md:p-8 pt-2 custom-scrollbar">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
+                                {resellers
+                                    .filter(r => r.name.toLowerCase().includes(resellerSearchTerm.toLowerCase()))
+                                    .map(r => (
+                                        <button
+                                            key={r.id}
+                                            onClick={() => {
+                                                handleResellerChange({ target: { value: r.id } }); // Mock event to reuse handler
+                                                setIsResellerModalOpen(false);
+                                                setResellerSearchTerm('');
+                                            }}
+                                            className="group relative bg-white p-4 md:p-6 rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-200 border-2 border-transparent hover:border-[#E5562E] text-left"
+                                        >
+                                            <div className="flex items-center gap-3 md:gap-4">
+                                                {/* Generated Avatar */}
+                                                <div className={`w-10 h-10 md:w-14 md:h-14 rounded-full flex items-center justify-center text-sm md:text-xl font-black text-white shadow-md ${
+                                                    // Hash func for consistent color
+                                                    ['bg-[#E5562E]', 'bg-[#F49306]', 'bg-[#888625]', 'bg-[#FF5A5F]', 'bg-[#510813]'][r.id.charCodeAt(0) % 5]
+                                                    }`}>
+                                                    {r.name.substring(0, 2).toUpperCase()}
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <h4 className="font-bold text-[#510813] text-sm md:text-lg truncate group-hover:text-[#E5562E] transition-colors">{r.name}</h4>
+                                                    <p className="text-[10px] md:text-xs text-gray-500 font-medium">Tap to select</p>
+                                                </div>
+                                                <ChevronRight className="opacity-0 group-hover:opacity-100 text-[#E5562E] transition-opacity" />
+                                            </div>
+                                        </button>
+                                    ))
+                                }
+                                {resellers.filter(r => r.name.toLowerCase().includes(resellerSearchTerm.toLowerCase())).length === 0 && (
+                                    <div className="col-span-full py-12 text-center opacity-50">
+                                        <p className="font-bold text-xl">No resellers found matching "{resellerSearchTerm}"</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
     );
