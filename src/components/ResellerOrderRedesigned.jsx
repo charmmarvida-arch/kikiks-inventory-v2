@@ -5,7 +5,7 @@ import {
     Settings, Search, ShoppingCart,
     Coffee, IceCream, Droplet, Box, Grid,
     ChevronRight, Save, X, Trash2, AlertCircle, FileText, CheckCircle, Loader2,
-    Sun, Flower, Leaf, Utensils // Added for pattern
+    Sun, Flower2, Leaf, Utensils // Added for pattern
 } from 'lucide-react';
 import ResellerSettingsModal from './ResellerSettingsModal';
 import { generatePackingList } from '../utils/pdfGenerator';
@@ -17,7 +17,7 @@ const TropicalPattern = () => {
         { Icon: Leaf, top: '5%', left: '5%', rot: '45deg', size: 64 },
         { Icon: Coffee, top: '15%', left: '25%', rot: '-12deg', size: 48 },
         { Icon: Sun, top: '10%', right: '10%', rot: '0deg', size: 80 },
-        { Icon: Flower, top: '35%', left: '80%', rot: '20deg', size: 56 },
+        { Icon: Flower2, top: '35%', left: '80%', rot: '20deg', size: 56 },
         { Icon: IceCream, top: '45%', left: '10%', rot: '-25deg', size: 60 },
         { Icon: Utensils, top: '55%', right: '20%', rot: '15deg', size: 50 },
         { Icon: Leaf, top: '75%', left: '30%', rot: '130deg', size: 70 },
@@ -645,19 +645,19 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
                             <button
                                 key={cat.id}
                                 onClick={() => handleCategoryClick(cat.id)}
-                                className={`relative group p-6 rounded-2xl border-l-8 transition-all duration-300 shadow-sm hover:shadow-xl text-left flex flex-col justify-between h-44 bg-white/90 backdrop-blur hover:-translate-y-2 hover:scale-[1.02] ${cat.border}`}
+                                className={`relative group p-6 rounded-2xl border-l-8 transition-all duration-300 shadow-sm hover:shadow-xl text-left flex flex-col justify-between h-44 backdrop-blur hover:-translate-y-2 hover:scale-[1.02] ${cat.border} ${cat.bgTint || 'bg-white'}`}
                             >
                                 <div className="flex justify-between items-start">
-                                    <div className={`p-3 rounded-full ${cat.color} group-hover:scale-110 transition-transform`}>
+                                    <div className={`p-4 rounded-full ${cat.color} shadow-md group-hover:scale-110 transition-transform`}>
                                         <cat.icon size={28} />
                                     </div>
-                                    <div className="bg-[#510813]/5 px-3 py-1 rounded-full text-xs font-bold text-[#510813]">
+                                    <div className={`${cat.color} px-3 py-1 rounded-full text-xs font-bold`}>
                                         {Object.keys(cart).filter(sku => sku.startsWith(cat.id)).length} Items
                                     </div>
                                 </div>
                                 <div>
                                     <h4 className="text-2xl font-bold text-[#510813]">{cat.label}</h4>
-                                    <p className="text-sm text-gray-500 font-medium">Click to add items</p>
+                                    <p className="text-sm text-gray-600 font-medium">Click to add items</p>
                                 </div>
                             </button>
                         ))}
