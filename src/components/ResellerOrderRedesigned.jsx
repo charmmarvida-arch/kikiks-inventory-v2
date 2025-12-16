@@ -596,11 +596,11 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
                         </div>
 
                         {/* Content Container (Padded to sit inside the waves) */}
-                        <div className="relative z-10 flex-1 flex flex-col overflow-hidden rounded-[40px] m-[10px]">
+                        <div className="relative z-10 flex-1 flex flex-col overflow-hidden rounded-[40px] m-[10px] bg-[#E5562E]">
                             {/* Pattern Background (Inside the safe zone) */}
                             <TropicalPattern opacity={0.25} />
 
-                            <div className="absolute inset-0 z-20 flex flex-col p-4 md:p-6 text-white text-left">
+                            <div className="relative z-20 flex flex-col p-4 md:p-6 text-white text-left h-full">
                                 {/* Header: Hidden on Mobile if Collapsed */}
                                 <div className={`flex-shrink-0 flex items-center gap-3 mb-4 md:mb-6 ${!isCartExpanded ? 'hidden md:flex' : 'flex'}`}>
                                     <div className="bg-white text-[#E5562E] p-2 md:p-3 rounded-2xl shadow-lg rotate-3">
