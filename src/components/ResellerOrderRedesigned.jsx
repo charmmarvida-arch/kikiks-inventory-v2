@@ -11,7 +11,7 @@ import ResellerSettingsModal from './ResellerSettingsModal';
 import { generatePackingList } from '../utils/pdfGenerator';
 
 // --- Background Pattern Component (Now White/Transparent for Colored Backgrounds) ---
-const TropicalPattern = ({ className, opacity = 0.2 }) => {
+const TropicalPattern = ({ className, opacity = 0.2, color = "text-white" }) => {
     // Fixed positions for a scattered look
     const icons = [
         { Icon: Leaf, top: '5%', left: '5%', rot: '45deg', size: 64 },
@@ -33,7 +33,7 @@ const TropicalPattern = ({ className, opacity = 0.2 }) => {
             {icons.map((item, i) => (
                 <div
                     key={i}
-                    className="absolute text-white"
+                    className={`absolute ${color}`}
                     style={{
                         top: item.top,
                         left: item.left,
@@ -548,28 +548,28 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
                         />
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                         {CATEGORIES.filter(cat => inventory.some(i => i.sku.startsWith(cat.id) && i.isVisible !== false)).map(cat => (
                             <button
                                 key={cat.id}
                                 onClick={() => handleCategoryClick(cat.id)}
-                                className={`relative h-32 rounded-2xl p-4 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-[#510813]/20 group flex flex-col justify-between overflow-hidden ${cat.color} ${cat.shadow}`}
+                                className={`relative h-64 rounded-3xl p-6 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-[#510813]/20 group flex flex-col justify-between overflow-hidden ${cat.color} ${cat.shadow}`}
                             >
                                 {/* Decorative Big Icon in BG */}
-                                <cat.icon className="absolute -bottom-4 -right-4 opacity-20 rotate-[-15deg] transition-transform group-hover:rotate-0 group-hover:scale-110" size={100} />
+                                <cat.icon className="absolute -bottom-8 -right-8 opacity-20 rotate-[-15deg] transition-transform group-hover:rotate-0 group-hover:scale-110" size={160} />
 
                                 <div className="relative z-10 flex justify-between items-start">
-                                    <div className="bg-white/20 backdrop-blur-md p-2 rounded-xl border border-white/30">
-                                        <cat.icon size={20} className="text-white drop-shadow-sm" />
+                                    <div className="bg-white/20 backdrop-blur-md p-3 rounded-2xl border border-white/30">
+                                        <cat.icon size={32} className="text-white drop-shadow-sm" />
                                     </div>
-                                    <div className="bg-white text-[#510813] px-2 py-0.5 rounded-full text-[10px] font-bold shadow-sm">
+                                    <div className="bg-white text-[#510813] px-3 py-1 rounded-full text-xs font-bold shadow-sm">
                                         {Object.keys(cart).filter(sku => sku.startsWith(cat.id)).length} Items
                                     </div>
                                 </div>
 
                                 <div className="relative z-10 text-left">
-                                    <h4 className="text-xl font-black tracking-wide drop-shadow-md">{cat.label}</h4>
-                                    <div className="h-1 w-8 bg-white/50 rounded-full mt-1 group-hover:w-full transition-all duration-500"></div>
+                                    <h4 className="text-3xl font-black tracking-wide drop-shadow-md">{cat.label}</h4>
+                                    <div className="h-1 w-12 bg-white/50 rounded-full mt-2 group-hover:w-full transition-all duration-500"></div>
                                 </div>
                             </button>
                         ))}
@@ -581,41 +581,27 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
                 <div className={`fixed bottom-0 left-0 right-0 md:static w-full md:w-[450px] z-50 flex flex-col transition-all duration-300 ease-in-out ${isCartExpanded ? 'h-[60vh]' : 'h-auto'} md:h-full py-0 md:py-4 pr-0 md:pr-4 pl-0 md:pl-0 pointer-events-none md:pointer-events-auto`}>
                     <div className="relative flex-1 flex flex-col drop-shadow-2xl pointer-events-auto" id="sidebar-container">
 
-                        {/* The 'Wavy Box' Background Construction - Desktop Only */}
-                        <div className="absolute inset-0 z-0 hidden md:block">
-                            {/* 1. The Dots (The Scalloped Edge) */}
-                            <div className="absolute inset-0"
-                                style={{
-                                    backgroundImage: "radial-gradient(circle, #E5562E 20px, transparent 20.5px)",
-                                    backgroundSize: "40px 40px",
-                                    backgroundRepeat: "round"
-                                }}
-                            />
-                            {/* 2. The Filler (Solid Center) */}
-                            <div className="absolute inset-[20px] bg-[#E5562E]" />
-                        </div>
+                        {/* Content Container (Simplified Buttermilk Square) */}
+                        <div className="relative z-10 flex-1 flex flex-col overflow-hidden bg-[#FFF1B5] border-t-4 md:border-t-0 md:border-l-4 border-[#E5562E]">
+                            {/* Pattern Background (Inside the safe zone) - Changed to Orange for Contrast */}
+                            <TropicalPattern opacity={0.15} color="text-[#E5562E]" />
 
-                        {/* Content Container (Padded to sit inside the waves on desktop, full width on mobile) */}
-                        <div className="relative z-10 flex-1 flex flex-col overflow-hidden rounded-t-2xl md:rounded-[40px] m-0 md:m-[10px] bg-[#E5562E]">
-                            {/* Pattern Background (Inside the safe zone) */}
-                            <TropicalPattern opacity={0.25} />
-
-                            <div className="relative z-20 flex flex-col p-4 md:p-6 text-white text-left h-full pb-8 md:pb-6">
+                            <div className="relative z-20 flex flex-col p-4 md:p-6 text-[#510813] text-left h-full pb-8 md:pb-6">
                                 {/* Header: Hidden on Mobile if Collapsed */}
                                 <div className={`flex-shrink-0 flex items-center gap-3 mb-4 md:mb-6 ${!isCartExpanded ? 'hidden md:flex' : 'flex'}`}>
-                                    <div className="bg-white text-[#E5562E] p-2 md:p-3 rounded-2xl shadow-lg rotate-3">
+                                    <div className="bg-[#E5562E] text-white p-2 md:p-3 rounded-2xl shadow-lg rotate-3">
                                         <ShoppingCart size={24} strokeWidth={2.5} />
                                     </div>
                                     <div>
                                         <h3 className="text-xl md:text-2xl font-black tracking-tight">YOUR CART</h3>
-                                        <p className="text-white/80 text-xs md:text-sm font-medium">{Object.values(cart).reduce((a, b) => a + b, 0)} Items added</p>
+                                        <p className="text-[#510813]/80 text-xs md:text-sm font-medium">{Object.values(cart).reduce((a, b) => a + b, 0)} Items added</p>
                                     </div>
                                 </div>
 
                                 {/* Cart Items List: Hidden on Mobile if Collapsed */}
-                                <div className={`flex-1 min-h-0 overflow-y-auto space-y-3 pr-2 -mr-2 custom-scrollbar-white ${!isCartExpanded ? 'hidden md:block' : 'block'}`}>
+                                <div className={`flex-1 min-h-0 overflow-y-auto space-y-3 pr-2 -mr-2 custom-scrollbar-orange ${!isCartExpanded ? 'hidden md:block' : 'block'}`}>
                                     {Object.keys(cart).length === 0 ? (
-                                        <div className="h-full flex flex-col items-center justify-center text-white/50 border-2 border-dashed border-white/20 rounded-3xl p-6">
+                                        <div className="h-full flex flex-col items-center justify-center text-[#510813]/40 border-2 border-dashed border-[#510813]/10 rounded-3xl p-6">
                                             <Box size={48} className="mb-4 opacity-50" />
                                             <p className="text-center font-bold">Your cart is empty!</p>
                                             <p className="text-center text-sm mt-2">Tap a colorful card on the left to start.</p>
@@ -628,15 +614,17 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
                                             const totalPrice = catItems.reduce((sum, [sku, qty]) => sum + (qty * getPrice(sku)), 0);
 
                                             return (
-                                                <div key={cat.id} className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-3 md:p-4 hover:bg-white/20 transition-colors">
+                                                <div key={cat.id} className="bg-white shadow-sm border border-[#E5562E]/10 rounded-2xl p-3 md:p-4">
                                                     <div className="flex justify-between items-center mb-1">
                                                         <div className="flex items-center gap-2">
-                                                            <cat.icon size={16} />
-                                                            <span className="font-bold text-sm">{cat.label}</span>
+                                                            <div className={`p-1 rounded-full ${cat.color}`}>
+                                                                <cat.icon size={12} />
+                                                            </div>
+                                                            <span className="font-bold text-sm text-[#510813]">{cat.label}</span>
                                                         </div>
-                                                        <span className="font-bold bg-white text-[#E5562E] px-2 py-0.5 rounded text-xs">₱{totalPrice.toLocaleString()}</span>
+                                                        <span className="font-bold text-[#E5562E] bg-[#FFF1B5] px-2 py-0.5 rounded text-xs">₱{totalPrice.toLocaleString()}</span>
                                                     </div>
-                                                    <div className="text-xs opacity-80 pl-6 border-l-2 border-white/30 ml-2 space-y-1">
+                                                    <div className="text-xs text-[#510813]/80 pl-6 border-l-2 border-[#E5562E]/20 ml-2 space-y-1">
                                                         {catItems.map(([sku, qty]) => {
                                                             const item = inventory.find(i => i.sku === sku);
                                                             return (
@@ -654,12 +642,12 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
                                 </div>
 
                                 {/* Total & Submit - Always Visible */}
-                                <div className="flex-shrink-0 mt-auto pt-3 border-t border-white/20 bg-[#E5562E]/50 backdrop-blur-md rounded-xl p-3 -mx-2 mb-[-5px] md:mb-[-10px] flex flex-col gap-3">
+                                <div className="flex-shrink-0 mt-auto pt-3 border-t border-[#510813]/10 flex flex-col gap-3">
 
                                     {/* Mobile Expand Toggle */}
                                     <button
                                         onClick={() => setIsCartExpanded(!isCartExpanded)}
-                                        className="md:hidden flex items-center justify-center gap-2 text-white/80 hover:text-white transition-colors py-1"
+                                        className="md:hidden flex items-center justify-center gap-2 text-[#510813]/60 hover:text-[#510813] transition-colors py-1"
                                     >
                                         <span className="text-xs font-bold uppercase tracking-widest">{isCartExpanded ? 'Hide Details' : 'View Cart Details'}</span>
                                         <ChevronRight size={16} className={`transition-transform duration-300 ${isCartExpanded ? 'rotate-90' : '-rotate-90'}`} />
@@ -668,11 +656,11 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
                                     <div className="flex justify-between items-center">
                                         <div className="flex flex-col">
                                             <span className="opacity-80 font-medium text-xs md:text-sm">Grand Total</span>
-                                            <span className="text-2xl md:text-4xl font-black">₱{cartTotal.toLocaleString()}</span>
+                                            <span className="text-2xl md:text-4xl font-black text-[#510813]">₱{cartTotal.toLocaleString()}</span>
                                         </div>
                                         {/* Mobile Item Count Badge (Only visible when collapsed) */}
                                         {!isCartExpanded && (
-                                            <div className="md:hidden bg-white/20 px-3 py-1 rounded-full text-xs font-bold">
+                                            <div className="md:hidden bg-[#E5562E] text-white px-3 py-1 rounded-full text-xs font-bold">
                                                 {Object.values(cart).reduce((a, b) => a + b, 0)} Items
                                             </div>
                                         )}
@@ -685,12 +673,13 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
                                         </div>
                                     )}
 
+                                    {/* Submit Button */}
                                     <button
                                         onClick={handleInitialSubmit}
                                         disabled={!isMinOrderMet || Object.keys(cart).length === 0}
-                                        className="w-full bg-white text-[#E5562E] py-3 md:py-4 rounded-xl md:rounded-2xl font-black text-lg md:text-xl shadow-xl hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:hover:scale-100 flex items-center justify-center gap-2"
+                                        className="w-full bg-[#E5562E] hover:bg-[#c94925] text-white py-4 md:py-5 rounded-2xl font-black text-xl md:text-2xl shadow-xl shadow-[#E5562E]/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-3"
                                     >
-                                        <FileText size={20} />
+                                        <FileText size={24} strokeWidth={2.5} />
                                         SUBMIT ORDER
                                     </button>
                                 </div>
