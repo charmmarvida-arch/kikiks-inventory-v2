@@ -1,8 +1,8 @@
-// DEPLOYMENT TRIGGER
-// Current Version: 2.1.7
+// Current Version: 2.1.8
 // Last Updated: 2025-12-16
 //
 // Change Log:
+// - 2.1.8: Aggressively Fix Table Scroll (450px clearance)
 // - 2.1.7: Fix Scrolling Issue on Pending Orders & Location Dashboard
 // - 2.1.6: Fix LocationDashboard Crash (Missing Imports)
 // - 2.1.5: Implemented Toast Notifications and Cleaned up Duplicate Code
@@ -22,10 +22,10 @@
 // - 2.0.1: Fix Email Delivery Issues
 // - 2.0.0: Initial Deployment
 
-export const DEPLOYMENT_VERSION = '2.1.7';
+export const DEPLOYMENT_VERSION = '2.1.8';
 export const DEPLOYMENT_DATE = '2025-12-16';
 export const DEPLOYMENT_FEATURES = [
-    'Fix Scrolling Issue on Pending Orders & Location Dashboard', // Added
+    'Aggressively Fix Table Scroll (450px clearance)', // Added
     'Stock Reversal: Undo "Completed" Transfer Status', // Added
     'Fixed Legazpi Transfer Deduction (SKU/Name Fallback)',
     'Transfer Logic: Deduct Stock AFTER Completion (Fix)',
