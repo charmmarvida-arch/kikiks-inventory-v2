@@ -409,8 +409,8 @@ const FTFManufacturing = () => {
                 </div>
             </div>
 
-            {/* Inventory Table */}
-            <div className="form-card p-0 overflow-hidden">
+            {/* Inventory Table - Added overflow-x-auto for mobile scrolling */}
+            <div className="form-card p-0 overflow-x-auto">
                 <div className="table-container">
                     <table className="inventory-table">
                         <thead style={{ position: 'sticky', top: 0, zIndex: 10, backgroundColor: 'white' }}>

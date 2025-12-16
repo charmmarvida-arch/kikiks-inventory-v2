@@ -1,2 +1,2 @@
-Fix: White Border & Ultra-Compact Mobile Footer
-Timestamp: 2025-12-16 20:10
+Fix: Floating Cart 4-Side Border & FTF Table Scroll
+Timestamp: 2025-12-16 20:20

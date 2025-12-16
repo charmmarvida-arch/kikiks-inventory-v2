@@ -577,12 +577,12 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
                 </div>
 
                 {/* RIGHT: The 'Fun Zone' Sidebar - Floating "Cookie" Card Style */}
-                {/* Mobile: Sticky Bottom Bar (Fixed) / Desktop: Right Sidebar (Relative) */}
-                <div className={`fixed bottom-0 left-0 right-0 md:static w-full md:w-[450px] z-50 flex flex-col transition-all duration-300 ease-in-out ${isCartExpanded ? 'h-[60vh]' : 'h-auto'} md:h-full py-0 md:py-4 pr-0 md:pr-4 pl-0 md:pl-0 pointer-events-none md:pointer-events-auto`}>
+                {/* Mobile: Sticky Bottom Bar (Floating Effect) / Desktop: Right Sidebar (Relative) */}
+                <div className={`fixed bottom-0 left-0 right-0 md:static w-full md:w-[450px] z-50 flex flex-col transition-all duration-300 ease-in-out ${isCartExpanded ? 'h-[60vh]' : 'h-auto'} md:h-full p-3 md:py-4 md:pr-4 md:pl-0 pointer-events-none md:pointer-events-auto`}>
                     <div className="relative flex-1 flex flex-col drop-shadow-2xl pointer-events-auto" id="sidebar-container">
 
                         {/* Content Container (Simplified Buttermilk Square) */}
-                        <div className="relative z-10 flex-1 flex flex-col overflow-hidden bg-[#FFF1B5] border-t-4 md:border-t-0 md:border-l-4 border-white">
+                        <div className="relative z-10 flex-1 flex flex-col overflow-hidden bg-[#FFF1B5] rounded-2xl md:rounded-tl-[40px] md:rounded-bl-[40px] md:rounded-tr-2xl md:rounded-br-2xl border-4 border-white shadow-xl">
                             {/* Pattern Background (Inside the safe zone) - Changed to Orange for Contrast */}
                             <TropicalPattern opacity={0.15} color="text-[#E5562E]" />
 
