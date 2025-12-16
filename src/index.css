@@ -762,6 +762,8 @@ select {
 @media (max-width: 768px) {
   .app-container {
     flex-direction: column;
+    height: auto !important;
+    overflow: visible !important;
   }
 
   .sidebar {
@@ -779,6 +781,8 @@ select {
 
   .main-content {
     padding: 1rem;
+    height: auto !important;
+    overflow: visible !important;
   }
 
   .mobile-header {
