@@ -4,10 +4,46 @@ import { useNavigate, useParams } from 'react-router-dom';
 import {
     Settings, Search, ShoppingCart,
     Coffee, IceCream, Droplet, Box, Grid,
-    ChevronRight, Save, X, Trash2, AlertCircle, FileText, CheckCircle, Loader2
+    ChevronRight, Save, X, Trash2, AlertCircle, FileText, CheckCircle, Loader2,
+    Sun, Flower, Leaf, Utensils // Added for pattern
 } from 'lucide-react';
 import ResellerSettingsModal from './ResellerSettingsModal';
 import { generatePackingList } from '../utils/pdfGenerator';
+
+// --- Background Pattern Component ---
+const TropicalPattern = () => {
+    // Fixed positions for a scattered look
+    const icons = [
+        { Icon: Leaf, top: '5%', left: '5%', rot: '45deg', size: 64 },
+        { Icon: Coffee, top: '15%', left: '25%', rot: '-12deg', size: 48 },
+        { Icon: Sun, top: '10%', right: '10%', rot: '0deg', size: 80 },
+        { Icon: Flower, top: '35%', left: '80%', rot: '20deg', size: 56 },
+        { Icon: IceCream, top: '45%', left: '10%', rot: '-25deg', size: 60 },
+        { Icon: Utensils, top: '55%', right: '20%', rot: '15deg', size: 50 },
+        { Icon: Leaf, top: '75%', left: '30%', rot: '130deg', size: 70 },
+        { Icon: Coffee, top: '85%', right: '5%', rot: '10deg', size: 55 },
+        { Icon: Sun, top: '90%', left: '15%', rot: '0deg', size: 40 },
+    ];
+
+    return (
+        <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden opacity-5">
+            {icons.map((item, i) => (
+                <div
+                    key={i}
+                    className="absolute text-[#E5562E]"
+                    style={{
+                        top: item.top,
+                        left: item.left,
+                        right: item.right,
+                        transform: `rotate(${item.rot})`,
+                    }}
+                >
+                    <item.Icon size={item.size} />
+                </div>
+            ))}
+        </div>
+    );
+};
 
 // Category Configuration with Icons and Colors
 // Brand Palette:
@@ -19,11 +55,11 @@ import { generatePackingList } from '../utils/pdfGenerator';
 // Lush: #888625 (Liters)
 
 const CATEGORIES = [
-    { id: 'FGC', label: 'Cups', icon: Coffee, color: 'bg-[#F49306]/10 text-[#F49306]', border: 'border-[#F49306]/20', iconColor: 'text-[#F49306]' },
-    { id: 'FGP', label: 'Pints', icon: IceCream, color: 'bg-[#FF5A5F]/10 text-[#FF5A5F]', border: 'border-[#FF5A5F]/20', iconColor: 'text-[#FF5A5F]' },
-    { id: 'FGL', label: 'Liters', icon: Droplet, color: 'bg-[#888625]/10 text-[#888625]', border: 'border-[#888625]/20', iconColor: 'text-[#888625]' },
-    { id: 'FGG', label: 'Gallons', icon: Box, color: 'bg-[#E5562E]/10 text-[#E5562E]', border: 'border-[#E5562E]/20', iconColor: 'text-[#E5562E]' },
-    { id: 'FGT', label: 'Trays', icon: Grid, color: 'bg-[#510813]/10 text-[#510813]', border: 'border-[#510813]/20', iconColor: 'text-[#510813]' }
+    { id: 'FGC', label: 'Cups', icon: Coffee, color: 'bg-[#F49306]/10 text-[#F49306]', border: 'border-[#F49306]', iconColor: 'text-[#F49306]', ring: 'ring-[#F49306]' },
+    { id: 'FGP', label: 'Pints', icon: IceCream, color: 'bg-[#FF5A5F]/10 text-[#FF5A5F]', border: 'border-[#FF5A5F]', iconColor: 'text-[#FF5A5F]', ring: 'ring-[#FF5A5F]' },
+    { id: 'FGL', label: 'Liters', icon: Droplet, color: 'bg-[#888625]/10 text-[#888625]', border: 'border-[#888625]', iconColor: 'text-[#888625]', ring: 'ring-[#888625]' },
+    { id: 'FGG', label: 'Gallons', icon: Box, color: 'bg-[#E5562E]/10 text-[#E5562E]', border: 'border-[#E5562E]', iconColor: 'text-[#E5562E]', ring: 'ring-[#E5562E]' },
+    { id: 'FGT', label: 'Trays', icon: Grid, color: 'bg-[#510813]/10 text-[#510813]', border: 'border-[#510813]', iconColor: 'text-[#510813]', ring: 'ring-[#510813]' }
 ];
 
 const ResellerOrderRedesigned = ({ isPublic = false }) => {
@@ -452,7 +488,9 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
         : [];
 
     return (
-        <div className="fade-in h-screen flex flex-col bg-white overflow-hidden">
+        <div className="fade-in h-screen flex flex-col bg-[#F3EBD8] overflow-hidden relative">
+            <TropicalPattern />
+
             {/* Draft Notification */}
             {showDraftNotification && isDraftRestored && (
                 <div className="fixed top-4 right-4 z-50 bg-green-600 text-white px-6 py-3 rounded-lg shadow-xl flex items-center gap-3 animate-in slide-in-from-right">
@@ -467,7 +505,7 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
             )}
 
             {/* --- Top Bar: Context --- */}
-            <div className="bg-white border-b border-gray-200 px-6 py-4 shadow-sm z-10">
+            <div className="bg-white/80 backdrop-blur-md border-b border-[#510813]/10 px-6 py-4 shadow-sm z-10 relative">
                 <div className="flex justify-between items-center mb-4">
                     <div>
                         <h2 className="text-2xl font-bold text-[#510813]">{orderId ? 'Edit Reseller Order' : 'Create Reseller Order'}</h2>
@@ -543,7 +581,7 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
             </div>
 
             {/* --- Main Content --- */}
-            <div className="flex-1 flex overflow-hidden">
+            <div className="flex-1 flex overflow-hidden z-10">
 
                 {/* Floating Submit Button (Mobile Only) */}
                 <div className="mobile-submit-bar" style={{
@@ -596,8 +634,8 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
 
                 {/* LEFT: Category Menu */}
                 <div className="flex-1 p-6 overflow-y-auto">
-                    <h3 className="text-lg font-bold text-[#510813] mb-4">Product Categories</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <h3 className="text-xl font-black text-[#510813] mb-4 tracking-tight">Product Categories</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                         {CATEGORIES.filter(cat => {
                             const visibleSKUs = inventory.filter(item =>
                                 item.sku.startsWith(cat.id) && item.isVisible !== false
@@ -607,17 +645,19 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
                             <button
                                 key={cat.id}
                                 onClick={() => handleCategoryClick(cat.id)}
-                                className={`relative group p-6 rounded-xl border-2 transition-all duration-200 hover:shadow-md text-left flex flex-col justify-between h-40 ${cat.color} ${cat.border} hover:-translate-y-1 bg-white`}
+                                className={`relative group p-6 rounded-2xl border-l-8 transition-all duration-300 shadow-sm hover:shadow-xl text-left flex flex-col justify-between h-44 bg-white/90 backdrop-blur hover:-translate-y-2 hover:scale-[1.02] ${cat.border}`}
                             >
                                 <div className="flex justify-between items-start">
-                                    <cat.icon size={32} className="opacity-80" />
-                                    <div className="bg-white/50 px-2 py-1 rounded text-xs font-bold">
+                                    <div className={`p-3 rounded-full ${cat.color} group-hover:scale-110 transition-transform`}>
+                                        <cat.icon size={28} />
+                                    </div>
+                                    <div className="bg-[#510813]/5 px-3 py-1 rounded-full text-xs font-bold text-[#510813]">
                                         {Object.keys(cart).filter(sku => sku.startsWith(cat.id)).length} Items
                                     </div>
                                 </div>
                                 <div>
-                                    <h4 className="text-xl font-bold">{cat.label}</h4>
-                                    <p className="text-sm opacity-75">Click to add items</p>
+                                    <h4 className="text-2xl font-bold text-[#510813]">{cat.label}</h4>
+                                    <p className="text-sm text-gray-500 font-medium">Click to add items</p>
                                 </div>
                             </button>
                         ))}
@@ -625,11 +665,11 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
                 </div>
 
                 {/* RIGHT: Live Summary (Sidebar) */}
-                <div className="w-96 bg-white border-l border-gray-200 flex flex-col shadow-xl z-20">
-                    <div className="p-4 border-b border-gray-100 bg-white">
+                <div className="w-96 bg-white/95 backdrop-blur border-l border-[#510813]/10 flex flex-col shadow-2xl z-20">
+                    <div className="p-4 border-b border-gray-100">
                         <h3 className="font-bold text-[#510813] flex items-center gap-2">
                             <ShoppingCart size={20} />
-                            Current Order
+                            Your Cart
                         </h3>
                     </div>
 
@@ -650,15 +690,17 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
                                 const totalPrice = catItems.reduce((sum, [sku, qty]) => sum + (qty * getPrice(sku)), 0);
 
                                 return (
-                                    <div key={cat.id} className={`p-3 rounded-lg border ${cat.border} ${cat.color.split(' ')[0]} flex justify-between items-center`}>
+                                    <div key={cat.id} className={`p-3 rounded-xl border-l-4 ${cat.border} bg-white shadow-sm flex justify-between items-center group`}>
                                         <div className="flex items-center gap-3">
-                                            <cat.icon size={20} className="opacity-70" />
+                                            <div className={`p-2 rounded-full ${cat.color}`}>
+                                                <cat.icon size={16} />
+                                            </div>
                                             <div>
                                                 <div className="font-bold text-[#510813]">{cat.label}</div>
-                                                <div className="text-xs opacity-70">{totalQty} items</div>
+                                                <div className="text-xs text-gray-500">{totalQty} items</div>
                                             </div>
                                         </div>
-                                        <div className="font-bold text-gray-800">
+                                        <div className="font-bold text-[#E5562E]">
                                             ₱{totalPrice.toLocaleString()}
                                         </div>
                                     </div>
