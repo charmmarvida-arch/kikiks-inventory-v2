@@ -664,16 +664,16 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
                                                     </div>
                                                 )}
                                             </div>
-                                            <span className="text-2xl md:text-4xl font-black text-[#510813] truncate">₱{cartTotal.toLocaleString()}</span>
+                                            <span className="text-3xl md:text-5xl font-black text-[#510813] truncate">₱{cartTotal.toLocaleString()}</span>
                                         </div>
 
                                         {/* Submit Button - Takes 1/3 of space on mobile */}
                                         <button
                                             onClick={handleInitialSubmit}
                                             disabled={!isMinOrderMet || Object.keys(cart).length === 0}
-                                            className="flex-[1] md:w-full bg-[#E5562E] hover:bg-[#c94925] text-white py-3 md:py-5 px-2 rounded-xl md:rounded-2xl font-black text-sm md:text-2xl shadow-lg shadow-[#E5562E]/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-1 md:gap-2 h-14 md:h-auto"
+                                            className="flex-[1] md:w-full bg-[#E5562E] hover:bg-[#c94925] text-white py-3 md:py-6 px-2 rounded-xl md:rounded-2xl font-black text-base md:text-3xl shadow-lg shadow-[#E5562E]/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-1 md:gap-2 h-16 md:h-auto"
                                         >
-                                            <FileText size={20} className="md:w-6 md:h-6 shrink-0" strokeWidth={2.5} />
+                                            <FileText size={24} className="md:w-8 md:h-8 shrink-0" strokeWidth={2.5} />
                                             <span className="truncate">CHECK OUT</span>
                                         </button>
                                     </div>

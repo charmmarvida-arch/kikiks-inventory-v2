@@ -1,2 +1,2 @@
-Fix: Increase cart size by 25%
-Timestamp: 2025-12-16 21:26
+Fix: Enlarge Checkout button and Grand Total font
+Timestamp: 2025-12-16 21:30
