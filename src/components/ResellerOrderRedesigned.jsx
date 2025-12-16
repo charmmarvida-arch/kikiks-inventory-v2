@@ -582,11 +582,11 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
                     <div className="relative flex-1 flex flex-col drop-shadow-2xl pointer-events-auto" id="sidebar-container">
 
                         {/* Content Container (Simplified Buttermilk Square) */}
-                        <div className="relative z-10 flex-1 flex flex-col overflow-hidden bg-[#FFF1B5] border-t-4 md:border-t-0 md:border-l-4 border-[#E5562E]">
+                        <div className="relative z-10 flex-1 flex flex-col overflow-hidden bg-[#FFF1B5] border-t-4 md:border-t-0 md:border-l-4 border-white">
                             {/* Pattern Background (Inside the safe zone) - Changed to Orange for Contrast */}
                             <TropicalPattern opacity={0.15} color="text-[#E5562E]" />
 
-                            <div className="relative z-20 flex flex-col p-4 md:p-6 text-[#510813] text-left h-full pb-8 md:pb-6">
+                            <div className="relative z-20 flex flex-col p-3 md:p-6 text-[#510813] text-left h-full pb-2 md:pb-6">
                                 {/* Header: Hidden on Mobile if Collapsed */}
                                 <div className={`flex-shrink-0 flex items-center gap-3 mb-4 md:mb-6 ${!isCartExpanded ? 'hidden md:flex' : 'flex'}`}>
                                     <div className="bg-[#E5562E] text-white p-2 md:p-3 rounded-2xl shadow-lg rotate-3">
@@ -641,47 +641,49 @@ const ResellerOrderRedesigned = ({ isPublic = false }) => {
                                     )}
                                 </div>
 
-                                {/* Total & Submit - Always Visible */}
-                                <div className="flex-shrink-0 mt-auto pt-3 border-t border-[#510813]/10 flex flex-col gap-3">
+                                {/* Total & Submit - Ultra Compact Mobile Layout */}
+                                <div className="flex-shrink-0 mt-auto pt-1 md:pt-3 border-t border-[#510813]/10 flex flex-col gap-1 md:gap-3">
 
-                                    {/* Mobile Expand Toggle */}
+                                    {/* Mobile Expand Toggle Handle */}
                                     <button
                                         onClick={() => setIsCartExpanded(!isCartExpanded)}
-                                        className="md:hidden flex items-center justify-center gap-2 text-[#510813]/60 hover:text-[#510813] transition-colors py-1"
+                                        className="md:hidden w-full flex items-center justify-center py-1"
                                     >
-                                        <span className="text-xs font-bold uppercase tracking-widest">{isCartExpanded ? 'Hide Details' : 'View Cart Details'}</span>
-                                        <ChevronRight size={16} className={`transition-transform duration-300 ${isCartExpanded ? 'rotate-90' : '-rotate-90'}`} />
+                                        <div className="w-12 h-1 bg-[#510813]/20 rounded-full"></div>
                                     </button>
 
-                                    <div className="flex justify-between items-center">
-                                        <div className="flex flex-col">
-                                            <span className="opacity-80 font-medium text-xs md:text-sm">Grand Total</span>
-                                            <span className="text-2xl md:text-4xl font-black text-[#510813]">₱{cartTotal.toLocaleString()}</span>
-                                        </div>
-                                        {/* Mobile Item Count Badge (Only visible when collapsed) */}
-                                        {!isCartExpanded && (
-                                            <div className="md:hidden bg-[#E5562E] text-white px-3 py-1 rounded-full text-xs font-bold">
-                                                {Object.values(cart).reduce((a, b) => a + b, 0)} Items
+                                    <div className="flex flex-row md:flex-col justify-between items-center gap-3">
+
+                                        {/* Total Section */}
+                                        <div className="flex flex-col md:w-full">
+                                            <div className="flex items-center gap-2">
+                                                <span className="opacity-80 font-medium text-[10px] md:text-sm">Grand Total</span>
+                                                {!isCartExpanded && (
+                                                    <div className="md:hidden bg-[#E5562E] text-white px-1.5 py-0.5 rounded-full text-[10px] font-bold">
+                                                        {Object.values(cart).reduce((a, b) => a + b, 0)}
+                                                    </div>
+                                                )}
                                             </div>
-                                        )}
+                                            <span className="text-xl md:text-4xl font-black text-[#510813]">₱{cartTotal.toLocaleString()}</span>
+                                        </div>
+
+                                        {/* Submit Button */}
+                                        <button
+                                            onClick={handleInitialSubmit}
+                                            disabled={!isMinOrderMet || Object.keys(cart).length === 0}
+                                            className="flex-1 md:w-full bg-[#E5562E] hover:bg-[#c94925] text-white py-3 md:py-5 px-4 rounded-xl md:rounded-2xl font-black text-sm md:text-2xl shadow-lg shadow-[#E5562E]/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2"
+                                        >
+                                            <FileText size={18} className="md:w-6 md:h-6" strokeWidth={2.5} />
+                                            <span>SUBMIT</span>
+                                        </button>
                                     </div>
 
                                     {currentZone && !isMinOrderMet && (
                                         <div className="bg-white/20 backdrop-blur p-2 rounded-xl text-xs flex items-center gap-2 text-warning">
                                             <AlertCircle size={14} />
-                                            Add ₱{(minOrderAmount - cartTotal).toLocaleString()} to order
+                                            <span className="truncate">Add ₱{(minOrderAmount - cartTotal).toLocaleString()} more</span>
                                         </div>
                                     )}
-
-                                    {/* Submit Button */}
-                                    <button
-                                        onClick={handleInitialSubmit}
-                                        disabled={!isMinOrderMet || Object.keys(cart).length === 0}
-                                        className="w-full bg-[#E5562E] hover:bg-[#c94925] text-white py-4 md:py-5 rounded-2xl font-black text-xl md:text-2xl shadow-xl shadow-[#E5562E]/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-3"
-                                    >
-                                        <FileText size={24} strokeWidth={2.5} />
-                                        SUBMIT ORDER
-                                    </button>
                                 </div>
                             </div>
                         </div>
