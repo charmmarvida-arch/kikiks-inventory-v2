@@ -247,6 +247,7 @@ const ResellerDashboard = () => {
         return {
             totalOrders,
             activeResellers,
+            totalRevenue,
             ytdRevenue,
             complianceRate, // New metric
             pendingEncoding,
