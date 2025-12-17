@@ -698,6 +698,7 @@ const ResellerDashboard = () => {
                                                 title={data.resellerName}
                                                 onClick={() => handleViewResellerHistory(data)}
                                             >
+                                                {data.resellerName}
                                             </td>
 
                                             {/* Compliance Status Column */}
