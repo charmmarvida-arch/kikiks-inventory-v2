@@ -405,26 +405,16 @@ button {
 /* Premium Table Styles */
 .table-container {
   background: var(--base-white);
-  border: 2px solid var(--primary);
-  /* Pop of color outline */
+  border: 1px solid transparent;
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
-  overflow-x: auto;
-  /* Allow scrolling if needed, but centering is priority */
+  overflow: hidden;
+  /* Clips the corners */
   margin-bottom: 1.5rem;
-  padding: 1rem;
-  /* Padding added */
-  display: flex;
-  justify-content: center;
-  /* Center the table */
 }
 
 .inventory-table {
   width: auto;
-  min-width: 60%;
-  /* Ensure it doesn't get too small */
-  margin: 0 auto;
-  /* Center specifically */
   border-collapse: separate;
   /* Allows for sticky headers and better border control */
   border-spacing: 0;
