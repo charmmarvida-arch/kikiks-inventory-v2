@@ -411,9 +411,9 @@ const LegazpiStorage = () => {
             </div>
 
             {/* Inventory Table */}
-            <div className="form-card p-0 overflow-hidden">
-                <div className="table-container">
-                    <table className="inventory-table">
+            <div className="form-card p-0" style={{ maxWidth: '1300px', margin: '0 auto' }}>
+                <div className="table-container" style={{ overflowX: 'auto' }}>
+                    <table className="inventory-table" style={{ minWidth: 'max-content' }}>
                         <thead style={{ position: 'sticky', top: 0, zIndex: 10, backgroundColor: 'white' }}>
                             <tr>
                                 <th>Status</th>
