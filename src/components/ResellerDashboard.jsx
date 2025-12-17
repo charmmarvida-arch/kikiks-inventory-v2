@@ -655,7 +655,13 @@ const ResellerDashboard = () => {
                                                 <button
                                                     className="std-btn std-btn-primary"
                                                     onClick={() => {
-                                                        setSelectedReseller({ resellerName: data.resellerName, totalAmount: selectedPeriodSales });
+                                                        const safeReseller = salesData || {
+                                                            resellerName: data.resellerName,
+                                                            totalAmount: 0,
+                                                            ytdAmount: 0,
+                                                            orders: []
+                                                        };
+                                                        setSelectedReseller(safeReseller);
                                                         setShowModal(true);
                                                     }}
                                                 >
