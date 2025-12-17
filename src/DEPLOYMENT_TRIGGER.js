@@ -1,7 +1,10 @@
-// Current Version: 2.2.0
-// Last Updated: 2025-12-16
+```
+// Current Version: 2.2.2
+// Last Updated: 2025-12-17
 //
 // Change Log:
+// - 2.2.2: Fix FTF Manufacturing Table Width (Autofit Content)
+// - 2.2.1: Fix FTF Manufacturing Table Layout (Mobile Scroll & Desktop Constraint)
 // - 2.2.0: Fix Packing List Descriptions for Trays/Others & Update PDF Generator
 // - 2.1.9: Harden Table Layout with Flexible Box (Fix Scrollbar Missing)
 // - 2.1.8: Aggressively Fix Table Scroll (450px clearance)

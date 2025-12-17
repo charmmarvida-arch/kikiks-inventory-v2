@@ -412,7 +412,7 @@ const FTFManufacturing = () => {
             {/* Inventory Table - Added overflow-x-auto for mobile scrolling */}
             <div className="form-card p-0" style={{ maxWidth: '1300px', margin: '0 auto' }}>
                 <div className="table-container" style={{ overflowX: 'auto' }}>
-                    <table className="inventory-table" style={{ minWidth: '1000px' }}>
+                    <table className="inventory-table" style={{ minWidth: 'max-content' }}>
                         <thead style={{ position: 'sticky', top: 0, zIndex: 10, backgroundColor: 'white' }}>
                             <tr>
                                 <th style={{ width: '60px', textAlign: 'center' }}>Status</th>
