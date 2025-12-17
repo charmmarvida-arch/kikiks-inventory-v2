@@ -569,7 +569,7 @@ const ResellerDashboard = () => {
                             <span>{sortDescending ? 'Highest First' : 'Lowest First'}</span>
                         </button>
                     </div>
-                    <div className="table-container shadow-none border-0">
+                    <div className="table-container shadow-none border-0" style={{ display: 'block', overflowX: 'auto' }}>
                         <table className="inventory-table" style={{ tableLayout: 'fixed', width: '100%' }}>
                             <colgroup>
                                 <col style={{ width: '45%' }} />
@@ -641,7 +641,7 @@ const ResellerDashboard = () => {
                             {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
                         </span>
                     </div>
-                    <div className="table-container shadow-none border-0">
+                    <div className="table-container shadow-none border-0" style={{ display: 'block', overflowX: 'auto' }}>
                         <table className="inventory-table" style={{ tableLayout: 'fixed', width: '100%' }}>
                             <colgroup>
                                 <col style={{ width: '28%' }} />
