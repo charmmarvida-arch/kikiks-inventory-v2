@@ -578,7 +578,7 @@ const ResellerDashboard = () => {
                             </colgroup>
                             <thead>
                                 <tr>
-                                    <th className="text-left" style={{ paddingLeft: '1rem' }}>Reseller Name</th>
+                                    <th style={{ paddingLeft: '1rem', textAlign: 'left' }}>Reseller Name</th>
                                     <th className="text-right">Sales</th>
                                     <th className="text-center">Actions</th>
                                 </tr>
@@ -596,16 +596,13 @@ const ResellerDashboard = () => {
                                             <td style={{
                                                 padding: '12px 1rem',
                                                 fontWeight: '500',
-                                                overflow: 'hidden',
-                                                textOverflow: 'ellipsis',
-                                                whiteSpace: 'nowrap',
-                                                color: 'var(--primary)',
+                                                color: 'var(--text-main)',
                                                 cursor: 'pointer'
                                             }}
                                                 title={reseller.resellerName}
                                                 onClick={() => handleViewResellerHistory(reseller)}
                                             >
-                                                {reseller.resellerName}
+                                                {reseller.resellerName || "Unknown"}
                                             </td>
                                             <td style={{
                                                 padding: '12px 2px',
