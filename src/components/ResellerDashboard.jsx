@@ -551,7 +551,7 @@ const ResellerDashboard = () => {
             </div>
 
             {/* Master Table: Performance Overview */}
-            <div className="dashboard-card" style={{ marginBottom: '2rem', maxWidth: '1400px', margin: '0 auto 2rem auto' }}>
+            <div className="dashboard-card" style={{ marginBottom: '1.5rem', maxWidth: '1150px', margin: '0 auto 2rem auto' }}>
                 <div className="card-header">
                     <h3 className="card-title">Reseller Performance Overview</h3>
                     <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
@@ -571,7 +571,7 @@ const ResellerDashboard = () => {
                     <table className="inventory-table" style={{ tableLayout: 'auto', width: '100%' }}>
                         <thead>
                             <tr>
-                                <th style={{ paddingLeft: '1.5rem', textAlign: 'left', width: '20%' }}>Reseller Name</th>
+                                <th style={{ paddingLeft: '1rem', textAlign: 'left', width: '20%' }}>Reseller Name</th>
                                 <th style={{ width: '20%', textAlign: 'left' }}>Compliance Status</th>
                                 <th style={{ width: '20%', textAlign: 'right' }}>Monthly Progress</th>
                                 <th style={{ width: '20%', textAlign: 'right' }}>Filter Range Sales</th>
@@ -593,7 +593,7 @@ const ResellerDashboard = () => {
                                     return (
                                         <tr key={data.resellerName} className="hover:bg-gray-50 transition-colors" style={{ borderBottom: '1px solid var(--border-color)' }}>
                                             <td style={{
-                                                padding: '1rem 1.5rem',
+                                                padding: '0.75rem 1rem',
                                                 fontWeight: '600',
                                                 color: 'var(--text-main)',
                                                 cursor: 'pointer',
