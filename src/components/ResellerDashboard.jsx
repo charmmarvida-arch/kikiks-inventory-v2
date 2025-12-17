@@ -550,75 +550,112 @@ const ResellerDashboard = () => {
                 />
             </div>
 
-            {/* Two-Column Layout: Reseller Summary + Monthly Compliance */}
-            <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'minmax(350px, 30fr) 70fr',
-                gap: '1rem',
-                marginBottom: '2rem'
-            }}>
-                {/* Reseller Summary Table - Left */}
-                <div className="dashboard-card">
-                    <div className="card-header">
-                        <h3 className="card-title">Reseller Summary</h3>
+            {/* Master Table: Performance Overview */}
+            <div className="dashboard-card" style={{ marginBottom: '2rem' }}>
+                <div className="card-header">
+                    <h3 className="card-title">Reseller Performance Overview</h3>
+                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                        <span className="text-secondary text-sm font-medium">
+                            {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })} Cycle
+                        </span>
                         <button
                             onClick={() => setSortDescending(!sortDescending)}
                             className="text-btn text-primary text-sm flex items-center gap-1 font-medium bg-gray-50 px-3 py-1 rounded-full hover:bg-gray-100 transition-colors"
                         >
                             <ArrowUpDown size={14} />
-                            <span>{sortDescending ? 'Highest First' : 'Lowest First'}</span>
+                            <span>{sortDescending ? 'Highest Sales' : 'Lowest Sales'}</span>
                         </button>
                     </div>
-                    <div className="table-container shadow-none border-0" style={{ display: 'block', overflowX: 'auto' }}>
-                        <table className="inventory-table" style={{ tableLayout: 'fixed', width: '100%' }}>
-                            <colgroup>
-                                <col style={{ width: '40%' }} />
-                                <col style={{ width: '30%' }} />
-                                <col style={{ width: '30%' }} />
-                            </colgroup>
-                            <thead>
+                </div>
+                <div className="table-container shadow-none border-0" style={{ display: 'block', overflowX: 'auto' }}>
+                    <table className="inventory-table" style={{ tableLayout: 'auto', width: '100%' }}>
+                        <thead>
+                            <tr>
+                                <th style={{ paddingLeft: '1.5rem', textAlign: 'left', width: '25%' }}>Reseller Name</th>
+                                <th style={{ width: '25%', textAlign: 'left' }}>Compliance Status</th>
+                                <th style={{ width: '20%', textAlign: 'right' }}>Monthly Progress</th>
+                                <th style={{ width: '20%', textAlign: 'right' }}>Filter Range Sales</th>
+                                <th style={{ width: '10%', textAlign: 'center' }}>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {monthlyComplianceData.length === 0 ? (
                                 <tr>
-                                    <th style={{ paddingLeft: '1rem', textAlign: 'left' }}>Reseller Name</th>
-                                    <th className="text-right">Sales</th>
-                                    <th className="text-center">Actions</th>
+                                    <td colSpan={5} className="empty-state text-center py-8 text-secondary">
+                                        No resellers found.
+                                    </td>
                                 </tr>
-                            </thead>
-                            <tbody>
-                                {aggregatedData.length === 0 ? (
-                                    <tr>
-                                        <td colSpan={3} className="empty-state">
-                                            No orders found for the selected date range.
-                                        </td>
-                                    </tr>
-                                ) : (
-                                    aggregatedData.map(reseller => (
-                                        <tr key={reseller.resellerName} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                            ) : (
+                                monthlyComplianceData.map(data => {
+                                    const salesData = aggregatedData.find(d => d.resellerName === data.resellerName);
+                                    const selectedPeriodSales = salesData ? salesData.totalAmount : 0;
+
+                                    return (
+                                        <tr key={data.resellerName} className="hover:bg-gray-50 transition-colors" style={{ borderBottom: '1px solid var(--border-color)' }}>
                                             <td style={{
-                                                padding: '12px 1rem',
-                                                fontWeight: '500',
+                                                padding: '1rem 1.5rem',
+                                                fontWeight: '600',
                                                 color: 'var(--text-main)',
-                                                cursor: 'pointer'
+                                                cursor: 'pointer',
+                                                verticalAlign: 'middle'
                                             }}
-                                                title={reseller.resellerName}
-                                                onClick={() => handleViewResellerHistory(reseller)}
+                                                title={data.resellerName}
+                                                onClick={() => handleViewResellerHistory(data)}
                                             >
-                                                {reseller.resellerName || "Unknown"}
+                                                {data.resellerName}
                                             </td>
-                                            <td style={{
-                                                padding: '12px 2px',
-                                                textAlign: 'right',
-                                                fontWeight: 'bold'
-                                            }}>
-                                                ₱{reseller.totalAmount.toLocaleString()}
+
+                                            {/* Compliance Status Column */}
+                                            <td style={{ verticalAlign: 'middle' }}>
+                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                        {data.status === 'met' && (
+                                                            <span className="std-btn" style={{ backgroundColor: '#dcfce7', color: '#166534', cursor: 'default', padding: '0.2rem 0.6rem', fontSize: '0.75rem', borderRadius: '4px' }}>
+                                                                ✓ Met
+                                                            </span>
+                                                        )}
+                                                        {data.status === 'pending' && (
+                                                            <span className="std-btn" style={{ backgroundColor: '#fef9c3', color: '#854d0e', cursor: 'default', padding: '0.2rem 0.6rem', fontSize: '0.75rem', borderRadius: '4px' }}>
+                                                                ⏳ Pending
+                                                            </span>
+                                                        )}
+                                                        {data.status === 'not_met' && (
+                                                            <span className="std-btn" style={{ backgroundColor: '#fee2e2', color: '#991b1b', cursor: 'default', padding: '0.2rem 0.6rem', fontSize: '0.75rem', borderRadius: '4px' }}>
+                                                                ✗ Not Met
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                                                        {data.cycleString}
+                                                    </span>
+                                                </div>
                                             </td>
-                                            <td style={{
-                                                padding: '14px 4px',
-                                                textAlign: 'center'
-                                            }}>
+
+                                            {/* Monthly Progress Column */}
+                                            <td style={{ textAlign: 'right', verticalAlign: 'middle' }}>
+                                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                                                    <span style={{ fontWeight: '600', color: 'var(--text-main)' }}>
+                                                        ₱{data.ordersThisMonth.toLocaleString()}
+                                                    </span>
+                                                    <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                                                        Target: ₱{data.minimum.toLocaleString()}
+                                                    </span>
+                                                </div>
+                                            </td>
+
+                                            {/* Filtered Sales Column */}
+                                            <td style={{ textAlign: 'right', verticalAlign: 'middle' }}>
+                                                <span style={{ fontWeight: '700', color: 'var(--primary)', fontSize: '1rem' }}>
+                                                    ₱{selectedPeriodSales.toLocaleString()}
+                                                </span>
+                                            </td>
+
+                                            {/* Actions Column */}
+                                            <td style={{ textAlign: 'center', verticalAlign: 'middle' }}>
                                                 <button
                                                     className="std-btn std-btn-primary"
                                                     onClick={() => {
-                                                        setSelectedReseller(reseller);
+                                                        setSelectedReseller({ resellerName: data.resellerName, totalAmount: selectedPeriodSales });
                                                         setShowModal(true);
                                                     }}
                                                 >
@@ -626,86 +663,11 @@ const ResellerDashboard = () => {
                                                 </button>
                                             </td>
                                         </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                {/* Monthly Compliance Table - Right */}
-                <div className="dashboard-card">
-                    <div className="card-header">
-                        <h3 className="card-title">Monthly Compliance</h3>
-                        <span className="text-secondary text-sm font-medium">
-                            {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-                        </span>
-                    </div>
-                    <div className="table-container shadow-none border-0" style={{ display: 'block', overflowX: 'auto' }}>
-                        <table className="inventory-table" style={{ tableLayout: 'fixed', width: '100%' }}>
-                            <colgroup>
-                                <col style={{ width: '28%' }} />
-                                <col style={{ width: '22%' }} />
-                                <col style={{ width: '15%' }} />
-                                <col style={{ width: '15%' }} />
-                                <col style={{ width: '20%' }} />
-                            </colgroup>
-                            <thead>
-                                <tr>
-                                    <th>Reseller Name</th>
-                                    <th className="text-right">Cycle Period</th>
-                                    <th className="text-right">Sales</th>
-                                    <th className="text-right">Minimum</th>
-                                    <th className="text-center">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {monthlyComplianceData.length === 0 ? (
-                                    <tr>
-                                        <td colSpan={5} className="empty-state text-center py-8 text-secondary">
-                                            No resellers found.
-                                        </td>
-                                    </tr>
-                                ) : (
-                                    monthlyComplianceData.map(data => (
-                                        <tr key={data.resellerName} className="hover:bg-gray-50 transition-colors">
-                                            <td className="font-medium text-main" style={{
-                                                whiteSpace: 'nowrap',
-                                                overflow: 'hidden',
-                                                textOverflow: 'ellipsis'
-                                            }} title={data.resellerName}>{data.resellerName}</td>
-                                            <td className="text-right text-secondary text-sm">
-                                                {data.cycleString}
-                                            </td>
-                                            <td className="text-right font-bold text-main">
-                                                ₱{data.ordersThisMonth.toLocaleString()}
-                                            </td>
-                                            <td className="text-right text-secondary text-sm">
-                                                ₱{data.minimum.toLocaleString()}
-                                            </td>
-                                            <td className="text-center">
-                                                {data.status === 'met' && (
-                                                    <span className="std-btn" style={{ backgroundColor: '#dcfce7', color: '#166534', cursor: 'default', minWidth: '80px' }}>
-                                                        ✓ Met
-                                                    </span>
-                                                )}
-                                                {data.status === 'pending' && (
-                                                    <span className="std-btn" style={{ backgroundColor: '#fef9c3', color: '#854d0e', cursor: 'default', minWidth: '80px' }}>
-                                                        ⏳ Pending
-                                                    </span>
-                                                )}
-                                                {data.status === 'not_met' && (
-                                                    <span className="std-btn" style={{ backgroundColor: '#fee2e2', color: '#991b1b', cursor: 'default', minWidth: '80px' }}>
-                                                        ✗ Not Met
-                                                    </span>
-                                                )}
-                                            </td>
-                                        </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
+                                    );
+                                })
+                            )}
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
