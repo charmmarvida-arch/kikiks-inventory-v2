@@ -572,15 +572,13 @@ const ResellerDashboard = () => {
                     <div className="table-container shadow-none border-0">
                         <table className="inventory-table" style={{ tableLayout: 'fixed', width: '100%' }}>
                             <colgroup>
+                                <col style={{ width: '45%' }} />
                                 <col style={{ width: '35%' }} />
-                                <col style={{ width: '25%' }} />
-                                <col style={{ width: '25%' }} />
-                                <col style={{ width: '15%' }} />
+                                <col style={{ width: '20%' }} />
                             </colgroup>
                             <thead>
                                 <tr>
-                                    <th>Reseller Name</th>
-                                    <th className="text-right">Sales (YTD) CHECK</th>
+                                    <th className="text-left" style={{ paddingLeft: '1rem' }}>Reseller Name</th>
                                     <th className="text-right">Sales</th>
                                     <th className="text-center">Actions</th>
                                 </tr>
@@ -588,7 +586,7 @@ const ResellerDashboard = () => {
                             <tbody>
                                 {aggregatedData.length === 0 ? (
                                     <tr>
-                                        <td colSpan={4} className="empty-state">
+                                        <td colSpan={3} className="empty-state">
                                             No orders found for the selected date range.
                                         </td>
                                     </tr>
@@ -596,36 +594,18 @@ const ResellerDashboard = () => {
                                     aggregatedData.map(reseller => (
                                         <tr key={reseller.resellerName} style={{ borderBottom: '1px solid var(--border-color)' }}>
                                             <td style={{
-                                                padding: '12px 2px',
+                                                padding: '12px 1rem',
                                                 fontWeight: '500',
                                                 overflow: 'hidden',
                                                 textOverflow: 'ellipsis',
-                                                cursor: 'pointer',
+                                                whiteSpace: 'nowrap',
                                                 color: 'var(--primary)',
-                                                textDecoration: 'underline'
+                                                cursor: 'pointer'
                                             }}
                                                 title={reseller.resellerName}
                                                 onClick={() => handleViewResellerHistory(reseller)}
                                             >
                                                 {reseller.resellerName}
-                                            </td>
-                                            <td style={{
-                                                padding: '12px 2px',
-                                                textAlign: 'right'
-                                            }}>
-                                                <div style={{
-                                                    display: 'inline-block',
-                                                    padding: '4px 12px',
-                                                    backgroundColor: 'rgba(79, 70, 229, 0.1)', // Light primary tint
-                                                    color: 'var(--primary)',
-                                                    borderRadius: '6px',
-                                                    fontWeight: '600',
-                                                    fontSize: '0.85em',
-                                                    minWidth: '80px',
-                                                    textAlign: 'center'
-                                                }}>
-                                                    ₱{reseller.ytdAmount?.toLocaleString() || '0'}
-                                                </div>
                                             </td>
                                             <td style={{
                                                 padding: '12px 2px',
