@@ -414,7 +414,7 @@ button {
 }
 
 .inventory-table {
-  width: 100%;
+  width: auto;
   border-collapse: separate;
   /* Allows for sticky headers and better border control */
   border-spacing: 0;
