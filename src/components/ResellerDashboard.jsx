@@ -572,9 +572,9 @@ const ResellerDashboard = () => {
                     <div className="table-container shadow-none border-0" style={{ display: 'block', overflowX: 'auto' }}>
                         <table className="inventory-table" style={{ tableLayout: 'fixed', width: '100%' }}>
                             <colgroup>
-                                <col style={{ width: '45%' }} />
-                                <col style={{ width: '35%' }} />
-                                <col style={{ width: '20%' }} />
+                                <col style={{ width: '40%' }} />
+                                <col style={{ width: '30%' }} />
+                                <col style={{ width: '30%' }} />
                             </colgroup>
                             <thead>
                                 <tr>
