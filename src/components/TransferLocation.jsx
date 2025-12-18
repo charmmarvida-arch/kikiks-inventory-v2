@@ -80,7 +80,7 @@ const TransferLocation = ({ isPublic = false }) => {
         addLegazpiStock,
         addLegazpiProduct,
         addSku,
-        addSku,
+
         updateLegazpiProduct,
         deleteLegazpiProduct,
         updateSku,
@@ -1135,8 +1135,8 @@ const InventoryTab = ({ warehouses, legazpiInventory, inventory, actions }) => {
                         key={w}
                         onClick={() => setSelectedWarehouse(w)}
                         className={`px-4 py-2 rounded-full text-sm font-bold transition-all ${selectedWarehouse === w
-                                ? 'bg-[#510813] text-white shadow-md'
-                                : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                            ? 'bg-[#510813] text-white shadow-md'
+                            : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
                             }`}
                     >
                         {w}
