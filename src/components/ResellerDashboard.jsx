@@ -486,7 +486,8 @@ const ResellerDashboard = () => {
                         <p className="page-subtitle">Executive overview of reseller performance</p>
                     </div>
                     <div style={{ display: 'flex', gap: '0.75rem' }}>
-                        <button
+                        {/* Settings Button Removed as per request (retained in Create Order only) */}
+                        {/* <button
                             onClick={() => setShowSettingsModal(true)}
                             style={{
                                 display: 'flex',
@@ -514,7 +515,7 @@ const ResellerDashboard = () => {
                         >
                             <Settings size={16} />
                             <span>Settings</span>
-                        </button>
+                        </button> */}
                         <button
                             onClick={() => setShowDateFilterModal(true)}
                             style={{
