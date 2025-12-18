@@ -6,7 +6,7 @@ import ResellerSettingsModal from './ResellerSettingsModal';
 import { generatePackingList } from '../utils/pdfGenerator';
 
 const ResellerDashboard = () => {
-    const { resellerOrders, updateResellerOrder, resellerSettings, inventory } = useInventory();
+    const { resellerOrders, updateResellerOrder, resellerSettings, inventory, resellers } = useInventory();
     const { userProfile } = useAuth();
 
     // PIN Protection State
@@ -339,15 +339,23 @@ const ResellerDashboard = () => {
     }, [resellerOrders]);
 
     // 3. Global Progress (Revenue vs Target)
+    // 3. Global Progress (Revenue vs Target)
     const globalProgress = useMemo(() => {
         const currentRevenue = metrics.totalRevenue; // From existing metrics
-        // Sum of all reseller targets
-        const totalTarget = resellerSettings.reduce((sum, s) => sum + (s.minimum_monthly_order || 10000), 0);
-        // Fallback if no settings?
+
+        // Sum targets for ALL resellers
+        // If a reseller has a setting, use it. Otherwise use default 10,000.
+        const totalTarget = resellers.reduce((sum, reseller) => {
+            const setting = resellerSettings.find(s => s.reseller_name === reseller.name);
+            const target = setting ? (setting.minimum_monthly_order || 10000) : 10000;
+            return sum + target;
+        }, 0);
+
+        // Fallback only if no resellers exist at all
         const finalTarget = totalTarget > 0 ? totalTarget : 200000;
         const percentage = Math.min((currentRevenue / finalTarget) * 100, 100);
         return { currentRevenue, finalTarget, percentage };
-    }, [metrics.totalRevenue, resellerSettings]);
+    }, [metrics.totalRevenue, resellers, resellerSettings]);
 
     // 4. Critical Alerts (Logic moved from UI if needed, but we can reuse monthlyComplianceData)
     const criticalAlerts = useMemo(() => {
