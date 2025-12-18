@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useInventory } from '../context/InventoryContext';
 import { useAuth } from '../context/AuthContext';
-import { X, Calendar, Settings, ArrowUpDown, TrendingUp, TrendingDown, Users, Package, CheckCircle, Clock, Filter, FileText } from 'lucide-react';
+import { X, Calendar, Settings, ArrowUpDown, TrendingUp, TrendingDown, Users, Package, CheckCircle, Clock, Filter, FileText, AlertCircle } from 'lucide-react';
 import ResellerSettingsModal from './ResellerSettingsModal';
 import { generatePackingList } from '../utils/pdfGenerator';
 
@@ -772,181 +772,193 @@ const ResellerDashboard = () => {
                     </table>
                 </div>
             </div>
+            {/* Explanatory Note */}
+            <div style={{ marginTop: '0.5rem', padding: '1rem', backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '0.875rem', color: '#64748b', display: 'flex', gap: '0.75rem' }}>
+                <div style={{ flexShrink: 0, marginTop: '2px' }}><AlertCircle size={16} /></div>
+                <div>
+                    <p style={{ margin: 0, fontWeight: '600', marginBottom: '4px' }}>Why are the amounts different?</p>
+                    <ul style={{ margin: 0, paddingLeft: '1.25rem', listStyleType: 'disc', lineHeight: '1.4' }}>
+                        <li><strong>Monthly Progress:</strong> Only counts sales within the store's specific contract cycle (e.g., Dec 12 - Jan 12).</li>
+                        <li><strong>Filter Range Sales:</strong> Counts all sales within the dates selected in the top-right filter (e.g., Dec 1 - Today).</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
 
-            {/* Date Filter Modal */}
-            {
-                showDateFilterModal && (
-                    <div className="modal-overlay" onClick={() => setShowDateFilterModal(false)}>
-                        <div className="modal-content medium-modal" onClick={e => e.stopPropagation()}>
-                            <div className="modal-header">
-                                <h3 className="modal-title">
-                                    <Calendar size={20} />
-                                    Date Range Filter
-                                </h3>
-                                <button className="close-btn" onClick={() => setShowDateFilterModal(false)}>
-                                    <X size={24} />
-                                </button>
+            {/* Date Filter Modal */ }
+    {
+        showDateFilterModal && (
+            <div className="modal-overlay" onClick={() => setShowDateFilterModal(false)}>
+                <div className="modal-content medium-modal" onClick={e => e.stopPropagation()}>
+                    <div className="modal-header">
+                        <h3 className="modal-title">
+                            <Calendar size={20} />
+                            Date Range Filter
+                        </h3>
+                        <button className="close-btn" onClick={() => setShowDateFilterModal(false)}>
+                            <X size={24} />
+                        </button>
+                    </div>
+                    <div className="modal-body">
+                        <div className="grid-responsive two-cols">
+                            <div>
+                                <label className="form-label">Start Date</label>
+                                <input
+                                    type="date"
+                                    className="premium-input"
+                                    value={startDate}
+                                    onChange={(e) => setStartDate(e.target.value)}
+                                />
                             </div>
-                            <div className="modal-body">
-                                <div className="grid-responsive two-cols">
-                                    <div>
-                                        <label className="form-label">Start Date</label>
-                                        <input
-                                            type="date"
-                                            className="premium-input"
-                                            value={startDate}
-                                            onChange={(e) => setStartDate(e.target.value)}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="form-label">End Date</label>
-                                        <input
-                                            type="date"
-                                            className="premium-input"
-                                            value={endDate}
-                                            onChange={(e) => setEndDate(e.target.value)}
-                                        />
-                                    </div>
-                                </div>
-                                <div className="flex justify-end gap-4 mt-6">
-                                    <button
-                                        className="icon-btn px-4 w-auto"
-                                        onClick={() => setShowDateFilterModal(false)}
-                                    >
-                                        Close
-                                    </button>
-                                    <button
-                                        className="submit-btn"
-                                        onClick={() => setShowDateFilterModal(false)}
-                                    >
-                                        Apply Filter
-                                    </button>
-                                </div>
+                            <div>
+                                <label className="form-label">End Date</label>
+                                <input
+                                    type="date"
+                                    className="premium-input"
+                                    value={endDate}
+                                    onChange={(e) => setEndDate(e.target.value)}
+                                />
                             </div>
                         </div>
+                        <div className="flex justify-end gap-4 mt-6">
+                            <button
+                                className="icon-btn px-4 w-auto"
+                                onClick={() => setShowDateFilterModal(false)}
+                            >
+                                Close
+                            </button>
+                            <button
+                                className="submit-btn"
+                                onClick={() => setShowDateFilterModal(false)}
+                            >
+                                Apply Filter
+                            </button>
+                        </div>
                     </div>
-                )
-            }
+                </div>
+            </div>
+        )
+    }
 
-            {/* Order Details Modal */}
-            {
-                showModal && selectedReseller && (
-                    <div className="modal-overlay" onClick={() => setShowModal(false)}>
-                        <div className="modal-content medium-modal" onClick={e => e.stopPropagation()}>
-                            <div className="modal-header">
-                                <h3 className="modal-title">
-                                    Orders - {selectedReseller.resellerName}
-                                </h3>
-                                <button className="close-btn" onClick={() => setShowModal(false)}>
-                                    <X size={24} />
-                                </button>
+    {/* Order Details Modal */ }
+    {
+        showModal && selectedReseller && (
+            <div className="modal-overlay" onClick={() => setShowModal(false)}>
+                <div className="modal-content medium-modal" onClick={e => e.stopPropagation()}>
+                    <div className="modal-header">
+                        <h3 className="modal-title">
+                            Orders - {selectedReseller.resellerName}
+                        </h3>
+                        <button className="close-btn" onClick={() => setShowModal(false)}>
+                            <X size={24} />
+                        </button>
+                    </div>
+                    <div className="modal-body">
+                        <div className="bg-blue-50 p-4 rounded-lg mb-4 flex justify-between items-center">
+                            <div>
+                                <div className="text-secondary text-sm font-medium">Total Order (YTD)</div>
+                                <div className="text-2xl font-bold text-primary">₱{selectedReseller.ytdAmount?.toLocaleString()}</div>
                             </div>
-                            <div className="modal-body">
-                                <div className="bg-blue-50 p-4 rounded-lg mb-4 flex justify-between items-center">
-                                    <div>
-                                        <div className="text-secondary text-sm font-medium">Total Order (YTD)</div>
-                                        <div className="text-2xl font-bold text-primary">₱{selectedReseller.ytdAmount?.toLocaleString()}</div>
-                                    </div>
-                                    <div className="text-right">
-                                        <div className="text-secondary text-sm">Reseller Name</div>
-                                        <div className="font-semibold">{selectedReseller.resellerName}</div>
-                                    </div>
-                                </div>
+                            <div className="text-right">
+                                <div className="text-secondary text-sm">Reseller Name</div>
+                                <div className="font-semibold">{selectedReseller.resellerName}</div>
+                            </div>
+                        </div>
 
-                                <div className="scrollable-table-container" style={{ maxHeight: '500px' }}>
-                                    <table className="w-full" style={{ borderCollapse: 'separate', borderSpacing: 0 }}>
-                                        <thead style={{ position: 'sticky', top: 0, backgroundColor: 'white', zIndex: 1 }}>
-                                            <tr className="text-left text-sm text-secondary" style={{ borderBottom: '2px solid var(--border-color)' }}>
-                                                <th style={{ padding: '12px 16px', fontWeight: '600' }}>Date</th>
-                                                <th style={{ padding: '12px 16px', textAlign: 'right', fontWeight: '600' }}>Total Order</th>
-                                                <th style={{ padding: '12px 16px', textAlign: 'center', fontWeight: '600' }}>Encoded Status</th>
-                                                <th style={{ padding: '12px 16px', textAlign: 'center', fontWeight: '600' }}>Packing List</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
+                        <div className="scrollable-table-container" style={{ maxHeight: '500px' }}>
+                            <table className="w-full" style={{ borderCollapse: 'separate', borderSpacing: 0 }}>
+                                <thead style={{ position: 'sticky', top: 0, backgroundColor: 'white', zIndex: 1 }}>
+                                    <tr className="text-left text-sm text-secondary" style={{ borderBottom: '2px solid var(--border-color)' }}>
+                                        <th style={{ padding: '12px 16px', fontWeight: '600' }}>Date</th>
+                                        <th style={{ padding: '12px 16px', textAlign: 'right', fontWeight: '600' }}>Total Order</th>
+                                        <th style={{ padding: '12px 16px', textAlign: 'center', fontWeight: '600' }}>Encoded Status</th>
+                                        <th style={{ padding: '12px 16px', textAlign: 'center', fontWeight: '600' }}>Packing List</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
 
-                                            {selectedReseller.orders.map((order, index) => {
-                                                const isEncoded = encodedOverrides.hasOwnProperty(order.id) ? encodedOverrides[order.id] : order.is_encoded;
-                                                return (
-                                                    <tr
-                                                        key={order.id}
+                                    {selectedReseller.orders.map((order, index) => {
+                                        const isEncoded = encodedOverrides.hasOwnProperty(order.id) ? encodedOverrides[order.id] : order.is_encoded;
+                                        return (
+                                            <tr
+                                                key={order.id}
+                                                style={{
+                                                    borderBottom: index < selectedReseller.orders.length - 1 ? '1px solid #f0f0f0' : 'none',
+                                                    backgroundColor: index % 2 === 0 ? 'white' : '#fafafa'
+                                                }}
+                                            >
+                                                <td style={{ padding: '16px' }}>
+                                                    {new Date(order.date).toLocaleDateString()}
+                                                </td>
+                                                <td style={{ padding: '16px', textAlign: 'right', fontWeight: 'bold' }}>
+                                                    ₱{order.totalAmount?.toLocaleString() || '0'}
+                                                </td>
+                                                <td style={{ padding: '16px', textAlign: 'center' }}>
+                                                    <button
+                                                        className={`${isEncoded
+                                                            ? 'bg-green-100 text-green-700 border-green-300'
+                                                            : 'bg-gray-100 text-gray-700 border-gray-300'
+                                                            }`}
+                                                        onClick={() => handleEncodedToggle(order)}
                                                         style={{
-                                                            borderBottom: index < selectedReseller.orders.length - 1 ? '1px solid #f0f0f0' : 'none',
-                                                            backgroundColor: index % 2 === 0 ? 'white' : '#fafafa'
+                                                            padding: '6px 16px',
+                                                            borderRadius: '6px',
+                                                            fontSize: '0.875rem',
+                                                            fontWeight: '600',
+                                                            border: '1px solid',
+                                                            cursor: 'pointer',
+                                                            transition: 'all 0.2s',
+                                                            minWidth: '120px'
                                                         }}
                                                     >
-                                                        <td style={{ padding: '16px' }}>
-                                                            {new Date(order.date).toLocaleDateString()}
-                                                        </td>
-                                                        <td style={{ padding: '16px', textAlign: 'right', fontWeight: 'bold' }}>
-                                                            ₱{order.totalAmount?.toLocaleString() || '0'}
-                                                        </td>
-                                                        <td style={{ padding: '16px', textAlign: 'center' }}>
-                                                            <button
-                                                                className={`${isEncoded
-                                                                    ? 'bg-green-100 text-green-700 border-green-300'
-                                                                    : 'bg-gray-100 text-gray-700 border-gray-300'
-                                                                    }`}
-                                                                onClick={() => handleEncodedToggle(order)}
-                                                                style={{
-                                                                    padding: '6px 16px',
-                                                                    borderRadius: '6px',
-                                                                    fontSize: '0.875rem',
-                                                                    fontWeight: '600',
-                                                                    border: '1px solid',
-                                                                    cursor: 'pointer',
-                                                                    transition: 'all 0.2s',
-                                                                    minWidth: '120px'
-                                                                }}
-                                                            >
-                                                                {isEncoded ? (
-                                                                    <>✓ ENCODED</>
-                                                                ) : (
-                                                                    <>NOT ENCODED</>
-                                                                )}
-                                                            </button>
-                                                        </td>
-                                                        <td style={{ padding: '16px', textAlign: 'center' }}>
-                                                            <button
-                                                                className="text-btn text-primary text-sm font-medium flex items-center gap-1 justify-center"
-                                                                onClick={() => handleViewPDF(order)}
-                                                            >
-                                                                <FileText size={16} />
-                                                                View PDF
-                                                            </button>
-                                                        </td>
-                                                    </tr>
-                                                )
-                                            })}
-                                        </tbody>
-                                    </table>
-                                </div>
-                                <div style={{
-                                    marginTop: '1.5rem',
-                                    paddingTop: '1.5rem',
-                                    borderTop: '2px solid var(--border-color)',
-                                    display: 'flex',
-                                    justifyContent: 'space-between',
-                                    alignItems: 'center'
-                                }}>
+                                                        {isEncoded ? (
+                                                            <>✓ ENCODED</>
+                                                        ) : (
+                                                            <>NOT ENCODED</>
+                                                        )}
+                                                    </button>
+                                                </td>
+                                                <td style={{ padding: '16px', textAlign: 'center' }}>
+                                                    <button
+                                                        className="text-btn text-primary text-sm font-medium flex items-center gap-1 justify-center"
+                                                        onClick={() => handleViewPDF(order)}
+                                                    >
+                                                        <FileText size={16} />
+                                                        View PDF
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        )
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div style={{
+                            marginTop: '1.5rem',
+                            paddingTop: '1.5rem',
+                            borderTop: '2px solid var(--border-color)',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center'
+                        }}>
 
-                                    <span style={{ fontSize: '1.125rem', fontWeight: 'bold' }}>Total Amount:</span>
-                                    <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--primary)' }}>
-                                        ₱{selectedReseller.totalAmount.toLocaleString()}
-                                    </span>
-                                </div>
-                            </div>
+                            <span style={{ fontSize: '1.125rem', fontWeight: 'bold' }}>Total Amount:</span>
+                            <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--primary)' }}>
+                                ₱{selectedReseller.totalAmount.toLocaleString()}
+                            </span>
                         </div>
                     </div>
-                )
-            }
+                </div>
+            </div>
+        )
+    }
 
-            {/* Settings Modal */}
-            {
-                showSettingsModal && (
-                    <ResellerSettingsModal onClose={() => setShowSettingsModal(false)} />
-                )
-            }
+    {/* Settings Modal */ }
+    {
+        showSettingsModal && (
+            <ResellerSettingsModal onClose={() => setShowSettingsModal(false)} />
+        )
+    }
         </div >
     );
 };
