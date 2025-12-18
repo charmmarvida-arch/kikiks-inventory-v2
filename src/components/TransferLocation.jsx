@@ -1115,71 +1115,123 @@ const InventoryTab = ({ warehouses, legazpiInventory, inventory, actions }) => {
     };
 
     return (
-        <div className="flex h-full">
-            <div className="w-1/4 border-r border-gray-200 bg-white p-4">
-                <h4 className="font-bold text-gray-800 mb-4">Warehouses</h4>
+        <div className="p-6">
+            <div className="flex justify-between items-center mb-6">
+                <div>
+                    <h4 className="font-bold text-lg text-gray-800">Inventory Management</h4>
+                    <p className="text-sm text-gray-500">Manage stock items for your warehouses</p>
+                </div>
+                {!isAdding && (
+                    <button onClick={() => setIsAdding(true)} className="btn-primary flex items-center gap-2 bg-[#510813] text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-[#3d060e] transition-colors">
+                        <Plus size={16} /> Add Item
+                    </button>
+                )}
+            </div>
+
+            {/* Warehouse Filter Pills */}
+            <div className="flex gap-2 mb-6">
                 {warehouses.map(w => (
                     <button
                         key={w}
                         onClick={() => setSelectedWarehouse(w)}
-                        className={`w-full text-left p-3 rounded-xl mb-2 font-bold text-sm transition-all ${selectedWarehouse === w ? 'bg-[#510813] text-white shadow-md' : 'text-gray-600 hover:bg-gray-50'}`}
+                        className={`px-4 py-2 rounded-full text-sm font-bold transition-all ${selectedWarehouse === w
+                                ? 'bg-[#510813] text-white shadow-md'
+                                : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                            }`}
                     >
                         {w}
                     </button>
                 ))}
             </div>
-            <div className="flex-1 p-6 overflow-y-auto">
-                <div className="flex justify-between mb-4">
-                    <h3 className="text-xl font-black text-[#510813]">{selectedWarehouse}</h3>
-                    <button onClick={() => setIsAdding(true)} className="btn-primary flex items-center gap-2 bg-[#510813] text-white px-3 py-2 rounded-lg text-xs font-bold">
-                        <Plus size={14} /> Add Item
-                    </button>
-                </div>
 
-                {isAdding && (
-                    <div className="mb-6 p-4 bg-white rounded-xl shadow-sm border border-gray-200">
-                        <div className="grid grid-cols-2 gap-4 mb-4">
-                            {selectedWarehouse === 'Legazpi Storage' ? (
-                                <>
-                                    <input className="premium-input" placeholder="Product Name" value={newItem.name} onChange={e => setNewItem({ ...newItem, name: e.target.value })} />
-                                    <input className="premium-input" placeholder="Flavor" value={newItem.flavor} onChange={e => setNewItem({ ...newItem, flavor: e.target.value })} />
-                                </>
-                            ) : (
-                                <>
-                                    <input className="premium-input" placeholder="SKU" value={newItem.sku} onChange={e => setNewItem({ ...newItem, sku: e.target.value })} disabled={!!editingItem} />
-                                    <input className="premium-input" placeholder="Description" value={newItem.description} onChange={e => setNewItem({ ...newItem, description: e.target.value })} />
-                                </>
-                            )}
-                            <input type="number" className="premium-input" placeholder="Qty" value={newItem.quantity} onChange={e => setNewItem({ ...newItem, quantity: Number(e.target.value) })} />
+            {isAdding && (
+                <div className="mb-6 p-4 bg-white rounded-xl shadow-sm border border-gray-200 animate-in fade-in slide-in-from-top-2">
+                    <div className="grid grid-cols-2 gap-4 mb-4">
+                        {selectedWarehouse === 'Legazpi Storage' ? (
+                            <>
+                                <div className="space-y-1">
+                                    <label className="text-xs font-bold text-gray-500">Product Name</label>
+                                    <input className="w-full p-2 border border-gray-300 rounded-lg outline-none focus:border-[#E5562E]" placeholder="e.g. Tray 150g" value={newItem.name} onChange={e => setNewItem({ ...newItem, name: e.target.value })} />
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-xs font-bold text-gray-500">Flavor</label>
+                                    <input className="w-full p-2 border border-gray-300 rounded-lg outline-none focus:border-[#E5562E]" placeholder="Optional" value={newItem.flavor} onChange={e => setNewItem({ ...newItem, flavor: e.target.value })} />
+                                </div>
+                            </>
+                        ) : (
+                            <>
+                                <div className="space-y-1">
+                                    <label className="text-xs font-bold text-gray-500">SKU</label>
+                                    <input className="w-full p-2 border border-gray-300 rounded-lg outline-none focus:border-[#E5562E]" placeholder="e.g. FGT-001" value={newItem.sku} onChange={e => setNewItem({ ...newItem, sku: e.target.value })} disabled={!!editingItem} />
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-xs font-bold text-gray-500">Description</label>
+                                    <input className="w-full p-2 border border-gray-300 rounded-lg outline-none focus:border-[#E5562E]" placeholder="e.g. Tray 150g Vanilla" value={newItem.description} onChange={e => setNewItem({ ...newItem, description: e.target.value })} />
+                                </div>
+                            </>
+                        )}
+                        <div className="space-y-1">
+                            <label className="text-xs font-bold text-gray-500">Quantity</label>
+                            <input type="number" className="w-full p-2 border border-gray-300 rounded-lg outline-none focus:border-[#E5562E]" placeholder="0" value={newItem.quantity} onChange={e => setNewItem({ ...newItem, quantity: Number(e.target.value) })} />
                         </div>
-                        <div className="flex gap-2">
-                            <button onClick={handleSave} className="bg-[#E5562E] text-white px-4 py-2 rounded-lg font-bold text-sm">Save</button>
-                            <button onClick={() => setIsAdding(false)} className="text-gray-500 px-4 py-2 text-sm">Cancel</button>
+                        <div className="space-y-1">
+                            <label className="text-xs font-bold text-gray-500">Unit</label>
+                            <select className="w-full p-2 border border-gray-300 rounded-lg outline-none focus:border-[#E5562E]" value={newItem.unit} onChange={e => setNewItem({ ...newItem, unit: e.target.value })}>
+                                <option value="PCS">PCS</option>
+                                <option value="GRM">GRM</option>
+                                <option value="KGS">KGS</option>
+                            </select>
                         </div>
                     </div>
-                )}
-
-                <input
-                    className="w-full p-3 border border-gray-200 rounded-xl mb-4 bg-white"
-                    placeholder="Search items..."
-                    value={searchTerm}
-                    onChange={e => setSearchTerm(e.target.value)}
-                />
-
-                <div className="bg-white rounded-xl border border-gray-100 divide-y divide-gray-100">
-                    {filteredItems.map((item, idx) => (
-                        <div key={idx} className="p-3 flex justify-between items-center hover:bg-gray-50">
-                            <div>
-                                <div className="font-bold text-sm text-[#510813]">{selectedWarehouse === 'Legazpi Storage' ? item.product_name : item.description}</div>
-                                <div className="text-xs text-gray-400">Qty: {item.quantity}</div>
-                            </div>
-                            <div className="flex gap-2">
-                                <button onClick={() => startEdit(item)} className="text-blue-600 p-1"><Edit2 size={16} /></button>
-                                <button onClick={() => handleDelete(item)} className="text-red-600 p-1"><Trash2 size={16} /></button>
-                            </div>
-                        </div>
-                    ))}
+                    <div className="flex gap-2">
+                        <button onClick={handleSave} className="p-2 bg-[#E5562E] text-white rounded-lg hover:bg-[#c94b28] font-medium flex items-center gap-2 px-4">
+                            <Check size={16} /> Save
+                        </button>
+                        <button onClick={() => setIsAdding(false)} className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg">Cancel</button>
+                    </div>
                 </div>
+            )}
+
+            <input
+                className="w-full p-2 border border-gray-300 rounded-lg mb-6 focus:ring-2 focus:ring-[#510813] outline-none"
+                placeholder="Search items..."
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+            />
+
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <table className="w-full text-left">
+                    <thead className="bg-gray-50 text-xs font-semibold text-gray-500 uppercase">
+                        <tr>
+                            <th className="p-4 rounded-tl-xl w-1/2">Item Description</th>
+                            <th className="p-4 w-1/4">SKU / ID</th>
+                            <th className="p-4 w-1/4">Quantity</th>
+                            <th className="p-4 text-center rounded-tr-xl">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                        {filteredItems.map((item, idx) => (
+                            <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
+                                <td className="p-4 font-medium text-gray-900">{selectedWarehouse === 'Legazpi Storage' ? `${item.product_name} ${item.flavor || ''}` : item.description}</td>
+                                <td className="p-4 text-gray-500 text-sm">{selectedWarehouse === 'Legazpi Storage' ? item.id : item.sku}</td>
+                                <td className="p-4 font-bold text-[#510813]">{item.quantity} {item.unit || item.uom}</td>
+                                <td className="p-4 text-center">
+                                    <div className="flex justify-center gap-2">
+                                        <button onClick={() => startEdit(item)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                                            <Edit2 size={16} />
+                                        </button>
+                                        <button onClick={() => handleDelete(item)} className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                                            <Trash2 size={16} />
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        ))}
+                        {filteredItems.length === 0 && (
+                            <tr><td colSpan="4" className="p-8 text-center text-gray-500">No items found in {selectedWarehouse}.</td></tr>
+                        )}
+                    </tbody>
+                </table>
             </div>
         </div>
     );
