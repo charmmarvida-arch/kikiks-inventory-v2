@@ -226,7 +226,7 @@ const ResellerOrderList = () => {
 
             {/* Desktop Table View */}
             <div className="form-card p-0 overflow-hidden flex flex-col desktop-only" style={{ height: 'calc(100vh - 240px)', display: 'flex', flexDirection: 'column' }}>
-                <div className="table-container" style={{ flex: 1, height: '100%', overflowY: 'auto', overflowX: 'auto', margin: 0, borderRadius: 0, border: 'none', boxShadow: 'none' }}>
+                <div className="table-container" style={{ flex: 1, height: '100%', display: 'block', overflowY: 'auto', overflowX: 'auto', margin: 0, borderRadius: 0, border: 'none', boxShadow: 'none' }}>
                     <table className="inventory-table">
                         <thead style={{ position: 'sticky', top: 0, zIndex: 10, backgroundColor: 'white' }}>
                             <tr>
