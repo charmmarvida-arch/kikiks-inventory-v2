@@ -1,2 +1,2 @@
-Fix: Restrict Transfer Cart height to match 2 rows of cards (~38rem)
-Timestamp: 2025-12-19 08:49
+Fix: Add dashboard widgets to FTF Manufacturing page
+Timestamp: 2025-12-19 09:03

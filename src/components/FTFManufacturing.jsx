@@ -43,6 +43,9 @@ const FTFManufacturing = () => {
     const [editingStock, setEditingStock] = useState(null); // { sku, newQty, reason, notes }
     const [adjustmentReasons, setAdjustmentReasons] = useState([]);
 
+    // Activity Log
+    const [recentActivity, setRecentActivity] = useState([]);
+
     // Export settings
     const [exportSettings, setExportSettings] = useState({
         format: 'excel',
@@ -104,6 +107,18 @@ const FTFManufacturing = () => {
                 .eq('is_active', true)
                 .order('display_order');
             if (reasonsData) setAdjustmentReasons(reasonsData);
+
+            // Load recent activity
+            const { data: activityData } = await supabase
+                .from('ftf_stock_adjustments')
+                .select(`
+                    *,
+                    ftf_adjustment_reasons (reason_text)
+                `)
+                .order('created_at', { ascending: false })
+                .limit(20);
+
+            if (activityData) setRecentActivity(activityData);
         } catch (error) {
             console.error('Error loading data:', error);
         }
@@ -344,164 +359,249 @@ const FTFManufacturing = () => {
                 )}
             </div>
 
-            {/* Filter & Search Bar */}
-            <div className="form-card p-4 mb-4">
-                <div style={{
-                    display: 'flex',
-                    gap: '1rem',
-                    alignItems: 'center',
-                    flexWrap: 'wrap'
-                }}>
-                    {/* Search */}
-                    <div style={{ position: 'relative', flex: '1', minWidth: '200px' }}>
-                        <Search size={16} style={{
-                            position: 'absolute',
-                            left: '12px',
-                            top: '50%',
-                            transform: 'translateY(-50%)',
-                            color: 'var(--text-secondary)'
-                        }} />
-                        <input
-                            type="text"
-                            placeholder="Search SKU or Description..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="premium-input"
-                            style={{ paddingLeft: '2.5rem' }}
-                        />
-                    </div>
+            {/* Main Content Grid */}
+            <div className="flex flex-col lg:flex-row gap-6 items-start">
 
-                    {/* Filter Chips */}
-                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                        {['all', 'instock', 'lowstock', 'outofstock'].map(filter => (
-                            <button
-                                key={filter}
-                                onClick={() => setActiveFilter(filter)}
-                                style={{
-                                    padding: '0.5rem 1rem',
-                                    border: activeFilter === filter ? '2px solid var(--primary)' : '1px solid var(--border-color)',
-                                    background: activeFilter === filter ? 'var(--primary-light)' : 'white',
-                                    color: activeFilter === filter ? 'var(--primary)' : 'var(--text-secondary)',
-                                    borderRadius: 'var(--radius-md)',
-                                    fontSize: '0.875rem',
-                                    fontWeight: activeFilter === filter ? '600' : '400',
-                                    cursor: 'pointer',
-                                    transition: 'all 0.2s',
-                                    textTransform: 'capitalize'
-                                }}
+                {/* LEFT COLUMN: Filters & Table */}
+                <div className="flex-1 min-w-0 space-y-4 w-full">
+                    {/* Filter & Search Bar */}
+                    <div className="form-card p-4">
+                        <div style={{
+                            display: 'flex',
+                            gap: '1rem',
+                            alignItems: 'center',
+                            flexWrap: 'wrap'
+                        }}>
+                            {/* Search */}
+                            <div style={{ position: 'relative', flex: '1', minWidth: '200px' }}>
+                                <Search size={16} style={{
+                                    position: 'absolute',
+                                    left: '12px',
+                                    top: '50%',
+                                    transform: 'translateY(-50%)',
+                                    color: 'var(--text-secondary)'
+                                }} />
+                                <input
+                                    type="text"
+                                    placeholder="Search SKU or Description..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="premium-input"
+                                    style={{ paddingLeft: '2.5rem' }}
+                                />
+                            </div>
+
+                            {/* Filter Chips */}
+                            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                                {['all', 'instock', 'lowstock', 'outofstock'].map(filter => (
+                                    <button
+                                        key={filter}
+                                        onClick={() => setActiveFilter(filter)}
+                                        style={{
+                                            padding: '0.5rem 1rem',
+                                            border: activeFilter === filter ? '2px solid var(--primary)' : '1px solid var(--border-color)',
+                                            background: activeFilter === filter ? 'var(--primary-light)' : 'white',
+                                            color: activeFilter === filter ? 'var(--primary)' : 'var(--text-secondary)',
+                                            borderRadius: 'var(--radius-md)',
+                                            fontSize: '0.875rem',
+                                            fontWeight: activeFilter === filter ? '600' : '400',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s',
+                                            textTransform: 'capitalize'
+                                        }}
+                                    >
+                                        {filter.replace('stock', ' Stock')}
+                                    </button>
+                                ))}
+                            </div>
+
+                            {/* Sort Dropdown */}
+                            <select
+                                value={sortBy}
+                                onChange={(e) => setSortBy(e.target.value)}
+                                className="premium-input"
+                                style={{ width: 'auto', minWidth: '150px' }}
                             >
-                                {filter.replace('stock', ' Stock')}
-                            </button>
-                        ))}
+                                <option value="sku">Sort by SKU</option>
+                                <option value="stock">Sort by Stock</option>
+                                <option value="value">Sort by Value</option>
+                            </select>
+                        </div>
                     </div>
 
-                    {/* Sort Dropdown */}
-                    <select
-                        value={sortBy}
-                        onChange={(e) => setSortBy(e.target.value)}
-                        className="premium-input"
-                        style={{ width: 'auto', minWidth: '150px' }}
-                    >
-                        <option value="sku">Sort by SKU</option>
-                        <option value="stock">Sort by Stock</option>
-                        <option value="value">Sort by Value</option>
-                    </select>
+                    {/* Inventory Table */}
+                    <div className="form-card p-0 overflow-hidden">
+                        <div className="table-container">
+                            <table className="inventory-table">
+                                <thead style={{ position: 'sticky', top: 0, zIndex: 10, backgroundColor: 'white' }}>
+                                    <tr>
+                                        <th style={{ width: '60px', textAlign: 'center' }}>Status</th>
+                                        <th style={{ width: '100px' }}>SKU</th>
+                                        <th style={{ width: 'auto' }}>Product Description</th>
+                                        <th style={{ width: '80px' }}>UOM</th>
+                                        <th style={{ width: '120px' }}>Current Stock</th>
+                                        {columnVisibility.showSRP && <th style={{ width: '100px' }}>SRP</th>}
+                                        {columnVisibility.showCOGS && <th style={{ width: '100px' }}>COGS</th>}
+                                        {columnVisibility.showProfitMargin && <th style={{ width: '100px' }}>Margin</th>}
+                                        {columnVisibility.showTotalValue && <th style={{ width: '120px' }}>Total Value</th>}
+                                        {columnVisibility.showProductionDate && <th style={{ width: '120px' }}>Production Date</th>}
+                                        <th style={{ width: '80px', textAlign: 'center' }}>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {filteredAndSortedInventory.map((item, index) => {
+                                        const currentPrefix = item.sku.split('-')[0];
+                                        const prevPrefix = index > 0 ? filteredAndSortedInventory[index - 1].sku.split('-')[0] : null;
+                                        const showSpacer = index > 0 && currentPrefix !== prevPrefix;
+
+                                        return (
+                                            <React.Fragment key={item.sku}>
+                                                {showSpacer && (
+                                                    <tr className="spacer-row">
+                                                        <td colSpan={20} style={{ height: '8px', background: 'var(--gray-50)' }}></td>
+                                                    </tr>
+                                                )}
+                                                <tr style={{
+                                                    borderLeft: `4px solid ${getStockStatusColor(item.stockStatus)}`,
+                                                    transition: 'all 0.2s'
+                                                }}>
+                                                    <td>
+                                                        <div style={{
+                                                            width: '8px',
+                                                            height: '8px',
+                                                            borderRadius: '50%',
+                                                            backgroundColor: getStockStatusColor(item.stockStatus),
+                                                            margin: '0 auto'
+                                                        }}></div>
+                                                    </td>
+                                                    <td className="font-medium">{item.sku}</td>
+                                                    <td className="font-medium">{item.description}</td>
+                                                    <td className="text-secondary">{item.uom}</td>
+                                                    <td className="font-bold text-lg" style={{ color: getStockStatusColor(item.stockStatus) }}>
+                                                        {item.quantity.toLocaleString()}
+                                                        {item.threshold > 0 && <span className="text-xs text-secondary ml-1">/ {item.threshold}</span>}
+                                                    </td>
+                                                    {columnVisibility.showSRP && (
+                                                        <td className="font-medium">
+                                                            {item.srp > 0 ? `₱${item.srp.toLocaleString()}` : '-'}
+                                                        </td>
+                                                    )}
+                                                    {columnVisibility.showCOGS && (
+                                                        <td className="font-medium">
+                                                            {item.cogs > 0 ? `₱${item.cogs.toLocaleString()}` : '-'}
+                                                        </td>
+                                                    )}
+                                                    {columnVisibility.showProfitMargin && (
+                                                        <td className="font-medium" style={{ color: item.profitMargin > 0 ? '#10b981' : '#ef4444' }}>
+                                                            {item.profitMargin > 0 ? `₱${item.profitMargin.toLocaleString()}` : '-'}
+                                                        </td>
+                                                    )}
+                                                    {columnVisibility.showTotalValue && (
+                                                        <td className="font-bold text-success">
+                                                            {item.totalValue > 0 ? `₱${item.totalValue.toLocaleString()}` : '-'}
+                                                        </td>
+                                                    )}
+                                                    {columnVisibility.showProductionDate && (
+                                                        <td className="text-sm">
+                                                            {item.productionDate || 'N/A'}
+                                                        </td>
+                                                    )}
+                                                    <td className="text-center">
+                                                        <button
+                                                            onClick={() => startEdit(item.sku, item.quantity)}
+                                                            className="p-2 rounded hover:bg-gray-100 text-primary transition-colors"
+                                                            title="Adjust Stock"
+                                                        >
+                                                            <Edit2 size={16} />
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            </React.Fragment>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
-            </div>
 
-            {/* Inventory Table - Added overflow-x-auto for mobile scrolling */}
-            <div className="form-card p-0" style={{ maxWidth: '1600px', margin: '0 0.2rem' }}>
-                <div className="table-container">
-                    <table className="inventory-table">
-                        <thead style={{ position: 'sticky', top: 0, zIndex: 10, backgroundColor: 'white' }}>
-                            <tr>
-                                <th style={{ width: '60px', textAlign: 'center' }}>Status</th>
-                                <th style={{ width: '100px' }}>SKU</th>
-                                <th style={{ width: 'auto' }}>Product Description</th>
-                                <th style={{ width: '80px' }}>UOM</th>
-                                <th style={{ width: '120px' }}>Current Stock</th>
-                                {columnVisibility.showSRP && <th style={{ width: '100px' }}>SRP</th>}
-                                {columnVisibility.showCOGS && <th style={{ width: '100px' }}>COGS</th>}
-                                {columnVisibility.showProfitMargin && <th style={{ width: '100px' }}>Margin</th>}
-                                {columnVisibility.showTotalValue && <th style={{ width: '120px' }}>Total Value</th>}
-                                {columnVisibility.showProductionDate && <th style={{ width: '120px' }}>Production Date</th>}
-                                <th style={{ width: '80px', textAlign: 'center' }}>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {filteredAndSortedInventory.map((item, index) => {
-                                const currentPrefix = item.sku.split('-')[0];
-                                const prevPrefix = index > 0 ? filteredAndSortedInventory[index - 1].sku.split('-')[0] : null;
-                                const showSpacer = index > 0 && currentPrefix !== prevPrefix;
-                                const isEditing = editingStock?.sku === item.sku;
+                {/* RIGHT COLUMN: Widgets */}
+                <div className="w-full lg:w-96 flex-shrink-0 space-y-6">
 
+                    {/* Low Stock Alerts */}
+                    <div className="bg-white rounded-xl shadow-sm border border-orange-100 overflow-hidden">
+                        <div className="p-4 bg-orange-50/50 border-b border-orange-100 flex justify-between items-center">
+                            <h3 className="font-bold text-orange-900 flex items-center gap-2">
+                                <TrendingUp size={18} className="text-orange-600" />
+                                Critical Stock
+                            </h3>
+                            <span className="bg-orange-100 text-orange-700 text-xs font-bold px-2 py-1 rounded-full">
+                                {totals.lowStockCount + totals.outOfStockCount} Items
+                            </span>
+                        </div>
+                        <div className="p-2 custom-scrollbar max-h-[300px] overflow-y-auto">
+                            {inventory
+                                .map(enrichInventoryData)
+                                .filter(i => i.stockStatus === 'lowstock' || i.stockStatus === 'outofstock')
+                                .sort((a, b) => a.quantity - b.quantity)
+                                .map(item => (
+                                    <div key={item.sku} className="p-3 hover:bg-orange-50 rounded-lg transition-colors border-b border-gray-50 last:border-0">
+                                        <div className="flex justify-between items-start mb-1">
+                                            <span className="font-bold text-sm text-gray-800">{item.description}</span>
+                                            <span className={`text-xs font-bold px-2 py-0.5 rounded ${item.stockStatus === 'outofstock' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                                                {item.stockStatus === 'outofstock' ? 'Out' : 'Low'}
+                                            </span>
+                                        </div>
+                                        <div className="flex justify-between text-xs text-gray-500">
+                                            <span className="font-mono">{item.sku}</span>
+                                            <span className="font-bold">
+                                                {item.quantity} <span className="font-normal text-gray-400">/ {item.threshold}</span>
+                                            </span>
+                                        </div>
+                                    </div>
+                                ))}
+                            {(totals.lowStockCount + totals.outOfStockCount) === 0 && (
+                                <div className="p-6 text-center text-gray-400 text-sm">
+                                    All stock levels are healthy!
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Recent Activity */}
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                        <div className="p-4 bg-gray-50 border-b border-gray-200">
+                            <h3 className="font-bold text-gray-900">Recent Activity</h3>
+                        </div>
+                        <div className="divide-y divide-gray-100 max-h-[400px] overflow-y-auto custom-scrollbar">
+                            {recentActivity.map(log => {
+                                const diff = log.new_quantity - log.old_quantity;
+                                const isPositive = diff > 0;
                                 return (
-                                    <React.Fragment key={item.sku}>
-                                        {showSpacer && (
-                                            <tr className="spacer-row">
-                                                <td colSpan={20} style={{ height: '8px', background: 'var(--gray-50)' }}></td>
-                                            </tr>
-                                        )}
-                                        <tr style={{
-                                            borderLeft: `4px solid ${getStockStatusColor(item.stockStatus)}`,
-                                            transition: 'all 0.2s'
-                                        }}>
-                                            <td>
-                                                <div style={{
-                                                    width: '8px',
-                                                    height: '8px',
-                                                    borderRadius: '50%',
-                                                    backgroundColor: getStockStatusColor(item.stockStatus),
-                                                    margin: '0 auto'
-                                                }}></div>
-                                            </td>
-                                            <td className="font-medium">{item.sku}</td>
-                                            <td>{item.description}</td>
-                                            <td>{item.uom}</td>
-                                            <td className="font-bold text-lg" style={{ color: getStockStatusColor(item.stockStatus) }}>
-                                                {item.quantity.toLocaleString()}
-                                                {item.threshold > 0 && <span className="text-sm text-secondary"> / {item.threshold}</span>}
-                                            </td>
-                                            {columnVisibility.showSRP && (
-                                                <td className="font-medium">
-                                                    {item.srp > 0 ? `₱${item.srp.toLocaleString()}` : '-'}
-                                                </td>
-                                            )}
-                                            {columnVisibility.showCOGS && (
-                                                <td className="font-medium">
-                                                    {item.cogs > 0 ? `₱${item.cogs.toLocaleString()}` : '-'}
-                                                </td>
-                                            )}
-                                            {columnVisibility.showProfitMargin && (
-                                                <td className="font-medium" style={{ color: item.profitMargin > 0 ? '#10b981' : '#ef4444' }}>
-                                                    {item.profitMargin > 0 ? `₱${item.profitMargin.toLocaleString()}` : '-'}
-                                                </td>
-                                            )}
-                                            {columnVisibility.showTotalValue && (
-                                                <td className="font-bold text-success">
-                                                    {item.totalValue > 0 ? `₱${item.totalValue.toLocaleString()}` : '-'}
-                                                </td>
-                                            )}
-                                            {columnVisibility.showProductionDate && (
-                                                <td className="text-sm">
-                                                    {item.productionDate || 'N/A'}
-                                                </td>
-                                            )}
-                                            <td>
-                                                <button
-                                                    onClick={() => startEdit(item.sku, item.quantity)}
-                                                    className="icon-btn text-primary small-btn"
-                                                    title="Adjust Stock"
-                                                >
-                                                    <Edit2 size={16} />
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    </React.Fragment>
+                                    <div key={log.id} className="p-4 hover:bg-gray-50 transition-colors">
+                                        <div className="flex justify-between items-start mb-1">
+                                            <span className="font-bold text-sm text-gray-800">{log.sku}</span>
+                                            <span className={`text-xs font-bold ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
+                                                {isPositive ? '+' : ''}{diff}
+                                            </span>
+                                        </div>
+                                        <div className="text-xs text-gray-600 mb-1">
+                                            {log.ftf_adjustment_reasons?.reason_text || 'Stock Adjustment'}
+                                        </div>
+                                        <div className="text-[10px] text-gray-400">
+                                            {new Date(log.created_at).toLocaleString()}
+                                        </div>
+                                    </div>
                                 );
                             })}
-                        </tbody>
-                    </table>
+                            {recentActivity.length === 0 && (
+                                <div className="p-6 text-center text-gray-400 text-sm">
+                                    No recent activity
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
                 </div>
             </div>
 
