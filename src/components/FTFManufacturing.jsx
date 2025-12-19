@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useInventory } from '../context/InventoryContext';
-import { Settings, Edit2, Save, X, Search, Download, Filter, TrendingUp } from 'lucide-react';
+import { Settings, Edit2, Save, X, Search, Download, Filter, TrendingUp, AlertTriangle } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 import { useAuth } from '../context/AuthContext';
 import FTFSettingsModal from './FTFSettingsModal';
@@ -324,40 +324,7 @@ const FTFManufacturing = () => {
                 </div>
             </div>
 
-            {/* Summary Cards */}
-            <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                gap: '1rem',
-                marginBottom: '1.5rem'
-            }}>
-                <div className="form-card p-4">
-                    <div className="text-secondary text-sm mb-1">Total SKUs</div>
-                    <div className="text-2xl font-bold text-primary">{totals.totalItems}</div>
-                </div>
-                <div className="form-card p-4">
-                    <div className="text-secondary text-sm mb-1">Total Stock</div>
-                    <div className="text-2xl font-bold">{totals.totalStock.toLocaleString()}</div>
-                </div>
-                {columnVisibility.showTotalValue && (
-                    <div className="form-card p-4">
-                        <div className="text-secondary text-sm mb-1">Total Value</div>
-                        <div className="text-2xl font-bold text-success">₱{totals.totalValue.toLocaleString()}</div>
-                    </div>
-                )}
-                {totals.lowStockCount > 0 && (
-                    <div className="form-card p-4" style={{ borderLeft: '4px solid #f59e0b' }}>
-                        <div className="text-secondary text-sm mb-1">Low Stock Alerts</div>
-                        <div className="text-2xl font-bold" style={{ color: '#f59e0b' }}>{totals.lowStockCount}</div>
-                    </div>
-                )}
-                {totals.outOfStockCount > 0 && (
-                    <div className="form-card p-4" style={{ borderLeft: '4px solid #ef4444' }}>
-                        <div className="text-secondary text-sm mb-1">Out of Stock</div>
-                        <div className="text-2xl font-bold text-danger">{totals.outOfStockCount}</div>
-                    </div>
-                )}
-            </div>
+
 
             {/* Main Content Grid */}
             <div className="flex flex-col lg:flex-row gap-6 items-start">
@@ -528,11 +495,35 @@ const FTFManufacturing = () => {
                 {/* RIGHT COLUMN: Widgets */}
                 <div className="w-full lg:w-96 flex-shrink-0 space-y-6">
 
+                    {/* Inventory Summary Widget */}
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                        <div className="p-4 bg-gray-50 border-b border-gray-200">
+                            <h3 className="font-bold text-gray-900 flex items-center gap-2">
+                                <TrendingUp size={18} className="text-primary" />
+                                Inventory Summary
+                            </h3>
+                        </div>
+                        <div className="p-4 space-y-4">
+                            <div className="flex justify-between items-center pb-3 border-b border-gray-100">
+                                <span className="text-secondary text-sm">Total Value</span>
+                                <span className="font-bold text-xl text-success">₱{totals.totalValue.toLocaleString()}</span>
+                            </div>
+                            <div className="flex justify-between items-center pb-3 border-b border-gray-100">
+                                <span className="text-secondary text-sm">Total Stock</span>
+                                <span className="font-bold text-xl text-gray-900">{totals.totalStock.toLocaleString()}</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <span className="text-secondary text-sm">Total SKUs</span>
+                                <span className="font-bold text-xl text-gray-900">{totals.totalItems}</span>
+                            </div>
+                        </div>
+                    </div>
+
                     {/* Low Stock Alerts */}
                     <div className="bg-white rounded-xl shadow-sm border border-orange-100 overflow-hidden">
                         <div className="p-4 bg-orange-50/50 border-b border-orange-100 flex justify-between items-center">
                             <h3 className="font-bold text-orange-900 flex items-center gap-2">
-                                <TrendingUp size={18} className="text-orange-600" />
+                                <AlertTriangle size={18} className="text-orange-600" />
                                 Critical Stock
                             </h3>
                             <span className="bg-orange-100 text-orange-700 text-xs font-bold px-2 py-1 rounded-full">

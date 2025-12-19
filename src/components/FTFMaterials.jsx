@@ -104,7 +104,7 @@ const FTFMaterials = () => {
             {/* Table */}
             <div className="form-card p-0 overflow-hidden flex flex-col h-[calc(100vh-220px)]">
                 <div className="overflow-auto flex-1 custom-scrollbar relative">
-                    <table className="inventory-table w-full text-left border-collapse min-w-[1000px]">
+                    <table className="inventory-table w-full text-left border-collapse min-w-[1200px]">
                         <thead className="bg-gray-50 border-b border-gray-200 sticky top-0 z-10 shadow-sm">
                             <tr>
                                 <th className="p-4 font-semibold text-gray-600">Category</th>
