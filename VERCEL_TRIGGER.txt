@@ -1,2 +1,2 @@
-Fix: Sidebar gradient background and full centering
-Timestamp: 2025-12-19 08:20
+Fix: Widen layout and fix sidebar header alignment
+Timestamp: 2025-12-19 08:31

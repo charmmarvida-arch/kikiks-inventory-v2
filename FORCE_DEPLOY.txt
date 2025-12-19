@@ -3,8 +3,8 @@
 This file triggers a new deployment.
 
 Changes:
-- Redesigned Sidebar Headers: Added boxed layout with brand color background and rounded corners.
-- Improved navigation visibility.
+- Widened main content area to reduce empty space.
+- Fixed sidebar header vertical alignment (line-height).
 
-Version: 2.1.1
+Version: 2.1.2
 Date: 2025-12-19
