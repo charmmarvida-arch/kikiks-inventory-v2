@@ -1,2 +1,2 @@
-Fix: Widen layout and fix sidebar header alignment
-Timestamp: 2025-12-19 08:31
+Fix: Persistence for Reseller Dashboard Encoded status
+Timestamp: 2025-12-19 08:43

@@ -120,7 +120,13 @@ export const InventoryProvider = ({ children }) => {
                     isDeducted: order.is_deducted,
                     hasPackingList: order.has_packing_list, // Add this
                     hasCOA: order.has_coa,                  // Add this
-                    coaData: order.coa_data                 // Add this
+                    hasCOA: order.has_coa,                  // Add this
+                    coaData: order.coa_data,                // Add this
+
+                    // Encoding Status
+                    is_encoded: order.is_encoded,
+                    encoded_by: order.encoded_by,
+                    encoded_at: order.encoded_at
                 }));
                 setResellerOrders(mappedOrders);
             }
@@ -362,6 +368,11 @@ export const InventoryProvider = ({ children }) => {
         if (updates.hasCOA !== undefined) dbUpdates.has_coa = updates.hasCOA;
         if (updates.coaData !== undefined) dbUpdates.coa_data = updates.coaData;
         if (updates.status !== undefined) dbUpdates.status = updates.status;
+
+        // Fix: Ensure encoded status is updated in DB
+        if (updates.is_encoded !== undefined) dbUpdates.is_encoded = updates.is_encoded;
+        if (updates.encoded_by !== undefined) dbUpdates.encoded_by = updates.encoded_by;
+        if (updates.encoded_at !== undefined) dbUpdates.encoded_at = updates.encoded_at;
 
         if (Object.keys(dbUpdates).length > 0) {
             const { error } = await supabase.from('reseller_orders').update(dbUpdates).eq('id', id);
