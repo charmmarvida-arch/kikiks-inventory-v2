@@ -533,7 +533,7 @@ const TransferLocation = ({ isPublic = false }) => {
                 </div>
 
                 {/* RIGHT: Sidebar / Cart */}
-                <div className={`fixed bottom-0 left-0 right-0 md:static w-full md:w-[500px] z-50 flex flex-col transition-all duration-300 ease-in-out ${isCartExpanded ? 'h-[75vh]' : 'h-auto'} md:h-full p-3 md:py-4 md:pr-4 md:pl-0 pointer-events-none md:pointer-events-auto`}>
+                <div className={`fixed bottom-0 left-0 right-0 md:static w-full md:w-[500px] z-50 flex flex-col transition-all duration-300 ease-in-out ${isCartExpanded ? 'h-[75vh]' : 'h-auto'} md:h-auto md:max-h-[38rem] p-3 md:py-4 md:pr-4 md:pl-0 pointer-events-none md:pointer-events-auto`}>
                     <div className="relative flex-1 flex flex-col drop-shadow-2xl pointer-events-auto">
                         <div className="relative z-10 flex-1 flex flex-col overflow-hidden bg-[#FFF1B5] rounded-2xl md:rounded-tl-[40px] md:rounded-bl-[40px] md:rounded-tr-2xl md:rounded-br-2xl border-4 border-white shadow-xl">
                             <TropicalPattern opacity={0.15} color="text-[#E5562E]" />

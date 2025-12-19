@@ -1,2 +1,2 @@
-Fix: Persistence for Reseller Dashboard Encoded status
-Timestamp: 2025-12-19 08:43
+Fix: Restrict Transfer Cart height to match 2 rows of cards (~38rem)
+Timestamp: 2025-12-19 08:49
