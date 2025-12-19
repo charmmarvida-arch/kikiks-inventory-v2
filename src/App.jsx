@@ -19,6 +19,7 @@ import OrderHistory from './components/OrderHistory';
 import ResellerDashboard from './components/ResellerDashboard';
 import SettingsSku from './components/SettingsSku';
 import FTFManufacturing from './components/FTFManufacturing';
+import FTFMaterials from './components/FTFMaterials';
 import LegazpiStorage from './components/LegazpiStorage';
 import AdminKey from './components/AdminKey';
 
@@ -81,6 +82,7 @@ function App() {
               }>
                 <Route index element={<Dashboard />} />
                 <Route path="dashboard/ftf-manufacturing" element={<FTFManufacturing />} />
+                <Route path="dashboard/ftf-materials" element={<FTFMaterials />} />
                 <Route path="dashboard/legazpi-storage" element={<LegazpiStorage />} />
                 <Route path="dashboard/:location" element={<LocationDashboard />} />
                 <Route path="stock-in" element={<StockIn />} />

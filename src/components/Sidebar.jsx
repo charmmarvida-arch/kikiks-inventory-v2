@@ -10,7 +10,8 @@ import {
   LogOut,
   ClipboardList,
   Box,
-  Store
+  Store,
+  Layers
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useInventory } from '../context/InventoryContext';
@@ -82,6 +83,14 @@ const Sidebar = ({ isOpen, onClose }) => {
               >
                 <span className="nav-icon"><Package size={20} /></span>
                 FTF Manufacturing
+              </NavLink>
+              <NavLink
+                to="/dashboard/ftf-materials"
+                className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+                onClick={onClose}
+              >
+                <span className="nav-icon"><Layers size={20} /></span>
+                Materials
               </NavLink>
               <NavLink
                 to="/dashboard/legazpi-storage"
@@ -196,7 +205,7 @@ const Sidebar = ({ isOpen, onClose }) => {
             Logout
           </button>
         </div>
-      </nav>
+      </nav >
     </>
   );
 };

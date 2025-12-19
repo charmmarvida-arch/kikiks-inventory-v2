@@ -1,2 +1,2 @@
-Fix: Add dashboard widgets to FTF Manufacturing page
-Timestamp: 2025-12-19 09:03
+Fix: Add Materials inventory section to FTF Manufacturing
+Timestamp: 2025-12-19 13:58
