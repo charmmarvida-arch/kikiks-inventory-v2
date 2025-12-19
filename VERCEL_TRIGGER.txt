@@ -1,2 +1,2 @@
-Fix: Optimize FTF table column widths
-Timestamp: 2025-12-16 22:00
+Fix: Redesign sidebar headers with boxed layout
+Timestamp: 2025-12-19 08:00
