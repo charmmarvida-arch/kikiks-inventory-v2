@@ -182,13 +182,16 @@ button {
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--base-white);
+  color: #ffffff !important;
   background: var(--primary);
   font-weight: 700;
   margin: 1.5rem 0.75rem 0.5rem;
   padding: 0.75rem 1rem;
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  min-height: 2.5rem;
 }
 
 .nav-link {
