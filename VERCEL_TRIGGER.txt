@@ -1,2 +1,2 @@
-Feature: Remove Trays from Christmas Order
-Timestamp: 2025-12-20 09:38
+Feature: Standalone Christmas Link & Logo
+Timestamp: 2025-12-20 09:47

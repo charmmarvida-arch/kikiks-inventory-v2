@@ -73,6 +73,7 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/public-order" element={<ResellerOrderRedesigned isPublic={true} />} />
               <Route path="/public-transfer" element={<TransferLocation isPublic={true} />} />
+              <Route path="/christmas-order" element={<ChristmasOrder isPublic={true} />} />
               <Route path="/order-pdf/:orderId" element={<OrderPdfView />} />
 
               {/* Protected Routes */}
@@ -89,7 +90,6 @@ function App() {
                 <Route path="stock-in" element={<StockIn />} />
                 <Route path="transfer" element={<TransferLocation />} />
                 <Route path="reseller-order" element={<ResellerOrderRedesigned />} />
-                <Route path="christmas-order" element={<ChristmasOrder />} />
                 <Route path="reseller-order/edit/:orderId" element={<ResellerOrderRedesigned />} />
                 <Route path="reseller-orders-list" element={<ResellerOrderList />} />
                 <Route path="order-history" element={<OrderHistory />} />

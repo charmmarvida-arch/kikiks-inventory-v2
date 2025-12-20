@@ -298,11 +298,15 @@ const ChristmasOrder = () => {
 
                 <div className="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end">
                     <div className="text-left md:text-right">
-                        <h2 className="text-2xl md:text-4xl font-black text-white tracking-tight flex items-center justify-end gap-2">
-                            <Snowflake className="animate-spin-slow" size={28} />
-                            CHRISTMAS ORDER
-                        </h2>
+                        <div className="flex flex-col items-end">
+                            <img src="/kikiks-logo-christmas.png" alt="Kikiks Logo" className="h-16 mb-2 object-contain" />
+                            <h2 className="text-xl md:text-2xl font-black text-white tracking-tight flex items-center justify-end gap-2 px-3 py-1 bg-[#D42426]/20 rounded-lg backdrop-blur-sm border border-white/10">
+                                Merry Christmas Kikiks!
+                            </h2>
+                        </div>
                     </div>
+                    {/* Settings hidden for public (or keep it if pin protected?) User said "so that customers will only be redirected to this page", implying restricting nav. 
+                        But Settings is PIN protected. Keeping it is fine for admin access on public kiosk. */}
                     <button onClick={handleSettingsClick} className="p-3 rounded-full bg-white text-[#0F4C25] shadow-md hover:scale-110 transition-transform"><Settings size={20} /></button>
                 </div>
             </div>
