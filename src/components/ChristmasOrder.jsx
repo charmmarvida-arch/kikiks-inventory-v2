@@ -519,8 +519,11 @@ const ChristmasOrder = () => {
                         <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                             <CheckCircle size={40} className="text-green-600" />
                         </div>
-                        <h3 className="text-2xl font-black text-[#0F4C25] mb-2">Order Received!</h3>
-                        <p className="text-gray-600 mb-6">Thank you for your Christmas order, {resellerName}!</p>
+                        <h3 className="text-2xl font-black text-[#0F4C25] mb-2">Order Submitted!</h3>
+                        <p className="text-gray-600 mb-6 font-medium">
+                            From all of us at Kikiks, thank you 🤍.<br />
+                            Wishing you a Merry Christmas 🎄
+                        </p>
                         <button onClick={() => { setIsSuccessOpen(false); navigate(0); }} className="w-full py-3 rounded-xl bg-[#D42426] text-white font-bold shadow-lg hover:bg-[#b01b1d]">
                             Start New Order
                         </button>
