@@ -66,8 +66,13 @@ const ChristmasOrder = () => {
     const navigate = useNavigate();
 
     // --- State ---
+    // --- State ---
     const [resellerName, setResellerName] = useState('');
-    const [address, setAddress] = useState('');
+    const [deliveryMethod, setDeliveryMethod] = useState('pickup'); // 'pickup' or 'delivery'
+    const [address, setAddress] = useState(''); // Used for Delivery Address
+    const [contactNumber, setContactNumber] = useState('');
+    const [scheduleDate, setScheduleDate] = useState('');
+    const [scheduleTime, setScheduleTime] = useState('');
     const [isCartExpanded, setIsCartExpanded] = useState(false);
 
     // Auto-Save State
@@ -211,7 +216,15 @@ const ChristmasOrder = () => {
 
     const handleInitialSubmit = () => {
         if (!resellerName.trim()) return alert('Please enter your name');
-        if (!address.trim()) return alert('Please enter your address or pick up method');
+
+        if (deliveryMethod === 'delivery') {
+            if (!contactNumber.trim()) return alert('Please enter your contact number');
+            if (!address.trim()) return alert('Please enter complete delivery address');
+            if (!scheduleDate || !scheduleTime) return alert('Please select delivery date and time');
+        } else {
+            if (!scheduleDate || !scheduleTime) return alert('Please select pick up date and time');
+        }
+
         if (Object.keys(cart).length === 0) return alert('Cart is empty');
 
         setIsConfirmOpen(true);
@@ -227,12 +240,20 @@ const ChristmasOrder = () => {
                 if (qty > 0) orderItems[sku] = qty;
             });
 
+            // Format "Address" to contain all delivery info
+            let finalAddress = '';
+            if (deliveryMethod === 'delivery') {
+                finalAddress = `[DELIVERY] ${address} | Contact: ${contactNumber} | Schedule: ${scheduleDate} @ ${scheduleTime}`;
+            } else {
+                finalAddress = `[PICKUP] Schedule: ${scheduleDate} @ ${scheduleTime}`;
+            }
+
             const orderData = {
                 // No reseller ID for Christmas orders
                 resellerId: null,
                 resellerName: resellerName,
                 location: 'Christmas Order', // Tag for filtering
-                address: address,
+                address: finalAddress,
                 items: orderItems,
                 totalAmount: cartTotal,
                 date: new Date().toISOString(),
@@ -266,8 +287,10 @@ const ChristmasOrder = () => {
                     color: 13902886, // #D42426 (Red)
                     fields: [
                         { name: "Reseller Name", value: resellerName, inline: true },
+                        { name: "Type", value: deliveryMethod === 'delivery' ? '🚚 Delivery' : '🏪 Pick Up', inline: true },
+                        { name: "Schedule", value: `${scheduleDate} @ ${scheduleTime}`, inline: true },
                         { name: "Total Amount", value: `₱${cartTotal.toLocaleString()}`, inline: true },
-                        { name: "Delivery Address", value: address || "Pick Up / No Address Provided" },
+                        { name: "Details", value: deliveryMethod === 'delivery' ? `📍 ${address}\n📞 ${contactNumber}` : "Customer will pick up at store." },
                         { name: "Order Items", value: itemsList || "No items?" }
                     ],
                     footer: { text: `Order ID: ${res?.data?.id || 'Pending'}` },
@@ -286,6 +309,10 @@ const ChristmasOrder = () => {
             setCart({});
             setResellerName('');
             setAddress('');
+            setContactNumber('');
+            setScheduleDate('');
+            setScheduleTime('');
+            setDeliveryMethod('pickup'); // Reset to default
             setIsFinalConfirmOpen(false);
             setIsConfirmOpen(false);
             setIsSubmitting(false);
@@ -347,15 +374,84 @@ const ChristmasOrder = () => {
 
                 {/* LEFT: Categories */}
                 <div className="flex-1 p-8 overflow-y-auto pb-40 md:pb-8">
-                    {/* Address Field */}
-                    <div className="mb-8">
-                        <input
-                            type="text"
-                            placeholder="Bicol Xpress Delivery or by pick up"
-                            value={address}
-                            onChange={e => setAddress(e.target.value)}
-                            className="w-full bg-transparent border-b-2 border-white/30 py-2 text-xl font-bold text-white placeholder-white/50 focus:border-white focus:outline-none transition-colors"
-                        />
+                    {/* Delivery / Pickup Section */}
+                    <div className="mb-8 bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20">
+                        {/* Method Toggle */}
+                        <div className="flex gap-4 mb-6">
+                            <button
+                                onClick={() => setDeliveryMethod('delivery')}
+                                className={`flex-1 py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all ${deliveryMethod === 'delivery' ? 'bg-[#D42426] text-white shadow-lg scale-105' : 'bg-white/10 text-white/60 hover:bg-white/20'}`}
+                            >
+                                🚚 Bicol Xpress Delivery
+                            </button>
+                            <button
+                                onClick={() => setDeliveryMethod('pickup')}
+                                className={`flex-1 py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all ${deliveryMethod === 'pickup' ? 'bg-[#F8B229] text-[#0F4C25] shadow-lg scale-105' : 'bg-white/10 text-white/60 hover:bg-white/20'}`}
+                            >
+                                🏪 Pick Up
+                            </button>
+                        </div>
+
+                        {/* Conditional Fields */}
+                        <div className="space-y-4 animate-in fade-in slide-in-from-top-4">
+                            {deliveryMethod === 'delivery' && (
+                                <>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <input
+                                            type="text"
+                                            placeholder="Contact Number"
+                                            value={contactNumber}
+                                            onChange={e => setContactNumber(e.target.value)}
+                                            className="w-full bg-black/20 border-b-2 border-white/30 py-2 px-3 rounded-t-lg text-lg font-bold text-white placeholder-white/50 focus:border-white focus:outline-none transition-colors"
+                                        />
+                                        <div className="flex gap-2">
+                                            <input
+                                                type="date"
+                                                value={scheduleDate}
+                                                onChange={e => setScheduleDate(e.target.value)}
+                                                className="flex-1 bg-black/20 border-b-2 border-white/30 py-2 px-3 rounded-t-lg text-lg font-bold text-white focus:border-white focus:outline-none transition-colors [color-scheme:dark]"
+                                            />
+                                            <input
+                                                type="time"
+                                                value={scheduleTime}
+                                                onChange={e => setScheduleTime(e.target.value)}
+                                                className="w-32 bg-black/20 border-b-2 border-white/30 py-2 px-3 rounded-t-lg text-lg font-bold text-white focus:border-white focus:outline-none transition-colors [color-scheme:dark]"
+                                            />
+                                        </div>
+                                    </div>
+                                    <textarea
+                                        placeholder="Complete Delivery Address"
+                                        value={address}
+                                        onChange={e => setAddress(e.target.value)}
+                                        rows={2}
+                                        className="w-full bg-black/20 border-b-2 border-white/30 py-2 px-3 rounded-t-lg text-lg font-bold text-white placeholder-white/50 focus:border-white focus:outline-none transition-colors resize-none"
+                                    />
+                                </>
+                            )}
+
+                            {deliveryMethod === 'pickup' && (
+                                <div className="flex gap-4">
+                                    <div className="flex-1">
+                                        <label className="text-white/70 text-sm block mb-1">Pick Up Date</label>
+                                        <input
+                                            type="date"
+                                            value={scheduleDate}
+                                            onChange={e => setScheduleDate(e.target.value)}
+                                            className="w-full bg-black/20 border-b-2 border-white/30 py-2 px-3 rounded-t-lg text-lg font-bold text-white focus:border-white focus:outline-none transition-colors [color-scheme:dark]"
+                                        />
+                                    </div>
+                                    <div className="flex-1">
+                                        <label className="text-white/70 text-sm block mb-1">Pick Up Time</label>
+                                        <input
+                                            type="time"
+                                            value={scheduleTime}
+                                            onChange={e => setScheduleTime(e.target.value)}
+                                            className="w-full bg-black/20 border-b-2 border-white/30 py-2 px-3 rounded-t-lg text-lg font-bold text-white focus:border-white focus:outline-none transition-colors [color-scheme:dark]"
+                                        />
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
