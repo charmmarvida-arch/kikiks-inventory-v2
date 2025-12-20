@@ -1,2 +1,2 @@
-Feature: Fix Mobile Cart Padding
-Timestamp: 2025-12-20 12:10
+Feature: Fix Messenger In-App Browser Padding
+Timestamp: 2025-12-20 12:20
