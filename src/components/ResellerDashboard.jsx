@@ -331,11 +331,21 @@ const ResellerDashboard = () => {
     }, [filteredOrders, inventory]);
 
     // 2. Pending Collections (Unpaid/Active Orders)
-    // Assuming "Active" (not Completed) means unpaid/collectible
-    const pendingCollections = useMemo(() => {
-        return resellerOrders
-            .filter(o => o.status !== 'Completed' && o.status !== 'Cancelled')
-            .reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+    // Assuming "Active" (not Completed) means    // Critical Alerts Logic - CHANGED to Pending Orders
+    const criticalAlerts = useMemo(() => {
+        // Find all orders that are 'Pending'
+        const pendingOrders = resellerOrders.filter(o => o.status === 'Pending');
+
+        // Group by Reseller if needed, or just list them. Listing individual orders might be too much if many.
+        // Let's list the oldest pending orders first (Critical!).
+        // sort by date ascending (oldest first)
+        const sortedPending = [...pendingOrders].sort((a, b) => new Date(a.date) - new Date(b.date));
+
+        return sortedPending.slice(0, 5).map(o => ({
+            message: `${o.resellerName} has pending order`,
+            type: 'pending_order',
+            id: o.id
+        }));
     }, [resellerOrders]);
 
     // 3. Global Progress (Revenue vs Target)
