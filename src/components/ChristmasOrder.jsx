@@ -303,7 +303,6 @@ const ChristmasOrder = () => {
                             <Snowflake className="animate-spin-slow" size={28} />
                             CHRISTMAS ORDER
                         </h2>
-                        <p className="text-white/80 font-medium text-xs md:text-base">Holiday Special Rates!</p>
                     </div>
                     <button onClick={handleSettingsClick} className="p-3 rounded-full bg-white text-[#0F4C25] shadow-md hover:scale-110 transition-transform"><Settings size={20} /></button>
                 </div>
@@ -318,7 +317,7 @@ const ChristmasOrder = () => {
                     <div className="mb-8">
                         <input
                             type="text"
-                            placeholder="Delivery Address (Optional)"
+                            placeholder="Bicol Xpress Delivery or by pick up"
                             value={address}
                             onChange={e => setAddress(e.target.value)}
                             className="w-full bg-transparent border-b-2 border-white/30 py-2 text-xl font-bold text-white placeholder-white/50 focus:border-white focus:outline-none transition-colors"
