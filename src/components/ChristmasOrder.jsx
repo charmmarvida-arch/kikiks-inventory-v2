@@ -248,6 +248,39 @@ const ChristmasOrder = () => {
             // Note: addResellerOrder returns { data, error } usually, or just check execution
             setCreatedOrderId(res?.data?.id || 'temp-id'); // Use returned ID if available
 
+            // --- Send Discord Notification ---
+            const WEBHOOK_URL = "https://discord.com/api/webhooks/1451752534820519969/m0cBK-p_JiXIUzIXn0ym2Sx-y6_jmj0O7K5TMhSLC7Q2gP8AaGGC6sScmA52V29X3bTH";
+
+            const itemsList = Object.entries(cart).map(([sku, qty]) => {
+                const item = inventory.find(i => i.sku === sku);
+                const desc = item ? item.description : sku;
+                return `- **${desc}**: x${qty}`;
+            }).join('\n');
+
+            const discordPayload = {
+                username: "Christmas Order Bot",
+                avatar_url: "https://cdn-icons-png.flaticon.com/512/3600/3600938.png", // Generic festive icon
+                embeds: [{
+                    title: "🎄 New Christmas Order Received!",
+                    color: 13902886, // #D42426 (Red)
+                    fields: [
+                        { name: "Reseller Name", value: resellerName, inline: true },
+                        { name: "Total Amount", value: `₱${cartTotal.toLocaleString()}`, inline: true },
+                        { name: "Delivery Address", value: address || "Pick Up / No Address Provided" },
+                        { name: "Order Items", value: itemsList || "No items?" }
+                    ],
+                    footer: { text: `Order ID: ${res?.data?.id || 'Pending'}` },
+                    timestamp: new Date().toISOString()
+                }]
+            };
+
+            fetch(WEBHOOK_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(discordPayload)
+            }).catch(err => console.error("Discord Notification Failed:", err));
+            // ---------------------------------
+
             localStorage.removeItem(DRAFT_KEY);
             setCart({});
             setResellerName('');
