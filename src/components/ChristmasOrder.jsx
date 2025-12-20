@@ -211,6 +211,7 @@ const ChristmasOrder = () => {
 
     const handleInitialSubmit = () => {
         if (!resellerName.trim()) return alert('Please enter your name');
+        if (!address.trim()) return alert('Please enter your address or pick up method');
         if (Object.keys(cart).length === 0) return alert('Cart is empty');
 
         setIsConfirmOpen(true);

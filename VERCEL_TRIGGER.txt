@@ -1,2 +1,2 @@
-Feature: Add Discord Webhook
-Timestamp: 2025-12-20 10:15
+Feature: Mandate Name and Address
+Timestamp: 2025-12-20 10:18
