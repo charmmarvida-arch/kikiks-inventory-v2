@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useInventory } from '../context/InventoryContext';
-import { Settings, Edit2, Save, X, Search, Download, Filter, TrendingUp, AlertTriangle } from 'lucide-react';
+import { Settings, Edit2, Save, X, Search, Download, Filter, TrendingUp, AlertTriangle, Layers } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 import { useAuth } from '../context/AuthContext';
 import FTFSettingsModal from './FTFSettingsModal';
@@ -326,11 +326,47 @@ const FTFManufacturing = () => {
 
 
 
-            {/* Main Content Grid */}
-            <div className="flex flex-col lg:flex-row gap-6 items-start">
+            {/* Inventory Summary Top Row */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                {/* Total Value */}
+                <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 flex items-center justify-between">
+                    <div>
+                        <p className="text-sm font-medium text-gray-500 mb-1">Total Value</p>
+                        <h3 className="text-2xl font-bold text-green-600">₱{totals.totalValue.toLocaleString()}</h3>
+                    </div>
+                    <div className="bg-green-100 p-3 rounded-lg">
+                        <TrendingUp size={24} className="text-green-600" />
+                    </div>
+                </div>
 
-                {/* LEFT COLUMN: Filters & Table */}
-                <div className="flex-1 min-w-0 space-y-4 w-full">
+                {/* Total Stock */}
+                <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 flex items-center justify-between">
+                    <div>
+                        <p className="text-sm font-medium text-gray-500 mb-1">Total Stock</p>
+                        <h3 className="text-2xl font-bold text-gray-900">{totals.totalStock.toLocaleString()}</h3>
+                    </div>
+                    <div className="bg-blue-100 p-3 rounded-lg">
+                        <Layers size={24} className="text-blue-600" />
+                    </div>
+                </div>
+
+                {/* Total SKUs */}
+                <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 flex items-center justify-between">
+                    <div>
+                        <p className="text-sm font-medium text-gray-500 mb-1">Total SKUs</p>
+                        <h3 className="text-2xl font-bold text-gray-900">{totals.totalItems}</h3>
+                    </div>
+                    <div className="bg-gray-100 p-3 rounded-lg">
+                        <Filter size={24} className="text-gray-600" />
+                    </div>
+                </div>
+            </div>
+
+            {/* Main Content Grid */}
+            <div className="w-full">
+
+                {/* Filters & Table */}
+                <div className="flex flex-col space-y-4">
                     {/* Filter & Search Bar */}
                     <div className="form-card p-4">
                         <div style={{
@@ -492,100 +528,73 @@ const FTFManufacturing = () => {
                     </div>
                 </div>
 
-                {/* RIGHT COLUMN: Widgets */}
-                <div className="w-full lg:w-96 flex-shrink-0 space-y-6">
-
-                    {/* Inventory Summary Widget */}
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                        <div className="p-4 bg-gray-50 border-b border-gray-200">
-                            <h3 className="font-bold text-gray-900 flex items-center gap-2">
-                                <TrendingUp size={18} className="text-primary" />
-                                Inventory Summary
-                            </h3>
-                        </div>
-                        <div className="p-4 space-y-4">
-                            <div className="flex justify-between items-center pb-3 border-b border-gray-100">
-                                <span className="text-secondary text-sm">Total Value</span>
-                                <span className="font-bold text-xl text-success">₱{totals.totalValue.toLocaleString()}</span>
-                            </div>
-                            <div className="flex justify-between items-center pb-3 border-b border-gray-100">
-                                <span className="text-secondary text-sm">Total Stock</span>
-                                <span className="font-bold text-xl text-gray-900">{totals.totalStock.toLocaleString()}</span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                                <span className="text-secondary text-sm">Total SKUs</span>
-                                <span className="font-bold text-xl text-gray-900">{totals.totalItems}</span>
-                            </div>
-                        </div>
-                    </div>
-
-
-
-                </div>
+                {/* Closing Main Content Grid */}
             </div>
 
             {/* Stock Adjustment Modal */}
-            {editingStock && (
-                <div className="modal-overlay" onClick={cancelEdit}>
-                    <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px' }}>
-                        <div className="modal-header">
-                            <h2 className="modal-title">Adjust Stock - {editingStock.sku}</h2>
-                            <button className="close-btn" onClick={cancelEdit}>
-                                <X size={24} />
-                            </button>
-                        </div>
-                        <div className="modal-body">
-                            <div className="mb-4">
-                                <label className="text-sm text-secondary mb-1">New Quantity</label>
-                                <input
-                                    type="number"
-                                    value={editingStock.newQty}
-                                    onChange={(e) => setEditingStock({ ...editingStock, newQty: parseInt(e.target.value) || 0 })}
-                                    className="premium-input"
-                                    style={{ fontSize: '1.5rem', fontWeight: 'bold' }}
-                                    autoFocus
-                                />
-                                <div className="text-sm text-secondary mt-1">
-                                    Difference: {editingStock.newQty - editingStock.oldQty >= 0 ? '+' : ''}
-                                    {editingStock.newQty - editingStock.oldQty}
+            {
+                editingStock && (
+                    <div className="modal-overlay" onClick={cancelEdit}>
+                        <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px' }}>
+                            <div className="modal-header">
+                                <h2 className="modal-title">Adjust Stock - {editingStock.sku}</h2>
+                                <button className="close-btn" onClick={cancelEdit}>
+                                    <X size={24} />
+                                </button>
+                            </div>
+                            <div className="modal-body">
+                                <div className="mb-4">
+                                    <label className="text-sm text-secondary mb-1">New Quantity</label>
+                                    <input
+                                        type="number"
+                                        value={editingStock.newQty}
+                                        onChange={(e) => setEditingStock({ ...editingStock, newQty: parseInt(e.target.value) || 0 })}
+                                        className="premium-input"
+                                        style={{ fontSize: '1.5rem', fontWeight: 'bold' }}
+                                        autoFocus
+                                    />
+                                    <div className="text-sm text-secondary mt-1">
+                                        Difference: {editingStock.newQty - editingStock.oldQty >= 0 ? '+' : ''}
+                                        {editingStock.newQty - editingStock.oldQty}
+                                    </div>
                                 </div>
-                            </div>
-                            <div className="mb-4">
-                                <label className="text-sm text-secondary mb-1">Reason *</label>
-                                <select
-                                    value={editingStock.reasonId || ''}
-                                    onChange={(e) => setEditingStock({ ...editingStock, reasonId: parseInt(e.target.value) })}
-                                    className="premium-input"
-                                >
-                                    <option value="">Select reason...</option>
-                                    {adjustmentReasons.map(reason => (
-                                        <option key={reason.id} value={reason.id}>{reason.reason_text}</option>
-                                    ))}
-                                </select>
-                            </div>
-                            <div className="mb-4">
-                                <label className="text-sm text-secondary mb-1">Notes (Optional)</label>
-                                <textarea
-                                    value={editingStock.notes}
-                                    onChange={(e) => setEditingStock({ ...editingStock, notes: e.target.value })}
-                                    className="premium-input"
-                                    rows={3}
-                                    placeholder="Additional notes..."
-                                />
-                            </div>
-                            <div className="flex gap-3">
-                                <button onClick={saveStockAdjustment} className="submit-btn flex-1">
-                                    <Save size={18} className="mr-2" />
-                                    Save Adjustment
-                                </button>
-                                <button onClick={cancelEdit} className="icon-btn flex-1 border border-gray-300">
-                                    Cancel
-                                </button>
+                                <div className="mb-4">
+                                    <label className="text-sm text-secondary mb-1">Reason *</label>
+                                    <select
+                                        value={editingStock.reasonId || ''}
+                                        onChange={(e) => setEditingStock({ ...editingStock, reasonId: parseInt(e.target.value) })}
+                                        className="premium-input"
+                                    >
+                                        <option value="">Select reason...</option>
+                                        {adjustmentReasons.map(reason => (
+                                            <option key={reason.id} value={reason.id}>{reason.reason_text}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className="mb-4">
+                                    <label className="text-sm text-secondary mb-1">Notes (Optional)</label>
+                                    <textarea
+                                        value={editingStock.notes}
+                                        onChange={(e) => setEditingStock({ ...editingStock, notes: e.target.value })}
+                                        className="premium-input"
+                                        rows={3}
+                                        placeholder="Additional notes..."
+                                    />
+                                </div>
+                                <div className="flex gap-3">
+                                    <button onClick={saveStockAdjustment} className="submit-btn flex-1">
+                                        <Save size={18} className="mr-2" />
+                                        Save Adjustment
+                                    </button>
+                                    <button onClick={cancelEdit} className="icon-btn flex-1 border border-gray-300">
+                                        Cancel
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
             {/* Settings Modal */}
             <FTFSettingsModal
@@ -596,7 +605,7 @@ const FTFManufacturing = () => {
                 }}
                 inventory={inventory}
             />
-        </div>
+        </div >
     );
 };
 
