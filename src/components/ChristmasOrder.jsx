@@ -49,8 +49,7 @@ const CATEGORIES = [
     { id: 'FGC', label: 'Cups', icon: Coffee, color: 'bg-[#D42426] text-white', border: 'border-white/20', shadow: 'shadow-[#D42426]/40', ring: 'ring-[#D42426]' }, // Red
     { id: 'FGP', label: 'Pints', icon: IceCream, color: 'bg-[#165B33] text-white', border: 'border-white/20', shadow: 'shadow-[#165B33]/40', ring: 'ring-[#165B33]' }, // Green
     { id: 'FGL', label: 'Liters', icon: Droplet, color: 'bg-[#F8B229] text-white', border: 'border-white/20', shadow: 'shadow-[#F8B229]/40', ring: 'ring-[#F8B229]' }, // Gold
-    { id: 'FGG', label: 'Gallons', icon: Box, color: 'bg-[#EA4630] text-white', border: 'border-white/20', shadow: 'shadow-[#EA4630]/40', ring: 'ring-[#EA4630]' }, // Red-Orange
-    { id: 'FGT', label: 'Trays', icon: Grid, color: 'bg-[#BB2528] text-white', border: 'border-white/20', shadow: 'shadow-[#BB2528]/40', ring: 'ring-[#BB2528]' } // Deep Red
+    { id: 'FGG', label: 'Gallons', icon: Box, color: 'bg-[#EA4630] text-white', border: 'border-white/20', shadow: 'shadow-[#EA4630]/40', ring: 'ring-[#EA4630]' } // Red-Orange
 ];
 
 // Special Christmas Pricing
