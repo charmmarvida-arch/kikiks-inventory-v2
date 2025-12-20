@@ -1,2 +1,2 @@
-Fix: Add Inventory Summary widget to Right Sidebar in FTF Manufacturing
-Timestamp: 2025-12-19 14:55
+Fix: Remove Critical Stock and Recent Activity widgets from FTF Manufacturing
+Timestamp: 2025-12-20 09:00

@@ -519,79 +519,7 @@ const FTFManufacturing = () => {
                         </div>
                     </div>
 
-                    {/* Low Stock Alerts */}
-                    <div className="bg-white rounded-xl shadow-sm border border-orange-100 overflow-hidden">
-                        <div className="p-4 bg-orange-50/50 border-b border-orange-100 flex justify-between items-center">
-                            <h3 className="font-bold text-orange-900 flex items-center gap-2">
-                                <AlertTriangle size={18} className="text-orange-600" />
-                                Critical Stock
-                            </h3>
-                            <span className="bg-orange-100 text-orange-700 text-xs font-bold px-2 py-1 rounded-full">
-                                {totals.lowStockCount + totals.outOfStockCount} Items
-                            </span>
-                        </div>
-                        <div className="p-2 custom-scrollbar max-h-[300px] overflow-y-auto">
-                            {inventory
-                                .map(enrichInventoryData)
-                                .filter(i => i.stockStatus === 'lowstock' || i.stockStatus === 'outofstock')
-                                .sort((a, b) => a.quantity - b.quantity)
-                                .map(item => (
-                                    <div key={item.sku} className="p-3 hover:bg-orange-50 rounded-lg transition-colors border-b border-gray-50 last:border-0">
-                                        <div className="flex justify-between items-start mb-1">
-                                            <span className="font-bold text-sm text-gray-800">{item.description}</span>
-                                            <span className={`text-xs font-bold px-2 py-0.5 rounded ${item.stockStatus === 'outofstock' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'}`}>
-                                                {item.stockStatus === 'outofstock' ? 'Out' : 'Low'}
-                                            </span>
-                                        </div>
-                                        <div className="flex justify-between text-xs text-gray-500">
-                                            <span className="font-mono">{item.sku}</span>
-                                            <span className="font-bold">
-                                                {item.quantity} <span className="font-normal text-gray-400">/ {item.threshold}</span>
-                                            </span>
-                                        </div>
-                                    </div>
-                                ))}
-                            {(totals.lowStockCount + totals.outOfStockCount) === 0 && (
-                                <div className="p-6 text-center text-gray-400 text-sm">
-                                    All stock levels are healthy!
-                                </div>
-                            )}
-                        </div>
-                    </div>
 
-                    {/* Recent Activity */}
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                        <div className="p-4 bg-gray-50 border-b border-gray-200">
-                            <h3 className="font-bold text-gray-900">Recent Activity</h3>
-                        </div>
-                        <div className="divide-y divide-gray-100 max-h-[400px] overflow-y-auto custom-scrollbar">
-                            {recentActivity.map(log => {
-                                const diff = log.new_quantity - log.old_quantity;
-                                const isPositive = diff > 0;
-                                return (
-                                    <div key={log.id} className="p-4 hover:bg-gray-50 transition-colors">
-                                        <div className="flex justify-between items-start mb-1">
-                                            <span className="font-bold text-sm text-gray-800">{log.sku}</span>
-                                            <span className={`text-xs font-bold ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
-                                                {isPositive ? '+' : ''}{diff}
-                                            </span>
-                                        </div>
-                                        <div className="text-xs text-gray-600 mb-1">
-                                            {log.ftf_adjustment_reasons?.reason_text || 'Stock Adjustment'}
-                                        </div>
-                                        <div className="text-[10px] text-gray-400">
-                                            {new Date(log.created_at).toLocaleString()}
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                            {recentActivity.length === 0 && (
-                                <div className="p-6 text-center text-gray-400 text-sm">
-                                    No recent activity
-                                </div>
-                            )}
-                        </div>
-                    </div>
 
                 </div>
             </div>
