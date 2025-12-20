@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useInventory } from '../context/InventoryContext';
+// import { useInventory } from '../context/InventoryContext'; // Removed for optimization
 import { useNavigate } from 'react-router-dom';
 import {
     Settings, Search, ShoppingCart,
@@ -61,11 +61,86 @@ const CHRISTMAS_PRICES = {
     'FGT': 1000 // Keeping default or need to clarify? Assuming default for now roughly
 };
 
+import { supabase } from '../supabaseClient'; // Direct Supabase for performance
+
 const ChristmasOrder = () => {
-    const { inventory, addResellerOrder, resellerOrders, updateResellerOrder, deleteResellerOrder } = useInventory();
+    // const { inventory, addResellerOrder, resellerOrders, updateResellerOrder, deleteResellerOrder } = useInventory(); // Removed global context for speed
     const navigate = useNavigate();
 
-    // --- State ---
+    // --- Local Data State for Speed ---
+    const [inventory, setInventory] = useState([]);
+    const [resellerOrders, setResellerOrders] = useState([]); // Only for History Modal which is PIN protected
+
+    // Optimized Fetch
+    useEffect(() => {
+        const fetchEssentialData = async () => {
+            // 1. Fetch Products (Only what's needed)
+            const { data: products } = await supabase
+                .from('inventory')
+                .select('sku, description, quantity')
+                .or('sku.ilike.FGC%,sku.ilike.FGP%,sku.ilike.FGL%,sku.ilike.FGG%'); // Only fetch relevant categories
+
+            if (products) setInventory(products);
+
+            // 2. Fetch Orders for History (Only fetch recent ones to save data?)
+            // We fetch this ONLY if Admin Settings is opened usually, but to keep logic simple we fetch here
+            // actually let's only fetch logic INSIDE the history modal to be truly fast?
+            // For now, let's just fetch them but lighter.
+            const { data: orders } = await supabase
+                .from('reseller_orders')
+                .select('*')
+                .eq('location', 'Christmas Order')
+                .order('date', { ascending: false });
+
+            if (orders) setResellerOrders(orders);
+        };
+
+        fetchEssentialData();
+    }, []);
+
+    // Local Add Order Function (Bypassing Context)
+    const addResellerOrder = async (orderData) => {
+        // Prepare DB object (snake_case)
+        const dbOrder = {
+            id: crypto.randomUUID(),
+            reseller_id: null,
+            reseller_name: orderData.resellerName,
+            location: 'Christmas Order',
+            address: orderData.address,
+            items: orderData.items, // JSONB
+            total_amount: orderData.totalAmount,
+            date: orderData.date,
+            status: 'Pending'
+        };
+
+        const { data, error } = await supabase
+            .from('reseller_orders')
+            .insert([dbOrder])
+            .select()
+            .single();
+
+        if (data) {
+            setResellerOrders(prev => [data, ...prev]); // Optimistic update for history
+            return { data };
+        }
+        return { error };
+    };
+
+    // Local Update/Delete for History
+    const updateResellerOrder = async (id, updates) => {
+        const { error } = await supabase.from('reseller_orders').update(updates).eq('id', id);
+        if (!error) {
+            setResellerOrders(prev => prev.map(o => o.id === id ? { ...o, ...updates } : o));
+        }
+    };
+
+    const deleteResellerOrder = async (id) => {
+        const { error } = await supabase.from('reseller_orders').delete().eq('id', id);
+        if (!error) {
+            setResellerOrders(prev => prev.filter(o => o.id !== id));
+        }
+    };
+
     // --- State ---
     const [resellerName, setResellerName] = useState('');
     const [deliveryMethod, setDeliveryMethod] = useState('pickup'); // 'pickup' or 'delivery'
