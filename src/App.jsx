@@ -13,7 +13,7 @@ import Dashboard from './components/Dashboard';
 import LocationDashboard from './components/LocationDashboard';
 import TransferLocation from './components/TransferLocation';
 import ResellerOrderRedesigned from './components/ResellerOrderRedesigned';
-import ChristmasOrder from './components/ChristmasOrder';
+// import ChristmasOrder from './components/ChristmasOrder'; // Lazy loaded below
 import OrderPdfView from './components/OrderPdfView';
 import ResellerOrderList from './components/ResellerOrderList';
 import OrderHistory from './components/OrderHistory';
@@ -23,6 +23,17 @@ import FTFManufacturing from './components/FTFManufacturing';
 import FTFMaterials from './components/FTFMaterials';
 import LegazpiStorage from './components/LegazpiStorage';
 import AdminKey from './components/AdminKey';
+
+// Lazy Load Christmas Order for performance
+const ChristmasOrder = React.lazy(() => import('./components/ChristmasOrder'));
+
+// Loading Fallback Component
+const ChristmasLoader = () => (
+  <div className="flex flex-col items-center justify-center h-screen bg-[#0F4C25] text-white">
+    <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-[#D42426] mb-4"></div>
+    <h2 className="text-2xl font-black tracking-widest animate-pulse">LOADING CHRISTMAS...</h2>
+  </div>
+);
 
 
 
@@ -73,7 +84,11 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/public-order" element={<ResellerOrderRedesigned isPublic={true} />} />
               <Route path="/public-transfer" element={<TransferLocation isPublic={true} />} />
-              <Route path="/christmas-order" element={<ChristmasOrder isPublic={true} />} />
+              <Route path="/christmas-order" element={
+                <React.Suspense fallback={<ChristmasLoader />}>
+                  <ChristmasOrder isPublic={true} />
+                </React.Suspense>
+              } />
               <Route path="/order-pdf/:orderId" element={<OrderPdfView />} />
 
               {/* Protected Routes */}
