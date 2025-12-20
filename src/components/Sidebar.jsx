@@ -11,7 +11,8 @@ import {
   ClipboardList,
   Box,
   Store,
-  Layers
+  Layers,
+  Gift
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useInventory } from '../context/InventoryContext';
@@ -135,6 +136,10 @@ const Sidebar = ({ isOpen, onClose }) => {
               <NavLink to="/reseller-order" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`} onClick={onClose}>
                 <span className="nav-icon"><ShoppingCart size={20} /></span>
                 Create Order
+              </NavLink>
+              <NavLink to="/christmas-order" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`} onClick={onClose} style={{ color: '#D42426' }}>
+                <span className="nav-icon"><Gift size={20} /></span>
+                Christmas Order
               </NavLink>
               <NavLink to="/reseller-orders-list" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`} onClick={onClose}>
                 <span className="nav-icon"><ClipboardList size={20} /></span>

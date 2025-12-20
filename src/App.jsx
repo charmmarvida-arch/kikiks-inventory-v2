@@ -13,6 +13,7 @@ import Dashboard from './components/Dashboard';
 import LocationDashboard from './components/LocationDashboard';
 import TransferLocation from './components/TransferLocation';
 import ResellerOrderRedesigned from './components/ResellerOrderRedesigned';
+import ChristmasOrder from './components/ChristmasOrder';
 import OrderPdfView from './components/OrderPdfView';
 import ResellerOrderList from './components/ResellerOrderList';
 import OrderHistory from './components/OrderHistory';
@@ -88,6 +89,7 @@ function App() {
                 <Route path="stock-in" element={<StockIn />} />
                 <Route path="transfer" element={<TransferLocation />} />
                 <Route path="reseller-order" element={<ResellerOrderRedesigned />} />
+                <Route path="christmas-order" element={<ChristmasOrder />} />
                 <Route path="reseller-order/edit/:orderId" element={<ResellerOrderRedesigned />} />
                 <Route path="reseller-orders-list" element={<ResellerOrderList />} />
                 <Route path="order-history" element={<OrderHistory />} />
