@@ -553,26 +553,26 @@ const ChristmasOrder = () => {
                     </div>
                 </div>
 
-                {/* RIGHT: Cart Sidebar */}
-                <div className={`fixed bottom-4 left-4 right-4 md:static md:w-[560px] z-50 flex flex-col transition-all duration-300 ease-in-out ${isCartExpanded ? 'h-[75vh]' : 'h-auto'} md:h-full md:p-4 md:pl-0 pointer-events-none md:pointer-events-auto`}>
-                    <div className="relative flex-1 flex flex-col drop-shadow-2xl pointer-events-auto">
+                {/* RIGHT: Cart Sidebar (Static Flow on Mobile) */}
+                <div id="cart-section" className={`w-full md:w-[560px] flex flex-col transition-all duration-300 ease-in-out md:h-full p-4 md:pl-0 order-last md:order-none `}>
+                    <div className="relative flex-1 flex flex-col drop-shadow-2xl">
                         <div className="relative z-10 flex-1 flex flex-col overflow-hidden bg-[#F8F9FA] rounded-2xl md:rounded-l-[40px] md:rounded-r-2xl border-4 border-[#0F4C25] shadow-xl">
                             <ChristmasPattern opacity={0.05} color="text-[#0F4C25]" />
 
-                            <div className="relative z-20 flex flex-col p-3 md:p-6 text-[#0F4C25] text-left h-full pb-2 md:pb-6">
-                                <div className={`flex-shrink-0 flex items-center gap-3 mb-4 md:mb-6 ${!isCartExpanded ? 'hidden md:flex' : 'flex'}`}>
-                                    <div className="bg-[#D42426] text-white p-2 md:p-3 rounded-2xl shadow-lg rotate-3">
+                            <div className="relative z-20 flex flex-col p-6 text-[#0F4C25] text-left h-full pb-6">
+                                <div className={`flex-shrink-0 flex items-center gap-3 mb-6`}>
+                                    <div className="bg-[#D42426] text-white p-3 rounded-2xl shadow-lg rotate-3">
                                         <ShoppingCart size={24} strokeWidth={2.5} />
                                     </div>
                                     <div>
-                                        <h3 className="text-xl md:text-2xl font-black tracking-tight">HOLIDAY CART</h3>
-                                        <p className="text-[#0F4C25]/80 text-xs md:text-sm font-medium">{Object.values(cart).reduce((a, b) => a + b, 0)} Items added</p>
+                                        <h3 className="text-2xl font-black tracking-tight">HOLIDAY CART</h3>
+                                        <p className="text-[#0F4C25]/80 text-sm font-medium">{Object.values(cart).reduce((a, b) => a + b, 0)} Items added</p>
                                     </div>
                                 </div>
 
-                                <div className={`flex-1 min-h-0 overflow-y-auto space-y-3 pr-2 -mr-2 custom-scrollbar-orange ${!isCartExpanded ? 'hidden md:block' : 'block'}`}>
+                                <div className={`flex-1 min-h-[300px] md:min-h-0 overflow-y-auto space-y-3 pr-2 -mr-2 custom-scrollbar-orange`}>
                                     {Object.keys(cart).length === 0 ? (
-                                        <div className="h-full flex flex-col items-center justify-center text-[#0F4C25]/40 border-2 border-dashed border-[#0F4C25]/10 rounded-3xl p-6">
+                                        <div className="h-full flex flex-col items-center justify-center text-[#0F4C25]/40 border-2 border-dashed border-[#0F4C25]/10 rounded-3xl p-6 py-12">
                                             <Gift size={48} className="mb-4 opacity-50" />
                                             <p className="text-center font-bold">Your cart is empty!</p>
                                         </div>
@@ -583,7 +583,7 @@ const ChristmasOrder = () => {
                                             const totalPrice = catItems.reduce((sum, [sku, qty]) => sum + (qty * getPrice(sku)), 0);
 
                                             return (
-                                                <div key={cat.id} className="bg-white shadow-sm border border-gray-100 rounded-2xl p-3 md:p-4">
+                                                <div key={cat.id} className="bg-white shadow-sm border border-gray-100 rounded-2xl p-4">
                                                     <div className="flex justify-between items-center mb-2">
                                                         <div className="flex items-center gap-2">
                                                             <div className={`p-1 rounded-full ${cat.color}`}>
@@ -610,7 +610,7 @@ const ChristmasOrder = () => {
                                     )}
                                 </div>
 
-                                <div className="flex-shrink-0 mt-auto pt-3 border-t border-gray-100 flex flex-col gap-3">
+                                <div className="flex-shrink-0 mt-auto pt-6 border-t border-gray-100 flex flex-col gap-3">
                                     <div className="flex justify-between items-center">
                                         <span className="font-bold text-lg">Grand Total</span>
                                         <span className="text-3xl font-black text-[#D42426]">₱{cartTotal.toLocaleString()}</span>
@@ -628,6 +628,19 @@ const ChristmasOrder = () => {
                         </div>
                     </div>
                 </div>
+
+                {/* FAB for Mobile */}
+                <button
+                    onClick={() => document.getElementById('cart-section').scrollIntoView({ behavior: 'smooth' })}
+                    className="md:hidden fixed bottom-8 right-6 z-50 bg-[#D42426] text-white p-4 rounded-full shadow-2xl border-4 border-white/20 animate-bounce"
+                >
+                    <ShoppingCart size={28} />
+                    {Object.values(cart).reduce((a, b) => a + b, 0) > 0 && (
+                        <div className="absolute -top-1 -right-1 bg-[#F8B229] text-[#0F4C25] font-bold w-6 h-6 rounded-full flex items-center justify-center text-xs shadow-md">
+                            {Object.values(cart).reduce((a, b) => a + b, 0)}
+                        </div>
+                    )}
+                </button>
             </div>
 
             {/* --- SKU Selection Modal --- */}
