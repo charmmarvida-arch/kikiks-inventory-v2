@@ -436,6 +436,9 @@ const ChristmasOrder = () => {
                         <h2 className="text-xl md:text-3xl font-black text-white tracking-tight flex items-center gap-2 px-4 py-2 bg-[#D42426]/20 rounded-xl backdrop-blur-sm border border-white/10">
                             Merry Christmas Kikiks! 🎄
                         </h2>
+                        <div className="md:hidden bg-yellow-400 text-black px-3 py-1 rounded-full text-xs font-bold mt-2 text-center animate-pulse">
+                            UPDATE v2.0 - SCROLL DOWN FOR CART 👇
+                        </div>
                     </div>
                     {/* Settings hidden for public (or keep it if pin protected?) User said "so that customers will only be redirected to this page", implying restricting nav. 
                         But Settings is PIN protected. Keeping it is fine for admin access on public kiosk. */}
