@@ -148,8 +148,6 @@ const ChristmasOrder = () => {
     const [scheduleDate, setScheduleDate] = useState('');
     const [scheduleTime, setScheduleTime] = useState('');
 
-    // Auto-Save State
-    const [lastSaved, setLastSaved] = useState(null);
     const DRAFT_KEY = 'kikiks-christmas-draft';
 
     // Auto-Restore Draft on Mount
@@ -187,9 +185,7 @@ const ChristmasOrder = () => {
 
     // --- State for Custom Modals & Submission ---
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [isFinalConfirmOpen, setIsFinalConfirmOpen] = useState(false);
     const [isSuccessOpen, setIsSuccessOpen] = useState(false);
-    const [createdOrderId, setCreatedOrderId] = useState(null);
 
     // Auto-Save to localStorage
     useEffect(() => {
@@ -201,7 +197,6 @@ const ChristmasOrder = () => {
                 timestamp: new Date().toISOString()
             };
             localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
-            setLastSaved(new Date());
         }
     }, [cart, resellerName, address]);
 
@@ -336,7 +331,6 @@ const ChristmasOrder = () => {
 
             // Success State
             // Note: addResellerOrder returns { data, error } usually, or just check execution
-            setCreatedOrderId(res?.data?.id || 'temp-id'); // Use returned ID if available
 
             // --- Send Discord Notification ---
             const WEBHOOK_URL = "https://discord.com/api/webhooks/1451752534820519969/m0cBK-p_JiXIUzIXn0ym2Sx-y6_jmj0O7K5TMhSLC7Q2gP8AaGGC6sScmA52V29X3bTH";
@@ -381,7 +375,6 @@ const ChristmasOrder = () => {
             setScheduleDate('');
             setScheduleTime('');
             setDeliveryMethod('pickup'); // Reset to default
-            setIsFinalConfirmOpen(false);
             setIsConfirmOpen(false);
             setIsSubmitting(false);
             setIsSuccessOpen(true);
@@ -431,7 +424,7 @@ const ChristmasOrder = () => {
                             Merry Christmas Kikiks! 🎄
                         </h2>
                         <div className="md:hidden bg-yellow-400 text-black px-3 py-1 rounded-full text-xs font-bold mt-2 text-center animate-pulse">
-                            UPDATE v2.1 - SCROLL DOWN FOR CART 👇
+                            UPDATE v2.2 - SCROLL DOWN FOR CART 👇
                         </div>
                     </div>
                     {/* Settings hidden for public (or keep it if pin protected?) User said "so that customers will only be redirected to this page", implying restricting nav. 
@@ -757,7 +750,7 @@ const ChristmasOrder = () => {
 };
 
 // Sub-component for Settings/History
-const ChristmasHistoryModal = ({ isOpen, onClose, resellerOrders, updateResellerOrder, deleteResellerOrder }) => {
+const ChristmasHistoryModal = ({ onClose, resellerOrders, updateResellerOrder, deleteResellerOrder }) => {
     // Filter for Christmas Orders
     const christmasOrders = resellerOrders
         .filter(o => o.location === 'Christmas Order')
