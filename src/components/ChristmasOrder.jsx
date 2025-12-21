@@ -431,7 +431,7 @@ const ChristmasOrder = () => {
                             Merry Christmas Kikiks! 🎄
                         </h2>
                         <div className="md:hidden bg-yellow-400 text-black px-3 py-1 rounded-full text-xs font-bold mt-2 text-center animate-pulse">
-                            UPDATE v2.0 - SCROLL DOWN FOR CART 👇
+                            UPDATE v2.1 - SCROLL DOWN FOR CART 👇
                         </div>
                     </div>
                     {/* Settings hidden for public (or keep it if pin protected?) User said "so that customers will only be redirected to this page", implying restricting nav. 
