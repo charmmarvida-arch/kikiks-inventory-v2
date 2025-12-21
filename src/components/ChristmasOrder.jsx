@@ -147,12 +147,9 @@ const ChristmasOrder = () => {
     const [contactNumber, setContactNumber] = useState('');
     const [scheduleDate, setScheduleDate] = useState('');
     const [scheduleTime, setScheduleTime] = useState('');
-    const [isCartExpanded, setIsCartExpanded] = useState(false);
 
     // Auto-Save State
     const [lastSaved, setLastSaved] = useState(null);
-    const [showDraftNotification, setShowDraftNotification] = useState(false);
-    const [isDraftRestored, setIsDraftRestored] = useState(false);
     const DRAFT_KEY = 'kikiks-christmas-draft';
 
     // Auto-Restore Draft on Mount
@@ -165,9 +162,6 @@ const ChristmasOrder = () => {
                     setCart(draft.cart);
                     setResellerName(draft.resellerName || '');
                     setAddress(draft.address || '');
-                    setIsDraftRestored(true);
-                    setShowDraftNotification(true);
-                    setTimeout(() => setShowDraftNotification(false), 5000);
                 }
             } catch (error) {
                 console.error('Error restoring draft:', error);
