@@ -374,6 +374,13 @@ export const InventoryProvider = ({ children }) => {
         if (updates.coaData !== undefined) dbUpdates.coa_data = updates.coaData;
         if (updates.status !== undefined) dbUpdates.status = updates.status;
 
+        // Critical: Allow updating Order Details (Items, Amount, etc.)
+        if (updates.items !== undefined) dbUpdates.items = updates.items;
+        if (updates.totalAmount !== undefined) dbUpdates.total_amount = updates.totalAmount;
+        if (updates.location !== undefined) dbUpdates.location = updates.location;
+        if (updates.address !== undefined) dbUpdates.address = updates.address;
+        if (updates.resellerName !== undefined) dbUpdates.reseller_name = updates.resellerName;
+
         // Fix: Ensure encoded status is updated in DB
         if (updates.is_encoded !== undefined) dbUpdates.is_encoded = updates.is_encoded;
         if (updates.encoded_by !== undefined) dbUpdates.encoded_by = updates.encoded_by;

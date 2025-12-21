@@ -555,7 +555,7 @@ const ChristmasOrder = () => {
                 </div>
 
                 {/* RIGHT: Cart Sidebar */}
-                <div className={`fixed bottom-0 left-0 right-0 md:static w-full md:w-[560px] z-50 flex flex-col transition-all duration-300 ease-in-out ${isCartExpanded ? 'h-[75vh]' : 'h-auto'} md:h-full p-3 md:py-4 md:pr-4 md:pl-0 pointer-events-none md:pointer-events-auto`}>
+                <div className={`fixed bottom-0 left-0 right-0 md:static w-full md:w-[560px] z-50 flex flex-col transition-all duration-300 ease-in-out ${isCartExpanded ? 'h-[75vh]' : 'h-auto'} md:h-full p-3 md:py-4 md:pr-4 md:pl-0 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pointer-events-none md:pointer-events-auto`}>
                     <div className="relative flex-1 flex flex-col drop-shadow-2xl pointer-events-auto">
                         <div className="relative z-10 flex-1 flex flex-col overflow-hidden bg-[#F8F9FA] rounded-2xl md:rounded-l-[40px] md:rounded-r-2xl border-4 border-[#0F4C25] shadow-xl">
                             <ChristmasPattern opacity={0.05} color="text-[#0F4C25]" />
