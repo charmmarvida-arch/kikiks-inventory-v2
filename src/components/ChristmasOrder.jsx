@@ -444,7 +444,7 @@ const ChristmasOrder = () => {
             </div>
 
             {/* --- Content Area --- */}
-            <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
+            <div className="flex-1 flex flex-col md:flex-row md:overflow-hidden">
 
                 {/* LEFT: Categories */}
                 <div className="flex-1 p-4 md:p-8 md:overflow-y-auto pb-48 md:pb-8">
