@@ -2,12 +2,11 @@ import React, { useState, useEffect } from 'react';
 // import { useInventory } from '../context/InventoryContext'; // Removed for optimization
 import { useNavigate } from 'react-router-dom';
 import {
-    Settings, Search, ShoppingCart,
+    Settings, ShoppingCart,
     Coffee, IceCream, Droplet, Box, Grid,
-    ChevronRight, Save, X, Trash2, AlertCircle, FileText, CheckCircle,
+    X, CheckCircle,
     Snowflake, Gift, Star, TreeDeciduous, Calendar // Christmas Icons
 } from 'lucide-react';
-import { generatePackingList } from '../utils/pdfGenerator';
 
 // --- Christmas Pattern Component ---
 const ChristmasPattern = ({ className, opacity = 0.2, color = "text-white" }) => {
@@ -415,7 +414,7 @@ const ChristmasOrder = () => {
         : [];
 
     return (
-        <div className="fade-in h-[100dvh] md:h-screen flex flex-col bg-[#0F4C25] overflow-hidden relative font-sans">
+        <div className="fade-in min-h-[100dvh] md:h-screen flex flex-col bg-[#0F4C25] md:overflow-hidden relative font-sans">
             {/* Christmas BG Pattern */}
             <ChristmasPattern opacity={0.1} color="text-white" />
 
@@ -448,7 +447,7 @@ const ChristmasOrder = () => {
             <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
 
                 {/* LEFT: Categories */}
-                <div className="flex-1 p-8 overflow-y-auto pb-40 md:pb-8">
+                <div className="flex-1 p-4 md:p-8 md:overflow-y-auto pb-48 md:pb-8">
                     {/* Delivery / Pickup Section */}
                     <div className="mb-8 bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20">
                         {/* Method Toggle */}
@@ -555,7 +554,7 @@ const ChristmasOrder = () => {
                 </div>
 
                 {/* RIGHT: Cart Sidebar */}
-                <div className={`fixed bottom-24 md:bottom-0 left-0 right-0 md:static w-full md:w-[560px] z-50 flex flex-col transition-all duration-300 ease-in-out ${isCartExpanded ? 'h-[75vh]' : 'h-auto'} md:h-full p-3 md:py-4 md:pr-4 md:pl-0 pointer-events-none md:pointer-events-auto`}>
+                <div className={`fixed bottom-4 left-4 right-4 md:static md:w-[560px] z-50 flex flex-col transition-all duration-300 ease-in-out ${isCartExpanded ? 'h-[75vh]' : 'h-auto'} md:h-full md:p-4 md:pl-0 pointer-events-none md:pointer-events-auto`}>
                     <div className="relative flex-1 flex flex-col drop-shadow-2xl pointer-events-auto">
                         <div className="relative z-10 flex-1 flex flex-col overflow-hidden bg-[#F8F9FA] rounded-2xl md:rounded-l-[40px] md:rounded-r-2xl border-4 border-[#0F4C25] shadow-xl">
                             <ChristmasPattern opacity={0.05} color="text-[#0F4C25]" />
