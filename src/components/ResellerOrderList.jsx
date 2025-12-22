@@ -18,8 +18,10 @@ const ResellerOrderList = () => {
     const [preparedBy, setPreparedBy] = useState('');
     const [preparedDate, setPreparedDate] = useState('');
 
-    // Filter out COMPLETED orders
-    const activeOrders = resellerOrders.filter(order => order.status !== 'Completed');
+    // Filter out COMPLETED orders and CHRISTMAS ORDERS
+    const activeOrders = resellerOrders.filter(order =>
+        order.status !== 'Completed' && order.location !== 'Christmas Order'
+    );
 
     // Preview Modal State
     const [previewUrl, setPreviewUrl] = useState(null);

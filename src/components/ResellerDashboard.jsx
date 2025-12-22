@@ -74,14 +74,14 @@ const ResellerDashboard = () => {
         }
     };
 
-    // Filter orders by date range
+    // Filter orders by date range (exclude Christmas orders)
     const filteredOrders = useMemo(() => {
         return resellerOrders.filter(order => {
             const orderDate = new Date(order.date);
             const start = new Date(startDate);
             const end = new Date(endDate);
             end.setHours(23, 59, 59, 999);
-            return orderDate >= start && orderDate <= end && order.status === 'Completed';
+            return orderDate >= start && orderDate <= end && order.status === 'Completed' && order.location !== 'Christmas Order';
         });
     }, [resellerOrders, startDate, endDate]);
 
@@ -98,7 +98,7 @@ const ResellerDashboard = () => {
 
         return resellerOrders.filter(order => {
             const orderDate = new Date(order.date);
-            return orderDate >= prevStart && orderDate <= prevEnd && order.status === 'Completed';
+            return orderDate >= prevStart && orderDate <= prevEnd && order.status === 'Completed' && order.location !== 'Christmas Order';
         });
     }, [resellerOrders, startDate, endDate]);
 
@@ -141,12 +141,12 @@ const ResellerDashboard = () => {
             return { cycleStart, cycleEnd };
         };
 
-        // Get all unique resellers
-        const uniqueResellers = new Set(resellerOrders.map(o => o.resellerName));
+        // Get all unique resellers (exclude Christmas orders)
+        const uniqueResellers = new Set(resellerOrders.filter(o => o.location !== 'Christmas Order').map(o => o.resellerName));
 
-        // Group orders by reseller
+        // Group orders by reseller (exclude Christmas orders)
         const groupedOrders = {};
-        resellerOrders.forEach(o => {
+        resellerOrders.filter(o => o.location !== 'Christmas Order').forEach(o => {
             if (!groupedOrders[o.resellerName]) groupedOrders[o.resellerName] = [];
             groupedOrders[o.resellerName].push(o);
         });
@@ -330,17 +330,17 @@ const ResellerDashboard = () => {
             .slice(0, 3);
     }, [filteredOrders, inventory]);
 
-    // 2. Pending Collections (Unpaid/Active Orders)
+    // 2. Pending Collections (Unpaid/Active Orders, exclude Christmas)
     const pendingCollections = useMemo(() => {
         return resellerOrders
-            .filter(o => o.status !== 'Completed' && o.status !== 'Cancelled')
+            .filter(o => o.status !== 'Completed' && o.status !== 'Cancelled' && o.location !== 'Christmas Order')
             .reduce((sum, o) => sum + (o.totalAmount || 0), 0);
     }, [resellerOrders]);
 
-    // Critical Alerts Logic - Tracks Pending Orders
+    // Critical Alerts Logic - Tracks Pending Orders (exclude Christmas)
     const criticalAlerts = useMemo(() => {
         // Find all orders that are 'Pending'
-        const pendingOrders = resellerOrders.filter(o => o.status === 'Pending');
+        const pendingOrders = resellerOrders.filter(o => o.status === 'Pending' && o.location !== 'Christmas Order');
 
         // Sort by date ascending (oldest first)
         const sortedPending = [...pendingOrders].sort((a, b) => new Date(a.date) - new Date(b.date));
