@@ -371,25 +371,6 @@ const ResellerDashboard = () => {
         return { currentRevenue, finalTarget, percentage };
     }, [metrics.totalRevenue, resellers, resellerSettings]);
 
-    // 4. Critical Alerts (Logic moved from UI if needed, but we can reuse monthlyComplianceData)
-    const criticalAlerts = useMemo(() => {
-        const alerts = [];
-        // A. Compliance 'Not Met' (already calculated in monthlyComplianceData)
-        monthlyComplianceData.forEach(d => {
-            if (d.status === 'not_met') {
-                alerts.push({
-                    type: 'compliance',
-                    message: `${d.resellerName} missed target`,
-                    level: 'high'
-                });
-            }
-        });
-
-        // B. No Order > 7 Days? (Optional, maybe too noisy if 'not_met' covers it)
-        // Let's stick to Compliance Not Met for high level, and maybe "No Activity"
-
-        return alerts.slice(0, 5); // Limit to top 5
-    }, [monthlyComplianceData]);
 
     const handleViewResellerHistory = (resellerData) => {
         // ... functionality to open modal or navigate ...
