@@ -424,7 +424,7 @@ const ChristmasOrder = () => {
                             Merry Christmas Kikiks! 🎄
                         </h2>
                         <div className="md:hidden bg-yellow-400 text-black px-3 py-1 rounded-full text-xs font-bold mt-2 text-center animate-pulse">
-                            UPDATE v2.2 - SCROLL DOWN FOR CART 👇
+                            UPDATE v2.3 - SCROLL DOWN FOR BUTTON 👇
                         </div>
                     </div>
                     {/* Settings hidden for public (or keep it if pin protected?) User said "so that customers will only be redirected to this page", implying restricting nav. 
@@ -550,7 +550,7 @@ const ChristmasOrder = () => {
                             <ChristmasPattern opacity={0.05} color="text-[#0F4C25]" />
 
                             <div className="relative z-20 flex flex-col p-6 text-[#0F4C25] text-left h-full pb-6">
-                                <div className={`flex-shrink-0 flex items-center gap-3 mb-6`}>
+                                <div className={`flex-shrink-0 hidden md:flex items-center gap-3 mb-6`}>
                                     <div className="bg-[#D42426] text-white p-3 rounded-2xl shadow-lg rotate-3">
                                         <ShoppingCart size={24} strokeWidth={2.5} />
                                     </div>
@@ -560,7 +560,7 @@ const ChristmasOrder = () => {
                                     </div>
                                 </div>
 
-                                <div className={`flex-1 min-h-[300px] md:min-h-0 overflow-y-auto space-y-3 pr-2 -mr-2 custom-scrollbar-orange`}>
+                                <div className={`hidden md:block flex-1 min-h-[300px] md:min-h-0 overflow-y-auto space-y-3 pr-2 -mr-2 custom-scrollbar-orange`}>
                                     {Object.keys(cart).length === 0 ? (
                                         <div className="h-full flex flex-col items-center justify-center text-[#0F4C25]/40 border-2 border-dashed border-[#0F4C25]/10 rounded-3xl p-6 py-12">
                                             <Gift size={48} className="mb-4 opacity-50" />
@@ -613,6 +613,8 @@ const ChristmasOrder = () => {
                                         <Gift size={24} />
                                         PLACE ORDER
                                     </button>
+                                    {/* Mobile Spacer to prevent cropping */}
+                                    <div className="h-48 md:hidden w-full"></div>
                                 </div>
                             </div>
                         </div>
