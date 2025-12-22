@@ -1,2 +1,2 @@
-Feature: Fix Christmas Order - Version 2.3 (Mobile Layout Refinement)
-Timestamp: 2025-12-22 10:35
+Feature: Fix Christmas Order - Version 2.4 (Frozen/Fixed Footer)
+Timestamp: 2025-12-22 10:45
