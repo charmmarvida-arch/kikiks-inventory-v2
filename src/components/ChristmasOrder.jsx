@@ -424,7 +424,7 @@ const ChristmasOrder = () => {
                             Merry Christmas Kikiks! 🎄
                         </h2>
                         <div className="md:hidden bg-yellow-400 text-black px-3 py-1 rounded-full text-xs font-bold mt-2 text-center animate-pulse">
-                            UPDATE v2.4 - BUTTON IS FROZEN ❄️
+                            UPDATE v2.5 - REVERTED TO v2.3 START 👇
                         </div>
                     </div>
                     {/* Settings hidden for public (or keep it if pin protected?) User said "so that customers will only be redirected to this page", implying restricting nav. 
@@ -600,7 +600,7 @@ const ChristmasOrder = () => {
                                     )}
                                 </div>
 
-                                <div className="fixed bottom-0 left-0 right-0 z-50 bg-white p-4 border-t border-gray-200 shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.3)] pb-[calc(1rem+env(safe-area-inset-bottom))] md:static md:mt-auto md:pt-6 md:border-t md:border-gray-100 md:shadow-none md:pb-0 flex flex-col gap-3">
+                                <div className="flex-shrink-0 mt-auto pt-6 border-t border-gray-100 flex flex-col gap-3">
                                     <div className="flex justify-between items-center">
                                         <span className="font-bold text-lg">Grand Total</span>
                                         <span className="text-3xl font-black text-[#D42426]">₱{cartTotal.toLocaleString()}</span>
@@ -613,9 +613,9 @@ const ChristmasOrder = () => {
                                         <Gift size={24} />
                                         PLACE ORDER
                                     </button>
+                                    {/* Mobile Spacer to prevent cropping */}
+                                    <div className="h-48 md:hidden w-full"></div>
                                 </div>
-                                {/* Spacer for Fixed Footer Clearance */}
-                                <div className="h-32 md:hidden shrink-0"></div>
                             </div>
                         </div>
                     </div>

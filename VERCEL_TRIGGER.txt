@@ -1,2 +1,2 @@
-Feature: Fix Christmas Order - Version 2.4 (Frozen/Fixed Footer)
-Timestamp: 2025-12-22 10:45
+Feature: Fix Christmas Order - Version 2.5 (Revert to v2.3 Logic)
+Timestamp: 2025-12-22 10:55
