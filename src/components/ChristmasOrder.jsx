@@ -7,6 +7,7 @@ import {
     X, CheckCircle,
     Snowflake, Gift, Star, TreeDeciduous, Calendar // Christmas Icons
 } from 'lucide-react';
+import ChristmasHistoryModal from './ChristmasHistoryModal';
 
 // --- Christmas Pattern Component ---
 const ChristmasPattern = ({ className, opacity = 0.2, color = "text-white" }) => {
@@ -131,6 +132,7 @@ const ChristmasOrder = () => {
         if (!error) {
             setResellerOrders(prev => prev.map(o => o.id === id ? { ...o, ...updates } : o));
         }
+        return { error };
     };
 
     const deleteResellerOrder = async (id) => {
@@ -179,6 +181,8 @@ const ChristmasOrder = () => {
 
     // Settings Modal
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    const [isHistoryOpen, setIsHistoryOpen] = useState(false); // For History Modal
+    const [editingOrderId, setEditingOrderId] = useState(null); // For Edit Mode
 
     // Confirmation Modal State
     const [isConfirmOpen, setIsConfirmOpen] = useState(false);
@@ -277,6 +281,39 @@ const ChristmasOrder = () => {
         setIsModalOpen(false);
     };
 
+    // --- History / Settings Handlers ---
+    const handleSettingsClick = () => {
+        const pin = prompt("Enter Admin PIN:");
+        if (pin === '1234') {
+            setIsHistoryOpen(true);
+        } else if (pin !== null) {
+            alert("Incorrect PIN");
+        }
+    };
+
+    const handleEditHistoryOrder = (order) => {
+        if (confirm(`Load order for ${order.resellerName} to edit? Current cart will be replaced.`)) {
+            setResellerName(order.resellerName || order.reseller_name || '');
+            setAddress(order.address || '');
+            setCart(order.items || {});
+            setEditingOrderId(order.id); // Set Edit Mode
+            setIsHistoryOpen(false); // Close Modal
+
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    };
+
+    const handleDeleteHistoryOrder = async (id) => {
+        if (confirm("Are you sure you want to delete this order?")) {
+            await deleteResellerOrder(id);
+        }
+    };
+
+    const handleStatusChange = async (id, newStatus) => {
+        await updateResellerOrder(id, { status: newStatus });
+    };
+
     const handleInitialSubmit = () => {
         if (!resellerName.trim()) return alert('Please enter your name');
 
@@ -319,18 +356,35 @@ const ChristmasOrder = () => {
                 address: finalAddress,
                 items: orderItems,
                 totalAmount: cartTotal,
-                date: new Date().toISOString(),
+                date: new Date().toISOString(), // Update date on edit? Or keep original? Let's update to show activity.
                 status: 'Pending'
             };
 
-            const res = await addResellerOrder(orderData);
+            let res;
+            if (editingOrderId) {
+                // UPDATE existing order
+                // Map camelCase to snake_case for DB
+                const dbUpdates = {
+                    reseller_name: orderData.resellerName,
+                    address: orderData.address,
+                    items: orderData.items,
+                    total_amount: orderData.totalAmount,
+                    // valid: Keep original date or update? Let's keep original date but update content? 
+                    // Actually user probably wants to change order but keep "place in line". 
+                    // But if date is used for sorting... let's NOT update date for edits, only content.
+                    // date: orderData.date 
+                };
+                res = await updateResellerOrder(editingOrderId, dbUpdates);
+            } else {
+                // CREATE new order
+                res = await addResellerOrder(orderData);
+            }
 
             if (res && res.error) {
                 throw new Error(res.error.message || "Database Error");
             }
 
             // Success State
-            // Note: addResellerOrder returns { data, error } usually, or just check execution
 
             // --- Send Discord Notification ---
             const WEBHOOK_URL = "https://discord.com/api/webhooks/1451752534820519969/m0cBK-p_JiXIUzIXn0ym2Sx-y6_jmj0O7K5TMhSLC7Q2gP8AaGGC6sScmA52V29X3bTH";
@@ -341,12 +395,13 @@ const ChristmasOrder = () => {
                 return `- **${desc}**: x${qty}`;
             }).join('\n');
 
+            const isUpdate = !!editingOrderId;
             const discordPayload = {
                 username: "Christmas Order Bot",
                 avatar_url: "https://cdn-icons-png.flaticon.com/512/3600/3600938.png", // Generic festive icon
                 embeds: [{
-                    title: "🎄 New Christmas Order Received!",
-                    color: 13902886, // #D42426 (Red)
+                    title: isUpdate ? "🎄 Christmas Order Updated! 📝" : "🎄 New Christmas Order Received! 🎁",
+                    color: isUpdate ? 3447003 : 13902886, // Blue for Update, Red for New
                     fields: [
                         { name: "Reseller Name", value: resellerName, inline: true },
                         { name: "Type", value: deliveryMethod === 'delivery' ? '🚚 Delivery' : '🏪 Pick Up', inline: true },
@@ -355,7 +410,7 @@ const ChristmasOrder = () => {
                         { name: "Details", value: deliveryMethod === 'delivery' ? `📍 ${address}\n📞 ${contactNumber}` : "Customer will pick up at store." },
                         { name: "Order Items", value: itemsList || "No items?" }
                     ],
-                    footer: { text: `Order ID: ${res?.data?.id || 'Pending'}` },
+                    footer: { text: `Order ID: ${isUpdate ? editingOrderId : (res?.data?.id || 'Pending')}` },
                     timestamp: new Date().toISOString()
                 }]
             };
@@ -375,6 +430,7 @@ const ChristmasOrder = () => {
             setScheduleDate('');
             setScheduleTime('');
             setDeliveryMethod('pickup'); // Reset to default
+            setEditingOrderId(null); // Clear Edit Mode
             setIsConfirmOpen(false);
             setIsSubmitting(false);
             setIsSuccessOpen(true);
@@ -386,11 +442,7 @@ const ChristmasOrder = () => {
         }
     };
 
-    const handleSettingsClick = () => {
-        const password = prompt("Enter Admin Password:");
-        if (password === "1234") setIsSettingsOpen(true);
-        else if (password !== null) alert("Incorrect Password");
-    };
+
 
     // Filter items for Modal
     const modalItems = activeCategory
@@ -423,9 +475,11 @@ const ChristmasOrder = () => {
                         <h2 className="text-xl md:text-3xl font-black text-white tracking-tight flex items-center gap-2 px-4 py-2 bg-[#D42426]/20 rounded-xl backdrop-blur-sm border border-white/10">
                             Merry Christmas Kikiks! 🎄
                         </h2>
+                        {/* 
                         <div className="md:hidden bg-yellow-400 text-black px-3 py-1 rounded-full text-xs font-bold mt-2 text-center animate-pulse">
-                            UPDATE v2.5 - REVERTED TO v2.3 START 👇
+                            UPDATE v3.0 - NEW: HISTORY & EDIT FEATURE 🎁
                         </div>
+                        */}
                     </div>
                     {/* Settings hidden for public (or keep it if pin protected?) User said "so that customers will only be redirected to this page", implying restricting nav. 
                         But Settings is PIN protected. Keeping it is fine for admin access on public kiosk. */}
@@ -738,107 +792,19 @@ const ChristmasOrder = () => {
             )}
 
             {/* --- Settings Modal (History) --- */}
-            {isSettingsOpen && (
+            {/* --- History / Settings Modal --- */}
+            {isHistoryOpen && (
                 <ChristmasHistoryModal
-                    isOpen={isSettingsOpen}
-                    onClose={() => setIsSettingsOpen(false)}
-                    resellerOrders={resellerOrders}
-                    updateResellerOrder={updateResellerOrder} // Pass update function
-                    deleteResellerOrder={deleteResellerOrder} // Pass delete function
+                    orders={resellerOrders}
+                    inventory={inventory}
+                    onClose={() => setIsHistoryOpen(false)}
+                    onStatusChange={handleStatusChange}
+                    onEdit={handleEditHistoryOrder}
+                    onDelete={handleDeleteHistoryOrder}
+                    isProcessing={false}
                 />
             )}
         </div>
     );
 };
-
-// Sub-component for Settings/History
-const ChristmasHistoryModal = ({ onClose, resellerOrders, updateResellerOrder, deleteResellerOrder }) => {
-    // Filter for Christmas Orders
-    const christmasOrders = resellerOrders
-        .filter(o => o.location === 'Christmas Order')
-        .sort((a, b) => new Date(b.date) - new Date(a.date));
-
-    // Handle Delete
-    const handleDelete = async (orderId) => {
-        if (window.confirm("Are you sure you want to delete this order?")) {
-            await deleteResellerOrder(orderId);
-        }
-    };
-
-    // Handle Status Update
-    const handleStatusChange = async (orderId, newStatus) => {
-        await updateResellerOrder(orderId, { status: newStatus });
-    };
-
-    return (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={onClose}>
-            <div className="bg-white rounded-2xl w-full max-w-4xl h-[80vh] flex flex-col shadow-2xl" onClick={e => e.stopPropagation()}>
-                <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-[#0F4C25] text-white rounded-t-2xl">
-                    <h3 className="text-xl font-bold flex items-center gap-2">
-                        <Calendar size={24} />
-                        Christmas Order History
-                    </h3>
-                    <button onClick={onClose} className="hover:bg-white/20 p-2 rounded-full"><X size={24} /></button>
-                </div>
-
-                <div className="flex-1 overflow-auto p-0">
-                    <table className="w-full text-left border-collapse">
-                        <thead className="bg-gray-50 sticky top-0">
-                            <tr>
-                                <th className="p-4 text-xs font-bold text-gray-500 uppercase">Date</th>
-                                <th className="p-4 text-xs font-bold text-gray-500 uppercase">Name (Reseller)</th>
-                                <th className="p-4 text-xs font-bold text-gray-500 uppercase text-right">Amount</th>
-                                <th className="p-4 text-xs font-bold text-gray-500 uppercase text-center">Status</th>
-                                <th className="p-4 text-xs font-bold text-gray-500 uppercase text-center">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-100">
-                            {christmasOrders.length === 0 ? (
-                                <tr>
-                                    <td colSpan="5" className="p-8 text-center text-gray-500">No Christmas orders found yet.</td>
-                                </tr>
-                            ) : (
-                                christmasOrders.map(order => (
-                                    <tr key={order.id} className="hover:bg-gray-50 transition-colors">
-                                        <td className="p-4 whitespace-nowrap text-sm text-gray-700">
-                                            {new Date(order.date).toLocaleDateString()} <br />
-                                            <span className="text-xs text-gray-400">{new Date(order.date).toLocaleTimeString()}</span>
-                                        </td>
-                                        <td className="p-4 font-bold text-gray-900">{order.resellerName}</td>
-                                        <td className="p-4 text-right font-bold text-[#D42426]">₱{(order.totalAmount || 0).toLocaleString()}</td>
-                                        <td className="p-4 text-center">
-                                            <select
-                                                value={order.status}
-                                                onChange={(e) => handleStatusChange(order.id, e.target.value)}
-                                                className={`px-3 py-1 rounded-full text-xs font-bold border-none outline-none cursor-pointer
-                                                    ${order.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' :
-                                                        order.status === 'Completed' ? 'bg-green-100 text-green-700' :
-                                                            'bg-gray-100 text-gray-700'}`}
-                                            >
-                                                <option value="Pending">Pending</option>
-                                                <option value="Processing">Processing</option>
-                                                <option value="Completed">Completed</option>
-                                                <option value="Cancelled">Cancelled</option>
-                                            </select>
-                                        </td>
-                                        <td className="p-4 text-center">
-                                            <button
-                                                onClick={() => handleDelete(order.id)}
-                                                className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                                                title="Delete Order"
-                                            >
-                                                <Trash2 size={18} />
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    );
-};
-
 export default ChristmasOrder;
