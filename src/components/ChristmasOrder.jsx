@@ -936,15 +936,22 @@ const ChristmasOrder = () => {
             {/* --- Success Modal --- */}
             {isSuccessOpen && (
                 <div className="fixed inset-0 bg-[#510813]/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
-                    <div className="bg-[#F5F5DC] rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl animate-in zoom-in-95">
-                        <div className="w-20 h-20 bg-[#FEFCE8] rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-[#E5562E]/20">
-                            <CheckCircle size={40} className="text-[#E5562E]" />
+                    <div className="bg-[#F5F5DC] rounded-3xl p-6 max-w-md w-full text-center shadow-2xl animate-in zoom-in-95 overflow-hidden">
+                        <div className="w-16 h-16 bg-[#FEFCE8] rounded-full flex items-center justify-center mx-auto mb-3 border-2 border-[#E5562E]/20">
+                            <CheckCircle size={32} className="text-[#E5562E]" />
                         </div>
-                        <h3 className="text-2xl font-black text-[#510813] mb-2">Order Submitted!</h3>
-                        <p className="text-[#510813]/80 mb-6 font-medium">
-                            From all of us at Kikiks, thank you 🤍.<br />
-                            Wishing you a Happy New Year 🎆
+                        <h3 className="text-2xl font-black text-[#510813] mb-1">Order Submitted!</h3>
+
+                        <div className="bg-white p-4 rounded-xl shadow-inner border border-[#510813]/10 my-4">
+                            <img src="/gcash-payment-qr.png" alt="GCash QR Code" className="w-full h-auto rounded-lg mb-2" />
+                            <p className="text-[#510813] font-bold text-sm">Please send your payment to this GCash account.</p>
+                        </div>
+
+                        <p className="text-[#510813]/80 mb-6 text-sm font-medium">
+                            ⚠️ Important: <br />
+                            <span className="font-bold text-[#E5562E]">Send a screenshot of the proof of payment to our Messenger account.</span>
                         </p>
+
                         <button onClick={() => { setIsSuccessOpen(false); navigate(0); }} className="w-full py-4 rounded-xl bg-[#E5562E] text-white font-bold shadow-lg hover:bg-[#c03e1b]">
                             Start New Order
                         </button>
