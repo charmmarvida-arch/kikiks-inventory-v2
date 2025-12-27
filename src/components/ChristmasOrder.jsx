@@ -826,7 +826,8 @@ const ChristmasOrder = () => {
                                 </thead>
                                 <tbody className="divide-y divide-[#510813]/10">
                                     {modalItems.map(item => {
-                                        const price = location === 'Sorsogon' ? item.priceSor : item.priceLeg;
+                                        const priceVal = location === 'Sorsogon' ? item.priceSor : item.priceLeg;
+                                        const price = typeof priceVal === 'number' ? priceVal : 0;
                                         const qty = tempQuantities[item.sku] || 0;
                                         const total = (qty || 0) * price;
                                         const isSelected = qty > 0;

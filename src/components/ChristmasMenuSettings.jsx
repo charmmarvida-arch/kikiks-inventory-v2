@@ -145,7 +145,6 @@ const ChristmasMenuSettings = ({ isOpen, onClose, menuConfig, onSaveMenu }) => {
                                             {menuConfig
                                                 .filter(item => item.sku.startsWith(cat.id))
                                                 .map((item, idx) => {
-                                                    // Find original index in master list to handle edit correctly
                                                     const originalIndex = menuConfig.indexOf(item);
                                                     return (
                                                         <div key={item.sku} className="p-4 flex justify-between items-center bg-white/40 hover:bg-white transition-colors">
@@ -190,6 +189,70 @@ const ChristmasMenuSettings = ({ isOpen, onClose, menuConfig, onSaveMenu }) => {
                                         </div>
                                     </div>
                                 ))}
+
+                                {/* Custom / Other Categories Section */}
+                                <div className="rounded-xl border border-gray-200 bg-gray-50 overflow-hidden">
+                                    <div className="p-4 flex justify-between items-center bg-white/50 border-b border-gray-200">
+                                        <h3 className="font-black text-[#510813] text-lg uppercase tracking-wider">Other / Custom Items</h3>
+                                        <button
+                                            onClick={() => {
+                                                const prefix = prompt("Enter 3-Letter Prefix for New Category (e.g. 'NEW'):");
+                                                if (prefix && prefix.length >= 2) {
+                                                    handleAddNew(prefix.toUpperCase());
+                                                }
+                                            }}
+                                            className="px-3 py-1.5 bg-[#E5562E] text-white rounded-lg text-xs font-bold shadow hover:bg-[#c03e1b] flex items-center gap-1"
+                                        >
+                                            <Plus size={14} /> Create New Category
+                                        </button>
+                                    </div>
+                                    <div className="divide-y divide-gray-200/50">
+                                        {menuConfig
+                                            .filter(item => !['FGC', 'FGP', 'FGL', 'FGG'].includes(item.sku.split('-')[0]))
+                                            .map((item, idx) => {
+                                                const originalIndex = menuConfig.indexOf(item);
+                                                return (
+                                                    <div key={item.sku} className="p-4 flex justify-between items-center bg-white/40 hover:bg-white transition-colors">
+                                                        <div>
+                                                            <div className="font-bold text-[#510813]">{item.description}</div>
+                                                            <div className="text-xs text-[#510813]/50 font-mono">{item.sku}</div>
+                                                        </div>
+                                                        <div className="flex items-center gap-4">
+                                                            <div className="text-right">
+                                                                <div className="text-xs text-[#510813]/60 uppercase font-bold">Legazpi</div>
+                                                                <div className="font-bold text-[#510813]">₱{item.priceLeg}</div>
+                                                            </div>
+                                                            <div className="text-right">
+                                                                <div className="text-xs text-[#510813]/60 uppercase font-bold">Sorsogon</div>
+                                                                <div className="font-bold text-[#510813]">₱{item.priceSor}</div>
+                                                            </div>
+                                                            <div className="flex gap-1 pl-2 border-l border-[#510813]/10 ml-2">
+                                                                <button
+                                                                    onClick={() => handleEdit(item, originalIndex)}
+                                                                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                                                    title="Edit"
+                                                                >
+                                                                    <Edit2 size={16} />
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => handleDelete(originalIndex)}
+                                                                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                                    title="Delete"
+                                                                >
+                                                                    <X size={16} />
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        {menuConfig.filter(item => !['FGC', 'FGP', 'FGL', 'FGG'].includes(item.sku.split('-')[0])).length === 0 && (
+                                            <div className="p-8 text-center text-[#510813]/30 text-sm font-medium italic">
+                                                No other items.
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
                             </div>
                         </>
                     )}
