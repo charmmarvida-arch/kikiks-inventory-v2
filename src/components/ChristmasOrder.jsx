@@ -5,23 +5,23 @@ import {
     Settings, ShoppingCart,
     Coffee, IceCream, Droplet, Box, Grid,
     X, CheckCircle,
-    Snowflake, Gift, Star, TreeDeciduous, Calendar // Christmas Icons
+    Sparkles, Gift, Star, Clock, Calendar // New Year Icons
 } from 'lucide-react';
 import ChristmasHistoryModal from './ChristmasHistoryModal';
 
-// --- Christmas Pattern Component ---
+// --- New Year Pattern Component ---
 const ChristmasPattern = ({ className, opacity = 0.2, color = "text-white" }) => {
     const icons = [
-        { Icon: Snowflake, top: '5%', left: '5%', rot: '45deg', size: 64 },
+        { Icon: Sparkles, top: '5%', left: '5%', rot: '45deg', size: 64 },
         { Icon: Gift, top: '15%', left: '25%', rot: '-12deg', size: 48 },
         { Icon: Star, top: '10%', right: '10%', rot: '0deg', size: 80 },
-        { Icon: TreeDeciduous, top: '35%', left: '80%', rot: '20deg', size: 56 },
-        { Icon: Snowflake, top: '45%', left: '10%', rot: '-25deg', size: 60 },
+        { Icon: Clock, top: '35%', left: '80%', rot: '20deg', size: 56 }, // Countdown clock
+        { Icon: Sparkles, top: '45%', left: '10%', rot: '-25deg', size: 60 },
         { Icon: Gift, top: '55%', right: '20%', rot: '15deg', size: 50 },
         { Icon: Star, top: '75%', left: '30%', rot: '130deg', size: 70 },
-        { Icon: TreeDeciduous, top: '85%', right: '5%', rot: '10deg', size: 55 },
-        { Icon: Snowflake, top: '90%', left: '15%', rot: '0deg', size: 40 },
-        { Icon: Grid, top: '65%', left: '50%', rot: '-45deg', size: 55 }, // Grid as placeholder for distinct shape if needed
+        { Icon: Clock, top: '85%', right: '5%', rot: '10deg', size: 55 },
+        { Icon: Sparkles, top: '90%', left: '15%', rot: '0deg', size: 40 },
+        { Icon: Star, top: '65%', left: '50%', rot: '-45deg', size: 55 },
     ];
 
     return (
@@ -44,12 +44,12 @@ const ChristmasPattern = ({ className, opacity = 0.2, color = "text-white" }) =>
     );
 };
 
-// Category Configuration - Christmas Theme
+// Category Configuration - New Year Theme
 const CATEGORIES = [
-    { id: 'FGC', label: 'Cups', icon: Coffee, color: 'bg-[#D42426] text-white', border: 'border-white/20', shadow: 'shadow-[#D42426]/40', ring: 'ring-[#D42426]' }, // Red
-    { id: 'FGP', label: 'Pints', icon: IceCream, color: 'bg-[#165B33] text-white', border: 'border-white/20', shadow: 'shadow-[#165B33]/40', ring: 'ring-[#165B33]' }, // Green
-    { id: 'FGL', label: 'Liters', icon: Droplet, color: 'bg-[#F8B229] text-white', border: 'border-white/20', shadow: 'shadow-[#F8B229]/40', ring: 'ring-[#F8B229]' }, // Gold
-    { id: 'FGG', label: 'Gallons', icon: Box, color: 'bg-[#EA4630] text-white', border: 'border-white/20', shadow: 'shadow-[#EA4630]/40', ring: 'ring-[#EA4630]' } // Red-Orange
+    { id: 'FGC', label: 'Cups', icon: Coffee, color: 'bg-[#D97706] text-white', border: 'border-white/20', shadow: 'shadow-[#D97706]/40', ring: 'ring-[#D97706]' }, // Gold/Amber
+    { id: 'FGP', label: 'Pints', icon: IceCream, color: 'bg-[#059669] text-white', border: 'border-white/20', shadow: 'shadow-[#059669]/40', ring: 'ring-[#059669]' }, // Emerald (prosperity)
+    { id: 'FGL', label: 'Liters', icon: Droplet, color: 'bg-[#7C3AED] text-white', border: 'border-white/20', shadow: 'shadow-[#7C3AED]/40', ring: 'ring-[#7C3AED]' }, // Purple (Royalty/Festive)
+    { id: 'FGG', label: 'Gallons', icon: Box, color: 'bg-[#BE123C] text-white', border: 'border-white/20', shadow: 'shadow-[#BE123C]/40', ring: 'ring-[#BE123C]' } // Ruby Red
 ];
 
 // Special Christmas Pricing
@@ -58,7 +58,7 @@ const CHRISTMAS_PRICES = {
     'FGP': 99,
     'FGL': 200,
     'FGG': 735,
-    'FGT': 1000 // Keeping default or need to clarify? Assuming default for now roughly
+    'FGT': 1000
 };
 
 import { supabase } from '../supabaseClient'; // Direct Supabase for performance
@@ -83,9 +83,6 @@ const ChristmasOrder = () => {
             if (products) setInventory(products);
 
             // 2. Fetch Orders for History (Only fetch recent ones to save data?)
-            // We fetch this ONLY if Admin Settings is opened usually, but to keep logic simple we fetch here
-            // actually let's only fetch logic INSIDE the history modal to be truly fast?
-            // For now, let's just fetch them but lighter.
             const { data: orders } = await supabase
                 .from('reseller_orders')
                 .select('*')
@@ -105,7 +102,7 @@ const ChristmasOrder = () => {
             id: crypto.randomUUID(),
             reseller_id: null,
             reseller_name: orderData.resellerName,
-            location: 'Christmas Order',
+            location: 'Christmas Order', // KEEPING TAG AS 'Christmas Order' to maintain DB consistency
             address: orderData.address,
             items: orderData.items, // JSONB
             total_amount: orderData.totalAmount,
@@ -356,23 +353,18 @@ const ChristmasOrder = () => {
                 address: finalAddress,
                 items: orderItems,
                 totalAmount: cartTotal,
-                date: new Date().toISOString(), // Update date on edit? Or keep original? Let's update to show activity.
+                date: new Date().toISOString(),
                 status: 'Pending'
             };
 
             let res;
             if (editingOrderId) {
                 // UPDATE existing order
-                // Map camelCase to snake_case for DB
                 const dbUpdates = {
                     reseller_name: orderData.resellerName,
                     address: orderData.address,
                     items: orderData.items,
                     total_amount: orderData.totalAmount,
-                    // valid: Keep original date or update? Let's keep original date but update content? 
-                    // Actually user probably wants to change order but keep "place in line". 
-                    // But if date is used for sorting... let's NOT update date for edits, only content.
-                    // date: orderData.date 
                 };
                 res = await updateResellerOrder(editingOrderId, dbUpdates);
             } else {
@@ -397,11 +389,11 @@ const ChristmasOrder = () => {
 
             const isUpdate = !!editingOrderId;
             const discordPayload = {
-                username: "Christmas Order Bot",
+                username: "New Year Order Bot",
                 avatar_url: "https://cdn-icons-png.flaticon.com/512/3600/3600938.png", // Generic festive icon
                 embeds: [{
-                    title: isUpdate ? "🎄 Christmas Order Updated! 📝" : "🎄 New Christmas Order Received! 🎁",
-                    color: isUpdate ? 3447003 : 13902886, // Blue for Update, Red for New
+                    title: isUpdate ? "🎆 New Year Order Updated! 📝" : "🎆 New Year Order Received! 🎁",
+                    color: isUpdate ? 3447003 : 16752384, // Blue for Update, Orange/Gold for New
                     fields: [
                         { name: "Reseller Name", value: resellerName, inline: true },
                         { name: "Type", value: deliveryMethod === 'delivery' ? '🚚 Delivery' : '🏪 Pick Up', inline: true },
@@ -442,8 +434,6 @@ const ChristmasOrder = () => {
         }
     };
 
-
-
     // Filter items for Modal
     const modalItems = activeCategory
         ? inventory
@@ -453,12 +443,12 @@ const ChristmasOrder = () => {
         : [];
 
     return (
-        <div className="fade-in min-h-[100dvh] md:h-screen flex flex-col bg-[#0F4C25] md:overflow-hidden relative font-sans">
-            {/* Christmas BG Pattern */}
-            <ChristmasPattern opacity={0.1} color="text-white" />
+        <div className="fade-in min-h-[100dvh] md:h-screen flex flex-col bg-[#0f172a] md:overflow-hidden relative font-sans">
+            {/* New Year BG Pattern */}
+            <ChristmasPattern opacity={0.15} color="text-white" />
 
             {/* --- Top Bar --- */}
-            <div className="bg-[#0F4C25] px-4 md:px-8 py-4 md:py-6 z-10 flex flex-col-reverse md:flex-row justify-between items-center gap-4 md:gap-0 border-b border-white/10">
+            <div className="bg-[#0f172a]/80 backdrop-blur-md px-4 md:px-8 py-4 md:py-6 z-10 flex flex-col-reverse md:flex-row justify-between items-center gap-4 md:gap-0 border-b border-white/10">
                 <div className="flex gap-4 items-center w-full md:w-auto">
                     {/* Reseller Name Input */}
                     <input
@@ -466,24 +456,17 @@ const ChristmasOrder = () => {
                         placeholder="Enter Your Name..."
                         value={resellerName}
                         onChange={e => setResellerName(e.target.value)}
-                        className="w-full md:min-w-[300px] bg-[#BB2528] text-white placeholder-white/70 px-6 py-3 rounded-full font-bold shadow-lg hover:bg-[#a01e21] transition-all outline-none focus:ring-4 ring-white/30 text-lg"
+                        className="w-full md:min-w-[300px] bg-[#D97706] text-white placeholder-white/70 px-6 py-3 rounded-full font-bold shadow-lg hover:bg-[#b45309] transition-all outline-none focus:ring-4 ring-white/30 text-lg"
                     />
                 </div>
 
                 <div className="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end">
                     <div className="text-left md:text-right">
-                        <h2 className="text-xl md:text-3xl font-black text-white tracking-tight flex items-center gap-2 px-4 py-2 bg-[#D42426]/20 rounded-xl backdrop-blur-sm border border-white/10">
-                            Merry Christmas Kikiks! 🎄
+                        <h2 className="text-xl md:text-3xl font-black text-white tracking-tight flex items-center gap-2 px-4 py-2 bg-[#D97706]/20 rounded-xl backdrop-blur-sm border border-white/10">
+                            Happy New Year Kikiks! 🎆
                         </h2>
-                        {/* 
-                        <div className="md:hidden bg-yellow-400 text-black px-3 py-1 rounded-full text-xs font-bold mt-2 text-center animate-pulse">
-                            UPDATE v3.0 - NEW: HISTORY & EDIT FEATURE 🎁
-                        </div>
-                        */}
                     </div>
-                    {/* Settings hidden for public (or keep it if pin protected?) User said "so that customers will only be redirected to this page", implying restricting nav. 
-                        But Settings is PIN protected. Keeping it is fine for admin access on public kiosk. */}
-                    <button onClick={handleSettingsClick} className="p-3 rounded-full bg-white text-[#0F4C25] shadow-md hover:scale-110 transition-transform"><Settings size={20} /></button>
+                    <button onClick={handleSettingsClick} className="p-3 rounded-full bg-white text-[#0f172a] shadow-md hover:scale-110 transition-transform"><Settings size={20} /></button>
                 </div>
             </div>
 
@@ -493,18 +476,18 @@ const ChristmasOrder = () => {
                 {/* LEFT: Categories */}
                 <div className="flex-1 p-4 md:p-8 md:overflow-y-auto pb-48 md:pb-8">
                     {/* Delivery / Pickup Section */}
-                    <div className="mb-8 bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20">
+                    <div className="mb-8 bg-white/5 backdrop-blur-md rounded-2xl p-6 border border-white/10">
                         {/* Method Toggle */}
                         <div className="flex gap-4 mb-6">
                             <button
                                 onClick={() => setDeliveryMethod('delivery')}
-                                className={`flex-1 py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all ${deliveryMethod === 'delivery' ? 'bg-[#D42426] text-white shadow-lg scale-105' : 'bg-white/10 text-white/60 hover:bg-white/20'}`}
+                                className={`flex-1 py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all ${deliveryMethod === 'delivery' ? 'bg-[#D97706] text-white shadow-lg scale-105' : 'bg-white/10 text-white/60 hover:bg-white/20'}`}
                             >
                                 🚚 Bicol Xpress Delivery
                             </button>
                             <button
                                 onClick={() => setDeliveryMethod('pickup')}
-                                className={`flex-1 py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all ${deliveryMethod === 'pickup' ? 'bg-[#F8B229] text-[#0F4C25] shadow-lg scale-105' : 'bg-white/10 text-white/60 hover:bg-white/20'}`}
+                                className={`flex-1 py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all ${deliveryMethod === 'pickup' ? 'bg-[#6366F1] text-white shadow-lg scale-105' : 'bg-white/10 text-white/60 hover:bg-white/20'}`}
                             >
                                 🏪 Pick Up
                             </button>
@@ -600,23 +583,23 @@ const ChristmasOrder = () => {
                 {/* RIGHT: Cart Sidebar (Static Flow on Mobile) */}
                 <div id="cart-section" className={`w-full md:w-[560px] flex flex-col transition-all duration-300 ease-in-out md:h-full p-4 md:pl-0 order-last md:order-none `}>
                     <div className="relative flex-1 flex flex-col drop-shadow-2xl">
-                        <div className="relative z-10 flex-1 flex flex-col overflow-hidden bg-[#F8F9FA] rounded-2xl md:rounded-l-[40px] md:rounded-r-2xl border-4 border-[#0F4C25] shadow-xl">
-                            <ChristmasPattern opacity={0.05} color="text-[#0F4C25]" />
+                        <div className="relative z-10 flex-1 flex flex-col overflow-hidden bg-[#F8F9FA] rounded-2xl md:rounded-l-[40px] md:rounded-r-2xl border-4 border-[#1e293b] shadow-xl">
+                            <ChristmasPattern opacity={0.05} color="text-[#0f172a]" />
 
-                            <div className="relative z-20 flex flex-col p-6 text-[#0F4C25] text-left h-full pb-6">
+                            <div className="relative z-20 flex flex-col p-6 text-[#0f172a] text-left h-full pb-6">
                                 <div className={`flex-shrink-0 hidden md:flex items-center gap-3 mb-6`}>
-                                    <div className="bg-[#D42426] text-white p-3 rounded-2xl shadow-lg rotate-3">
+                                    <div className="bg-[#D97706] text-white p-3 rounded-2xl shadow-lg rotate-3">
                                         <ShoppingCart size={24} strokeWidth={2.5} />
                                     </div>
                                     <div>
-                                        <h3 className="text-2xl font-black tracking-tight">HOLIDAY CART</h3>
-                                        <p className="text-[#0F4C25]/80 text-sm font-medium">{Object.values(cart).reduce((a, b) => a + b, 0)} Items added</p>
+                                        <h3 className="text-2xl font-black tracking-tight">NEW YEAR CART</h3>
+                                        <p className="text-[#0f172a]/80 text-sm font-medium">{Object.values(cart).reduce((a, b) => a + b, 0)} Items added</p>
                                     </div>
                                 </div>
 
                                 <div className={`hidden md:block flex-1 min-h-[300px] md:min-h-0 overflow-y-auto space-y-3 pr-2 -mr-2 custom-scrollbar-orange`}>
                                     {Object.keys(cart).length === 0 ? (
-                                        <div className="h-full flex flex-col items-center justify-center text-[#0F4C25]/40 border-2 border-dashed border-[#0F4C25]/10 rounded-3xl p-6 py-12">
+                                        <div className="h-full flex flex-col items-center justify-center text-[#0f172a]/40 border-2 border-dashed border-[#0f172a]/10 rounded-3xl p-6 py-12">
                                             <Gift size={48} className="mb-4 opacity-50" />
                                             <p className="text-center font-bold">Your cart is empty!</p>
                                         </div>
@@ -635,7 +618,7 @@ const ChristmasOrder = () => {
                                                             </div>
                                                             <span className="font-bold text-sm text-gray-800">{cat.label}</span>
                                                         </div>
-                                                        <span className="font-bold text-[#D42426]">₱{totalPrice.toLocaleString()}</span>
+                                                        <span className="font-bold text-[#D97706]">₱{totalPrice.toLocaleString()}</span>
                                                     </div>
                                                     <div className="text-xs text-gray-600 pl-6 border-l-2 border-gray-200 ml-2 space-y-1">
                                                         {catItems.map(([sku, qty]) => {
@@ -657,12 +640,12 @@ const ChristmasOrder = () => {
                                 <div className="flex-shrink-0 mt-auto pt-6 border-t border-gray-100 flex flex-col gap-3">
                                     <div className="flex justify-between items-center">
                                         <span className="font-bold text-lg">Grand Total</span>
-                                        <span className="text-3xl font-black text-[#D42426]">₱{cartTotal.toLocaleString()}</span>
+                                        <span className="text-3xl font-black text-[#D97706]">₱{cartTotal.toLocaleString()}</span>
                                     </div>
                                     <button
                                         onClick={handleInitialSubmit}
                                         disabled={Object.keys(cart).length === 0}
-                                        className="w-full bg-[#D42426] hover:bg-[#b01b1d] text-white py-4 rounded-xl font-bold text-xl shadow-lg transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                                        className="w-full bg-[#D97706] hover:bg-[#b45309] text-white py-4 rounded-xl font-bold text-xl shadow-lg transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                                     >
                                         <Gift size={24} />
                                         PLACE ORDER
@@ -678,11 +661,11 @@ const ChristmasOrder = () => {
                 {/* FAB for Mobile */}
                 <button
                     onClick={() => document.getElementById('cart-section').scrollIntoView({ behavior: 'smooth' })}
-                    className="md:hidden fixed bottom-8 right-6 z-50 bg-[#D42426] text-white p-4 rounded-full shadow-2xl border-4 border-white/20 animate-bounce"
+                    className="md:hidden fixed bottom-8 right-6 z-50 bg-[#D97706] text-white p-4 rounded-full shadow-2xl border-4 border-white/20 animate-bounce"
                 >
                     <ShoppingCart size={28} />
                     {Object.values(cart).reduce((a, b) => a + b, 0) > 0 && (
-                        <div className="absolute -top-1 -right-1 bg-[#F8B229] text-[#0F4C25] font-bold w-6 h-6 rounded-full flex items-center justify-center text-xs shadow-md">
+                        <div className="absolute -top-1 -right-1 bg-[#1e293b] text-white font-bold w-6 h-6 rounded-full flex items-center justify-center text-xs shadow-md">
                             {Object.values(cart).reduce((a, b) => a + b, 0)}
                         </div>
                     )}
@@ -716,7 +699,7 @@ const ChristmasOrder = () => {
                                         const price = getPrice(item.sku);
                                         const qty = tempQuantities[item.sku] || 0;
                                         return (
-                                            <tr key={item.sku} className={`hover:bg-gray-50 ${qty > 0 ? 'bg-green-50' : ''}`}>
+                                            <tr key={item.sku} className={`hover:bg-gray-50 ${qty > 0 ? 'bg-indigo-50' : ''}`}>
                                                 <td className="p-4 font-bold text-gray-800">{item.description}</td>
                                                 <td className="p-4 text-right font-medium text-gray-600">₱{price.toLocaleString()}</td>
                                                 <td className="p-4">
@@ -724,11 +707,11 @@ const ChristmasOrder = () => {
                                                         type="number"
                                                         value={tempQuantities[item.sku] === undefined ? '' : tempQuantities[item.sku]}
                                                         onChange={(e) => handleModalQuantityChange(item.sku, e.target.value)}
-                                                        className="w-full p-2 text-center border rounded-lg font-bold text-lg focus:ring-2 focus:ring-[#0F4C25] outline-none"
+                                                        className="w-full p-2 text-center border rounded-lg font-bold text-lg focus:ring-2 focus:ring-[#0f172a] outline-none"
                                                         placeholder="0"
                                                     />
                                                 </td>
-                                                <td className="p-4 text-right font-bold text-[#D42426]">
+                                                <td className="p-4 text-right font-bold text-[#D97706]">
                                                     {(qty * price) > 0 && `₱${(qty * price).toLocaleString()}`}
                                                 </td>
                                             </tr>
@@ -739,7 +722,7 @@ const ChristmasOrder = () => {
                         </div>
                         <div className="p-4 border-t border-gray-200 bg-gray-50 flex justify-end gap-3">
                             <button onClick={() => setIsModalOpen(false)} className="px-6 py-2 rounded-lg border border-gray-300 font-bold hover:bg-gray-100">Cancel</button>
-                            <button onClick={handleSaveModal} className="px-8 py-2 rounded-lg bg-[#0F4C25] text-white font-bold hover:bg-[#0a351a]">Save Items</button>
+                            <button onClick={handleSaveModal} className="px-8 py-2 rounded-lg bg-[#0f172a] text-white font-bold hover:bg-[#1e293b]">Save Items</button>
                         </div>
                     </div>
                 </div>
@@ -749,7 +732,7 @@ const ChristmasOrder = () => {
             {isConfirmOpen && (
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
                     <div className="bg-white rounded-2xl p-8 max-w-md w-full animate-in zoom-in-95 duration-200 shadow-2xl">
-                        <h3 className="text-2xl font-black text-[#0F4C25] mb-4">Confirm Order</h3>
+                        <h3 className="text-2xl font-black text-[#0f172a] mb-4">Confirm Order</h3>
                         <div className="space-y-4 mb-6">
                             <div className="flex justify-between border-b border-gray-100 pb-2">
                                 <span className="text-gray-500">Name</span>
@@ -761,12 +744,12 @@ const ChristmasOrder = () => {
                             </div>
                             <div className="flex justify-between items-center pt-2">
                                 <span className="text-gray-500">Grand Total</span>
-                                <span className="text-3xl font-black text-[#D42426]">₱{cartTotal.toLocaleString()}</span>
+                                <span className="text-3xl font-black text-[#D97706]">₱{cartTotal.toLocaleString()}</span>
                             </div>
                         </div>
                         <div className="flex gap-4">
                             <button onClick={() => setIsConfirmOpen(false)} className="flex-1 py-3 rounded-xl border border-gray-300 font-bold text-gray-600 hover:bg-gray-50">Back</button>
-                            <button onClick={handleFinalSubmit} className="flex-1 py-3 rounded-xl bg-[#0F4C25] text-white font-bold hover:bg-[#0a351a] shadow-lg">Confirm</button>
+                            <button onClick={handleFinalSubmit} className="flex-1 py-3 rounded-xl bg-[#0f172a] text-white font-bold hover:bg-[#1e293b] shadow-lg">Confirm</button>
                         </div>
                     </div>
                 </div>
@@ -774,17 +757,17 @@ const ChristmasOrder = () => {
 
             {/* --- Success Modal --- */}
             {isSuccessOpen && (
-                <div className="fixed inset-0 bg-[#0F4C25]/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
+                <div className="fixed inset-0 bg-[#0f172a]/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
                     <div className="bg-white rounded-2xl p-8 max-w-sm w-full text-center shadow-2xl animate-in zoom-in-95">
-                        <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <CheckCircle size={40} className="text-green-600" />
+                        <div className="w-20 h-20 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <CheckCircle size={40} className="text-amber-600" />
                         </div>
-                        <h3 className="text-2xl font-black text-[#0F4C25] mb-2">Order Submitted!</h3>
+                        <h3 className="text-2xl font-black text-[#0f172a] mb-2">Order Submitted!</h3>
                         <p className="text-gray-600 mb-6 font-medium">
                             From all of us at Kikiks, thank you 🤍.<br />
-                            Wishing you a Merry Christmas 🎄
+                            Wishing you a Happy New Year 🎆
                         </p>
-                        <button onClick={() => { setIsSuccessOpen(false); navigate(0); }} className="w-full py-3 rounded-xl bg-[#D42426] text-white font-bold shadow-lg hover:bg-[#b01b1d]">
+                        <button onClick={() => { setIsSuccessOpen(false); navigate(0); }} className="w-full py-3 rounded-xl bg-[#D97706] text-white font-bold shadow-lg hover:bg-[#b45309]">
                             Start New Order
                         </button>
                     </div>
