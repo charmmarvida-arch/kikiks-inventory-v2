@@ -4,10 +4,10 @@ import { useNavigate } from 'react-router-dom';
 import {
     Settings, ShoppingCart,
     Coffee, IceCream, Droplet, Box, Grid,
-    X, CheckCircle,
+    X, CheckCircle, AlertCircle, Check, Info,
     Sparkles, Gift, Star, Clock, Calendar, ClipboardList,
     Leaf, Sun, Flower2, Utensils, // Tropical Icons
-    ArrowLeft, ArrowRight, Search, Plus, Minus, ShoppingBag, ChevronUp, ChevronDown
+    ArrowLeft, ArrowRight, Search, Plus, Minus, ShoppingBag, ChevronUp, ChevronDown, MapPin
 } from 'lucide-react';
 import ChristmasHistoryModal from './ChristmasHistoryModal';
 import ChristmasMenuSettings from './ChristmasMenuSettings';
@@ -69,6 +69,86 @@ const CHRISTMAS_PRICES = {
 };
 
 import { supabase } from '../supabaseClient'; // Direct Supabase for performance
+
+// --- Custom UI Components ---
+
+const Toast = ({ message, type, isVisible, onClose }) => {
+    if (!isVisible) return null;
+
+    const styles = {
+        success: "bg-emerald-100 border-emerald-500 text-emerald-800",
+        error: "bg-red-100 border-red-500 text-red-800",
+        info: "bg-blue-100 border-blue-500 text-blue-800"
+    };
+
+    const icons = {
+        success: CheckCircle,
+        error: AlertCircle,
+        info: Info
+    };
+
+    const Icon = icons[type] || Info;
+
+    return (
+        <div className={`fixed top-6 left-1/2 transform -translate-x-1/2 z-[60] flex items-center gap-3 px-6 py-4 rounded-2xl shadow-2xl border-l-4 transition-all duration-300 animate-in fade-in slide-in-from-top-4 ${styles[type]}`}>
+            <Icon size={24} className="shrink-0" />
+            <span className="font-bold text-lg">{message}</span>
+            <button onClick={onClose} className="ml-4 opacity-50 hover:opacity-100 transition-opacity">
+                <X size={18} />
+            </button>
+        </div>
+    );
+};
+
+const CustomDropdown = ({ value, onChange, options }) => {
+    const [isOpen, setIsOpen] = useState(false);
+
+    // Close on click outside
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (!event.target.closest('.custom-dropdown')) {
+                setIsOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const selectedLabel = options.find(o => o.value === value)?.label || value;
+
+    return (
+        <div className="relative custom-dropdown">
+            <button
+                onClick={() => setIsOpen(!isOpen)}
+                className="flex items-center gap-2 px-5 py-3 bg-[#510813] text-[#FEFCE8] rounded-2xl shadow-lg border-2 border-[#E5562E]/50 hover:bg-[#6A101C] transition-all duration-200 group"
+            >
+                <MapPin className="text-[#E5562E]" size={20} />
+                <span className="font-bold uppercase tracking-wider text-sm">{selectedLabel}</span>
+                <ChevronDown size={18} className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            {isOpen && (
+                <div className="absolute top-full right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-[#510813]/10 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200">
+                    {options.map((option) => (
+                        <button
+                            key={option.value}
+                            onClick={() => {
+                                onChange(option.value);
+                                setIsOpen(false);
+                            }}
+                            className={`w-full text-left px-5 py-3 font-bold flex items-center justify-between transition-colors
+                                ${value === option.value ? 'bg-[#FEFCE8] text-[#E5562E]' : 'text-[#510813] hover:bg-[#F5F5DC]'}
+                            `}
+                        >
+                            {option.label}
+                            {value === option.value && <CheckCircle size={16} />}
+                        </button>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+};
 
 const ChristmasOrder = () => {
     const navigate = useNavigate();
@@ -321,8 +401,10 @@ const ChristmasOrder = () => {
         if (!confirm("Upload local menu items to cloud? This makes them visible on other devices.")) return;
 
         if (!Array.isArray(currentMenu)) {
-            alert('Sync failed: Invalid menu configuration (not an array).');
-            return;
+            if (!Array.isArray(currentMenu)) {
+                showToast('Sync failed: Invalid menu configuration (not an array).', 'error');
+                return;
+            }
         }
 
         try {
@@ -380,11 +462,11 @@ const ChristmasOrder = () => {
             if (upsertRes.error) throw upsertRes.error;
             if (deleteRes.error) throw deleteRes.error;
 
-            alert(`Menu synced! Updated: ${itemsToUpsert.length}, Deleted: ${skusToDelete.length}. Refresh mobile to see changes.`);
+            showToast(`Menu synced! Updated: ${itemsToUpsert.length}, Deleted: ${skusToDelete.length}. Refresh mobile to see changes.`, 'success');
 
         } catch (error) {
             console.error('Sync Error:', error);
-            alert('Sync failed: ' + (error.message || 'Unknown error'));
+            showToast('Sync failed: ' + (error.message || 'Unknown error'), 'error');
         }
     };
 
@@ -415,6 +497,14 @@ const ChristmasOrder = () => {
     // --- State for Custom Modals & Submission ---
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSuccessOpen, setIsSuccessOpen] = useState(false);
+
+    // --- Toast State ---
+    const [toast, setToast] = useState({ message: '', type: 'info', visible: false });
+
+    const showToast = (message, type = 'info') => {
+        setToast({ message, type, visible: true });
+        setTimeout(() => setToast(prev => ({ ...prev, visible: false })), 3000);
+    };
 
     // Auto-Save to localStorage
     useEffect(() => {
@@ -475,12 +565,16 @@ const ChristmasOrder = () => {
     // --- Handlers ---
     const handleCategoryClick = (catId) => {
         if (!resellerName.trim()) {
-            alert("Please enter your name first!");
-            return;
+            if (!resellerName.trim()) {
+                showToast("Please enter your name first!", 'error');
+                return;
+            }
         }
         if (!scheduleDate || !scheduleTime) {
-            alert("Please select pick up date and time first!");
-            return;
+            if (!scheduleDate || !scheduleTime) {
+                showToast("Please select pick up date and time first!", 'error');
+                return;
+            }
         }
         setActiveCategory(catId);
         const currentCatItems = {};
@@ -522,7 +616,8 @@ const ChristmasOrder = () => {
         setCart(newCart);
         setIsModalOpen(false); // Legacy/Redundant
         setActiveCategory(null); // Actually closes the modal
-        alert('Changes saved successfully!');
+        setActiveCategory(null); // Actually closes the modal
+        showToast('Changes saved successfully!', 'success');
     };
 
     // --- History / Settings Handlers ---
@@ -544,7 +639,7 @@ const ChristmasOrder = () => {
             if (pinTarget === 'history') setIsHistoryOpen(true);
             setIsPinModalOpen(false);
         } else {
-            alert('Incorrect PIN');
+            showToast('Incorrect PIN', 'error');
             setPinInput('');
         }
     };
@@ -573,11 +668,11 @@ const ChristmasOrder = () => {
     };
 
     const handleInitialSubmit = () => {
-        if (!resellerName.trim()) return alert('Please enter your name');
+        if (!resellerName.trim()) return showToast('Please enter your name', 'error');
 
-        if (!scheduleDate || !scheduleTime) return alert('Please select pick up date and time');
+        if (!scheduleDate || !scheduleTime) return showToast('Please select pick up date and time', 'error');
 
-        if (Object.keys(cart).length === 0) return alert('Cart is empty');
+        if (Object.keys(cart).length === 0) return showToast('Cart is empty', 'error');
 
         setIsConfirmOpen(true);
     };
@@ -680,7 +775,7 @@ const ChristmasOrder = () => {
         } catch (error) {
             console.error("Order Submission Error:", error);
             setIsSubmitting(false);
-            alert("An error occurred: " + error.message);
+            showToast("An error occurred: " + error.message, 'error');
         }
     };
 
@@ -699,6 +794,13 @@ const ChristmasOrder = () => {
 
     return (
         <div className="fade-in min-h-[100dvh] md:h-screen flex flex-col bg-[#F5F5DC] md:overflow-hidden relative font-sans text-[#510813]">
+            <Toast
+                message={toast.message}
+                type={toast.type}
+                isVisible={toast.visible}
+                onClose={() => setToast(prev => ({ ...prev, visible: false }))}
+            />
+
             {/* Tropical BG Pattern */}
             <ChristmasPattern opacity={0.12} color="text-[#E5562E]" />
 
@@ -717,26 +819,15 @@ const ChristmasOrder = () => {
 
                 <div className="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end">
 
-                    {/* Location Dropdown */}
-                    <div className="relative group">
-                        <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-xl border border-[#510813]/20 shadow-sm">
-                            <span className="text-[#510813]/60 text-sm font-bold uppercase tracking-wider">Location:</span>
-                            <select
-                                value={location}
-                                onChange={(e) => setLocation(e.target.value)}
-                                className="bg-transparent text-[#510813] font-black text-lg outline-none cursor-pointer appearance-none pr-8"
-                                style={{
-                                    backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23510813' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
-                                    backgroundPosition: `right 0 center`,
-                                    backgroundRepeat: `no-repeat`,
-                                    backgroundSize: `1.5em 1.5em`
-                                }}
-                            >
-                                <option value="Legazpi" className="text-black">SM Legazpi</option>
-                                <option value="Sorsogon" className="text-black">SM Sorsogon</option>
-                            </select>
-                        </div>
-                    </div>
+                    {/* Location Dropdown - Custom */}
+                    <CustomDropdown
+                        value={location}
+                        onChange={setLocation}
+                        options={[
+                            { value: 'Legazpi', label: 'SM Legazpi' },
+                            { value: 'Sorsogon', label: 'SM Sorsogon' }
+                        ]}
+                    />
 
                     <div className="text-left md:text-right hidden md:block">
                         <h2 className="text-xl md:text-3xl font-black text-[#E5562E] tracking-tight flex items-center gap-2 px-4 py-2 bg-white/50 rounded-xl border border-[#E5562E]/10">
