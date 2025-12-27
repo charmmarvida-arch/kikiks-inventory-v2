@@ -6,7 +6,8 @@ import {
     Coffee, IceCream, Droplet, Box, Grid,
     X, CheckCircle,
     Sparkles, Gift, Star, Clock, Calendar, ClipboardList,
-    Leaf, Sun, Flower2, Utensils // Tropical Icons
+    Leaf, Sun, Flower2, Utensils, // Tropical Icons
+    ArrowLeft, ArrowRight, Search, Plus, Minus, ShoppingBag
 } from 'lucide-react';
 import ChristmasHistoryModal from './ChristmasHistoryModal';
 import ChristmasMenuSettings from './ChristmasMenuSettings';
