@@ -89,6 +89,7 @@ function App() {
                   <ChristmasOrder isPublic={true} />
                 </React.Suspense>
               } />
+              <Route path="/christmas-order" element={<Navigate to="/new-year-order" replace />} />
               <Route path="/order-pdf/:orderId" element={<OrderPdfView />} />
 
               {/* Protected Routes */}
