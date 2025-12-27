@@ -141,13 +141,34 @@ const ChristmasOrder = () => {
 
     // --- State ---
     const [resellerName, setResellerName] = useState('');
-    const [deliveryMethod, setDeliveryMethod] = useState('pickup'); // 'pickup' or 'delivery'
-    const [address, setAddress] = useState(''); // Used for Delivery Address
-    const [contactNumber, setContactNumber] = useState('');
+    // const [deliveryMethod, setDeliveryMethod] = useState('pickup'); // REMOVED: Always pickup
+    // const [address, setAddress] = useState(''); // REMOVED: No delivery
+    // const [contactNumber, setContactNumber] = useState(''); // REMOVED
     const [scheduleDate, setScheduleDate] = useState('');
     const [scheduleTime, setScheduleTime] = useState('');
 
-    const DRAFT_KEY = 'kikiks-christmas-draft';
+    // New Year: Location & Pricing State
+    const [location, setLocation] = useState('Legazpi'); // 'Legazpi' | 'Sorsogon'
+
+    // Default Menu Config (Prefix-based default prices)
+    const DEFAULT_MENU = [
+        { sku: 'FGC', description: 'Cups', category: 'FGC', priceLeg: 29, priceSor: 30 },
+        { sku: 'FGP', description: 'Pints', category: 'FGP', priceLeg: 99, priceSor: 105 },
+        { sku: 'FGL', description: 'Liters', category: 'FGL', priceLeg: 200, priceSor: 210 },
+        { sku: 'FGG', description: 'Gallons', category: 'FGG', priceLeg: 735, priceSor: 750 }
+    ];
+
+    const [menuConfig, setMenuConfig] = useState(() => {
+        const saved = localStorage.getItem('kikiks-newyear-menu');
+        return saved ? JSON.parse(saved) : DEFAULT_MENU;
+    });
+
+    // Save Menu on Change
+    useEffect(() => {
+        localStorage.setItem('kikiks-newyear-menu', JSON.stringify(menuConfig));
+    }, [menuConfig]);
+
+    const DRAFT_KEY = 'kikiks-newyear-draft';
 
     // Auto-Restore Draft on Mount
     useEffect(() => {
@@ -158,7 +179,7 @@ const ChristmasOrder = () => {
                 if (draft.cart && Object.keys(draft.cart).length > 0) {
                     setCart(draft.cart);
                     setResellerName(draft.resellerName || '');
-                    setAddress(draft.address || '');
+                    // setAddress(draft.address || ''); // Removed
                 }
             } catch (error) {
                 console.error('Error restoring draft:', error);
@@ -190,16 +211,16 @@ const ChristmasOrder = () => {
 
     // Auto-Save to localStorage
     useEffect(() => {
-        if (Object.keys(cart).length > 0 || resellerName || address) {
+        if (Object.keys(cart).length > 0 || resellerName) {
             const draft = {
                 cart,
                 resellerName,
-                address,
+                // address, // Removed
                 timestamp: new Date().toISOString()
             };
             localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
         }
-    }, [cart, resellerName, address]);
+    }, [cart, resellerName]);
 
     // Browser Navigation Warning
     useEffect(() => {
@@ -216,15 +237,28 @@ const ChristmasOrder = () => {
 
     // --- Helpers ---
     const getPrice = (sku) => {
+        // 1. Try exact match in menuConfig
+        const exactMatch = menuConfig.find(item => item.sku === sku);
+        if (exactMatch) {
+            return location === 'Legazpi' ? exactMatch.priceLeg : exactMatch.priceSor;
+        }
+
+        // 2. Try prefix match (for generic categories like 'FGC' covering 'FGC-Mango')
         const prefix = sku.split('-')[0];
-        return CHRISTMAS_PRICES[prefix] || 0;
+        const prefixMatch = menuConfig.find(item => item.sku === prefix);
+        if (prefixMatch) {
+            return location === 'Legazpi' ? prefixMatch.priceLeg : prefixMatch.priceSor;
+        }
+
+        return 0;
     };
 
     const calculateTotal = (items = cart) => {
         return Object.entries(items).reduce((total, [sku, qty]) => {
             if (qty <= 0) return total;
-            const item = inventory.find(i => i.sku === sku);
-            if (!item) return total;
+            // Note: We don't check inventory existence strictly for price calculation 
+            // because `menuConfig` is the source of truth for price, not inventory table.
+            // But we should probably ensure it exists? For now, trust the SKU key.
             return total + (qty * getPrice(sku));
         }, 0);
     };
@@ -291,7 +325,7 @@ const ChristmasOrder = () => {
     const handleEditHistoryOrder = (order) => {
         if (confirm(`Load order for ${order.resellerName} to edit? Current cart will be replaced.`)) {
             setResellerName(order.resellerName || order.reseller_name || '');
-            setAddress(order.address || '');
+            // setAddress(order.address || ''); // Address might be in a different format now or unused
             setCart(order.items || {});
             setEditingOrderId(order.id); // Set Edit Mode
             setIsHistoryOpen(false); // Close Modal
@@ -314,13 +348,7 @@ const ChristmasOrder = () => {
     const handleInitialSubmit = () => {
         if (!resellerName.trim()) return alert('Please enter your name');
 
-        if (deliveryMethod === 'delivery') {
-            if (!contactNumber.trim()) return alert('Please enter your contact number');
-            if (!address.trim()) return alert('Please enter complete delivery address');
-            if (!scheduleDate || !scheduleTime) return alert('Please select delivery date and time');
-        } else {
-            if (!scheduleDate || !scheduleTime) return alert('Please select pick up date and time');
-        }
+        if (!scheduleDate || !scheduleTime) return alert('Please select pick up date and time');
 
         if (Object.keys(cart).length === 0) return alert('Cart is empty');
 
@@ -337,19 +365,14 @@ const ChristmasOrder = () => {
                 if (qty > 0) orderItems[sku] = qty;
             });
 
-            // Format "Address" to contain all delivery info
-            let finalAddress = '';
-            if (deliveryMethod === 'delivery') {
-                finalAddress = `[DELIVERY] ${address} | Contact: ${contactNumber} | Schedule: ${scheduleDate} @ ${scheduleTime}`;
-            } else {
-                finalAddress = `[PICKUP] Schedule: ${scheduleDate} @ ${scheduleTime}`;
-            }
+            // Format "Address" to simply be Location + Pickup Time
+            const finalAddress = `[${location.toUpperCase()}] Pickup: ${scheduleDate} @ ${scheduleTime}`;
 
             const orderData = {
                 // No reseller ID for Christmas orders
                 resellerId: null,
                 resellerName: resellerName,
-                location: 'Christmas Order', // Tag for filtering
+                location: 'Christmas Order', // Keep tag for now
                 address: finalAddress,
                 items: orderItems,
                 totalAmount: cartTotal,
@@ -396,10 +419,10 @@ const ChristmasOrder = () => {
                     color: isUpdate ? 3447003 : 16752384, // Blue for Update, Orange/Gold for New
                     fields: [
                         { name: "Reseller Name", value: resellerName, inline: true },
-                        { name: "Type", value: deliveryMethod === 'delivery' ? '🚚 Delivery' : '🏪 Pick Up', inline: true },
+                        { name: "Location", value: location, inline: true },
                         { name: "Schedule", value: `${scheduleDate} @ ${scheduleTime}`, inline: true },
                         { name: "Total Amount", value: `₱${cartTotal.toLocaleString()}`, inline: true },
-                        { name: "Details", value: deliveryMethod === 'delivery' ? `📍 ${address}\n📞 ${contactNumber}` : "Customer will pick up at store." },
+                        { name: "Details", value: "Customer will pick up at store." },
                         { name: "Order Items", value: itemsList || "No items?" }
                     ],
                     footer: { text: `Order ID: ${isUpdate ? editingOrderId : (res?.data?.id || 'Pending')}` },
@@ -417,11 +440,11 @@ const ChristmasOrder = () => {
             localStorage.removeItem(DRAFT_KEY);
             setCart({});
             setResellerName('');
-            setAddress('');
-            setContactNumber('');
+            // setAddress(''); // Removed
+            // setContactNumber(''); // Removed
             setScheduleDate('');
             setScheduleTime('');
-            setDeliveryMethod('pickup'); // Reset to default
+            // setDeliveryMethod('pickup'); // Reset to default
             setEditingOrderId(null); // Clear Edit Mode
             setIsConfirmOpen(false);
             setIsSubmitting(false);
@@ -461,9 +484,31 @@ const ChristmasOrder = () => {
                 </div>
 
                 <div className="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end">
-                    <div className="text-left md:text-right">
+
+                    {/* Location Dropdown */}
+                    <div className="relative group">
+                        <div className="flex items-center gap-2 px-4 py-2 bg-white/10 rounded-xl backdrop-blur-sm border border-white/20">
+                            <span className="text-white/70 text-sm font-bold uppercase tracking-wider">Location:</span>
+                            <select
+                                value={location}
+                                onChange={(e) => setLocation(e.target.value)}
+                                className="bg-transparent text-white font-black text-lg outline-none cursor-pointer appearance-none pr-8"
+                                style={{
+                                    backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
+                                    backgroundPosition: `right 0 center`,
+                                    backgroundRepeat: `no-repeat`,
+                                    backgroundSize: `1.5em 1.5em`
+                                }}
+                            >
+                                <option value="Legazpi" className="text-black">LEGAZPI CITY</option>
+                                <option value="Sorsogon" className="text-black">SORSOGON CITY</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div className="text-left md:text-right hidden md:block">
                         <h2 className="text-xl md:text-3xl font-black text-white tracking-tight flex items-center gap-2 px-4 py-2 bg-[#D97706]/20 rounded-xl backdrop-blur-sm border border-white/10">
-                            Happy New Year Kikiks! 🎆
+                            Happy New Year! 🎆
                         </h2>
                     </div>
                     <button onClick={handleSettingsClick} className="p-3 rounded-full bg-white text-[#0f172a] shadow-md hover:scale-110 transition-transform"><Settings size={20} /></button>
@@ -475,83 +520,30 @@ const ChristmasOrder = () => {
 
                 {/* LEFT: Categories */}
                 <div className="flex-1 p-4 md:p-8 md:overflow-y-auto pb-48 md:pb-8">
-                    {/* Delivery / Pickup Section */}
+                    {/* Delivery / Pickup Section - SIMPLIFIED */}
                     <div className="mb-8 bg-white/5 backdrop-blur-md rounded-2xl p-6 border border-white/10">
-                        {/* Method Toggle */}
-                        <div className="flex gap-4 mb-6">
-                            <button
-                                onClick={() => setDeliveryMethod('delivery')}
-                                className={`flex-1 py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all ${deliveryMethod === 'delivery' ? 'bg-[#D97706] text-white shadow-lg scale-105' : 'bg-white/10 text-white/60 hover:bg-white/20'}`}
-                            >
-                                🚚 Bicol Xpress Delivery
-                            </button>
-                            <button
-                                onClick={() => setDeliveryMethod('pickup')}
-                                className={`flex-1 py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all ${deliveryMethod === 'pickup' ? 'bg-[#6366F1] text-white shadow-lg scale-105' : 'bg-white/10 text-white/60 hover:bg-white/20'}`}
-                            >
-                                🏪 Pick Up
-                            </button>
-                        </div>
-
-                        {/* Conditional Fields */}
+                        {/* Pickup Only - Just Date/Time */}
                         <div className="space-y-4 animate-in fade-in slide-in-from-top-4">
-                            {deliveryMethod === 'delivery' && (
-                                <>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <input
-                                            type="text"
-                                            placeholder="Contact Number"
-                                            value={contactNumber}
-                                            onChange={e => setContactNumber(e.target.value)}
-                                            className="w-full bg-black/20 border-b-2 border-white/30 py-2 px-3 rounded-t-lg text-lg font-bold text-white placeholder-white/50 focus:border-white focus:outline-none transition-colors"
-                                        />
-                                        <div className="flex gap-2">
-                                            <input
-                                                type="date"
-                                                value={scheduleDate}
-                                                onChange={e => setScheduleDate(e.target.value)}
-                                                className="flex-1 bg-black/20 border-b-2 border-white/30 py-2 px-3 rounded-t-lg text-lg font-bold text-white focus:border-white focus:outline-none transition-colors [color-scheme:dark]"
-                                            />
-                                            <input
-                                                type="time"
-                                                value={scheduleTime}
-                                                onChange={e => setScheduleTime(e.target.value)}
-                                                className="w-32 bg-black/20 border-b-2 border-white/30 py-2 px-3 rounded-t-lg text-lg font-bold text-white focus:border-white focus:outline-none transition-colors [color-scheme:dark]"
-                                            />
-                                        </div>
-                                    </div>
-                                    <textarea
-                                        placeholder="Complete Delivery Address"
-                                        value={address}
-                                        onChange={e => setAddress(e.target.value)}
-                                        rows={2}
-                                        className="w-full bg-black/20 border-b-2 border-white/30 py-2 px-3 rounded-t-lg text-lg font-bold text-white placeholder-white/50 focus:border-white focus:outline-none transition-colors resize-none"
+                            <div className="flex gap-4">
+                                <div className="flex-1">
+                                    <label className="text-white/70 text-sm block mb-1">Pick Up Date</label>
+                                    <input
+                                        type="date"
+                                        value={scheduleDate}
+                                        onChange={e => setScheduleDate(e.target.value)}
+                                        className="w-full bg-black/20 border-b-2 border-white/30 py-2 px-3 rounded-t-lg text-lg font-bold text-white focus:border-white focus:outline-none transition-colors [color-scheme:dark]"
                                     />
-                                </>
-                            )}
-
-                            {deliveryMethod === 'pickup' && (
-                                <div className="flex gap-4">
-                                    <div className="flex-1">
-                                        <label className="text-white/70 text-sm block mb-1">Pick Up Date</label>
-                                        <input
-                                            type="date"
-                                            value={scheduleDate}
-                                            onChange={e => setScheduleDate(e.target.value)}
-                                            className="w-full bg-black/20 border-b-2 border-white/30 py-2 px-3 rounded-t-lg text-lg font-bold text-white focus:border-white focus:outline-none transition-colors [color-scheme:dark]"
-                                        />
-                                    </div>
-                                    <div className="flex-1">
-                                        <label className="text-white/70 text-sm block mb-1">Pick Up Time</label>
-                                        <input
-                                            type="time"
-                                            value={scheduleTime}
-                                            onChange={e => setScheduleTime(e.target.value)}
-                                            className="w-full bg-black/20 border-b-2 border-white/30 py-2 px-3 rounded-t-lg text-lg font-bold text-white focus:border-white focus:outline-none transition-colors [color-scheme:dark]"
-                                        />
-                                    </div>
                                 </div>
-                            )}
+                                <div className="flex-1">
+                                    <label className="text-white/70 text-sm block mb-1">Pick Up Time</label>
+                                    <input
+                                        type="time"
+                                        value={scheduleTime}
+                                        onChange={e => setScheduleTime(e.target.value)}
+                                        className="w-full bg-black/20 border-b-2 border-white/30 py-2 px-3 rounded-t-lg text-lg font-bold text-white focus:border-white focus:outline-none transition-colors [color-scheme:dark]"
+                                    />
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -785,6 +777,8 @@ const ChristmasOrder = () => {
                     onEdit={handleEditHistoryOrder}
                     onDelete={handleDeleteHistoryOrder}
                     isProcessing={false}
+                    menuConfig={menuConfig}
+                    onSaveMenu={setMenuConfig}
                 />
             )}
         </div>
