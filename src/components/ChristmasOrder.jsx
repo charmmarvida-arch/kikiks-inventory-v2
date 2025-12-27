@@ -101,34 +101,23 @@ const ChristmasOrder = () => {
 
     // --- Derived State: Merged Inventory ---
     // Combines Supabase inventory with local Menu Config items
+    // Merged Inventory: STRICTLY based on menuConfig
+    // We only show items that are explicitly defined in the Christmas Menu settings.
     const mergedInventory = useMemo(() => {
-        // 1. Convert Supabase inventory to map for easy lookup
-        const invMap = new Map(inventory.map(i => [i.sku, i]));
-
-        // 2. Start with local menu items (priority for description/price override if we wanted, currently just adding missing ones)
-        const combined = [...inventory];
-
-        menuConfig.forEach(localItem => {
-            if (!invMap.has(localItem.sku)) {
-                // Item exists locally but not in Supabase yet (or just a menu item)
-                combined.push({
-                    sku: localItem.sku,
-                    description: localItem.description,
-                    quantity: 999, // limitless for "menu only" items effectively
-                    priceLeg: localItem.priceLeg,
-                    priceSor: localItem.priceSor,
-                    isLocal: true // flag to identify
-                });
-            }
+        return menuConfig.map(menuItem => {
+            // Find stock/details from main inventory if exists
+            const invItem = inventory.find(i => i.sku === menuItem.sku);
+            return {
+                ...menuItem,
+                stockLeg: invItem?.stockLeg || 0,
+                stockSor: invItem?.stockSor || 0,
+                // Ensure price is from menuConfig logic (already in menuItem), 
+                // but if missing, fallback to getPrice which handles hierarchy
+                priceLeg: menuItem.priceLeg,
+                priceSor: menuItem.priceSor
+            };
         });
-
-        // 3. Filter out unwanted categories (Trays 'FGT', Others 'OTH') UNLESS they are locally added
-        return combined.filter(item => {
-            if (item.isLocal) return true; // Keep all local items
-            if (item.sku.startsWith('FGT-') || item.sku.startsWith('OTH-')) return false; // Hide DB items for Trays/Others
-            return true;
-        });
-    }, [inventory, menuConfig]);
+    }, [menuConfig, inventory]);
 
     // --- Fetch Data ---
     useEffect(() => {
@@ -350,7 +339,7 @@ const ChristmasOrder = () => {
         setActiveCategory(catId);
         const currentCatItems = {};
         inventory
-            .filter(item => item.sku.startsWith(catId))
+            .filter(item => item.sku === catId || item.sku.startsWith(catId + '-'))
             .forEach(item => {
                 if (cart[item.sku]) {
                     currentCatItems[item.sku] = cart[item.sku];
@@ -373,7 +362,7 @@ const ChristmasOrder = () => {
         const newCart = { ...cart };
 
         Object.keys(newCart).forEach(sku => {
-            if (sku.startsWith(activeCategory)) {
+            if (sku === activeCategory || sku.startsWith(activeCategory + '-')) {
                 delete newCart[sku];
             }
         });
@@ -874,7 +863,11 @@ const ChristmasOrder = () => {
                                 <div className="text-center md:text-left w-full md:w-auto flex justify-between md:block items-center">
                                     <span className="text-sm font-bold text-[#510813]/60 block">Category Total</span>
                                     <span className="text-2xl font-black text-[#E5562E]">
-                                        ₱{modalItems.reduce((sum, item) => sum + ((tempQuantities[item.sku] || 0) * (location === 'Sorsogon' ? item.priceSor : item.priceLeg)), 0).toLocaleString()}
+                                        ₱{modalItems.reduce((sum, item) => {
+                                            const priceVal = location === 'Sorsogon' ? item.priceSor : item.priceLeg;
+                                            const price = typeof priceVal === 'number' ? priceVal : 0;
+                                            return sum + ((tempQuantities[item.sku] || 0) * price);
+                                        }, 0).toLocaleString()}
                                     </span>
                                 </div>
 

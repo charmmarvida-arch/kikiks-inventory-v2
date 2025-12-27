@@ -143,7 +143,7 @@ const ChristmasMenuSettings = ({ isOpen, onClose, menuConfig, onSaveMenu }) => {
                                         </div>
                                         <div className="divide-y divide-gray-200/50">
                                             {menuConfig
-                                                .filter(item => item.sku.startsWith(cat.id))
+                                                .filter(item => item.sku === cat.id || item.sku.startsWith(cat.id + '-'))
                                                 .map((item, idx) => {
                                                     const originalIndex = menuConfig.indexOf(item);
                                                     return (
