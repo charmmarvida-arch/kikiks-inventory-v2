@@ -63,7 +63,9 @@ const CHRISTMAS_PRICES = {
     'FGP': 99,
     'FGL': 200,
     'FGG': 735,
-    'FGT': 1000
+
+    'FGT': 1000,
+    'FGCK': 0 // Default for Cakes (User updates in Settings)
 };
 
 import { supabase } from '../supabaseClient'; // Direct Supabase for performance
@@ -281,6 +283,30 @@ const ChristmasOrder = () => {
             }
         }
     }, []);
+
+    // Sync Local Menu to Supabase (Cloud)
+    const syncMenuToCloud = async (currentMenu) => {
+        if (!confirm("Upload local menu items to cloud? This makes them visible on other devices.")) return;
+
+        const itemsToUpsert = currentMenu.map(item => ({
+            sku: item.sku,
+            description: item.description,
+            uom: 'Unit', // Default
+            quantity: 0, // Default
+            is_visible_in_reseller_order: true
+        }));
+
+        const { error } = await supabase
+            .from('inventory')
+            .upsert(itemsToUpsert, { onConflict: 'sku' });
+
+        if (error) {
+            console.error('Sync failed:', error);
+            alert('Sync failed: ' + error.message);
+        } else {
+            alert('Menu synced to cloud! Refresh your specific mobile device to see changes.');
+        }
+    };
 
     // Cart State: { 'SKU-123': 50, 'SKU-456': 10 }
     const [cart, setCart] = useState({});
@@ -1068,6 +1094,7 @@ const ChristmasOrder = () => {
                     menuConfig={menuConfig || []}
                     onSaveMenu={handleSaveMenu}
                     inventory={inventory}
+                    onSync={syncMenuToCloud}
                 />
             </ErrorBoundary>
         </div>

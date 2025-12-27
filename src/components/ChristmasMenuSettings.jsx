@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { X, Save, Edit2, Plus } from 'lucide-react';
+import { X, Save, Edit2, Plus, CloudUpload } from 'lucide-react';
 
-const ChristmasMenuSettings = ({ isOpen, onClose, menuConfig, onSaveMenu }) => {
+const ChristmasMenuSettings = ({ isOpen, onClose, menuConfig, onSaveMenu, onSync }) => {
     const [editingItem, setEditingItem] = useState(null); // null = list view, index = editing
     const [tempItem, setTempItem] = useState({ sku: '', description: '', category: 'FGC', priceLeg: 0, priceSor: 0 });
 
@@ -52,9 +52,20 @@ const ChristmasMenuSettings = ({ isOpen, onClose, menuConfig, onSaveMenu }) => {
                         </h2>
                         <p className="text-white/60 text-sm">Configure items and location-based prices</p>
                     </div>
-                    <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-full transition-colors">
-                        <X size={24} />
-                    </button>
+                    <div className="flex gap-2">
+                        {onSync && (
+                            <button
+                                onClick={() => onSync(menuConfig)}
+                                className="px-4 py-2 bg-[#E5562E] text-white rounded-lg text-sm font-bold shadow hover:bg-[#c03e1b] flex items-center gap-2"
+                                title="Sync to Mobile"
+                            >
+                                <CloudUpload size={18} /> Sync to Cloud
+                            </button>
+                        )}
+                        <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-full transition-colors">
+                            <X size={24} />
+                        </button>
+                    </div>
                 </div>
 
                 {/* Content */}
