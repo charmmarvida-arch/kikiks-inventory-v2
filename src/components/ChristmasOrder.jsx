@@ -78,6 +78,7 @@ const ChristmasOrder = () => {
 
     // Default Menu Config
     const DEFAULT_MENU = [
+        { sku: 'FGCK', description: 'Cakes', category: 'FGCK', priceLeg: 0, priceSor: 0 },
         { sku: 'FGC', description: 'Cups', category: 'FGC', priceLeg: 29, priceSor: 30 },
         { sku: 'FGP', description: 'Pints', category: 'FGP', priceLeg: 99, priceSor: 105 },
         { sku: 'FGL', description: 'Liters', category: 'FGL', priceLeg: 200, priceSor: 210 },
@@ -770,7 +771,7 @@ const ChristmasOrder = () => {
                                 <select
                                     value={scheduleDate}
                                     onChange={e => setScheduleDate(e.target.value)}
-                                    className="w-full bg-white border-2 border-[#510813]/10 py-2 px-3 rounded-xl text-lg font-bold text-[#510813] focus:border-[#E5562E] focus:outline-none transition-colors appearance-none cursor-pointer"
+                                    className="w-full bg-white border-2 border-[#510813]/10 h-14 px-3 rounded-xl text-lg font-bold text-[#510813] focus:border-[#E5562E] focus:outline-none transition-colors appearance-none cursor-pointer flex items-center"
                                 >
                                     <option value="2025-12-31">Dec 31, Wed</option>
                                 </select>
@@ -781,7 +782,7 @@ const ChristmasOrder = () => {
                                     type="time"
                                     value={scheduleTime}
                                     onChange={e => setScheduleTime(e.target.value)}
-                                    className="w-full bg-white border-2 border-[#510813]/10 py-2 px-3 rounded-xl text-lg font-bold text-[#510813] focus:border-[#E5562E] focus:outline-none transition-colors"
+                                    className="w-full bg-white border-2 border-[#510813]/10 h-14 px-3 rounded-xl text-lg font-bold text-[#510813] focus:border-[#E5562E] focus:outline-none transition-colors"
                                 />
                             </div>
                         </div>
