@@ -29,9 +29,9 @@ const ChristmasOrder = React.lazy(() => import('./components/ChristmasOrder'));
 
 // Loading Fallback Component
 const ChristmasLoader = () => (
-  <div className="flex flex-col items-center justify-center h-screen bg-[#0F4C25] text-white">
-    <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-[#D42426] mb-4"></div>
-    <h2 className="text-2xl font-black tracking-widest animate-pulse">LOADING CHRISTMAS...</h2>
+  <div className="flex flex-col items-center justify-center h-screen bg-[#F5F5DC] text-[#510813]">
+    <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-[#E5562E] mb-4"></div>
+    <h2 className="text-2xl font-black tracking-widest animate-pulse">LOADING NEW YEAR...</h2>
   </div>
 );
 
@@ -84,7 +84,7 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/public-order" element={<ResellerOrderRedesigned isPublic={true} />} />
               <Route path="/public-transfer" element={<TransferLocation isPublic={true} />} />
-              <Route path="/christmas-order" element={
+              <Route path="/new-year-order" element={
                 <React.Suspense fallback={<ChristmasLoader />}>
                   <ChristmasOrder isPublic={true} />
                 </React.Suspense>
