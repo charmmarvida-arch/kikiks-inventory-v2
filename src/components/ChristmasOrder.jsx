@@ -333,9 +333,10 @@ const ChristmasOrder = () => {
                 quantity: 0, // Default
                 is_visible_in_reseller_order: true,
                 // Store prices in locations JSONB as JSON Array of Objects
+                // Explicitly stringify to ensure it fits into text[] column without corruption or type errors
                 locations: [
-                    { name: 'Legazpi', price: item.priceLeg || 0 },
-                    { name: 'Sorsogon', price: item.priceSor || 0 }
+                    JSON.stringify({ name: 'Legazpi', price: item.priceLeg || 0 }),
+                    JSON.stringify({ name: 'Sorsogon', price: item.priceSor || 0 })
                 ]
             }));
 
@@ -474,6 +475,10 @@ const ChristmasOrder = () => {
     const handleCategoryClick = (catId) => {
         if (!resellerName.trim()) {
             alert("Please enter your name first!");
+            return;
+        }
+        if (!scheduleDate || !scheduleTime) {
+            alert("Please select pick up date and time first!");
             return;
         }
         setActiveCategory(catId);
@@ -726,8 +731,8 @@ const ChristmasOrder = () => {
                                     backgroundSize: `1.5em 1.5em`
                                 }}
                             >
-                                <option value="Legazpi" className="text-black">LEGAZPI CITY</option>
-                                <option value="Sorsogon" className="text-black">SORSOGON CITY</option>
+                                <option value="Legazpi" className="text-black">SM Legazpi</option>
+                                <option value="Sorsogon" className="text-black">SM Sorsogon</option>
                             </select>
                         </div>
                     </div>
@@ -758,27 +763,26 @@ const ChristmasOrder = () => {
 
                     {/* Delivery / Pickup Section */}
                     <div className="mb-8 bg-[#FEFCE8] rounded-2xl p-6 border border-[#510813]/10 shadow-sm">
-                        <div className="space-y-4">
-                            <h3 className="font-bold text-[#510813]/60 uppercase text-xs tracking-wider mb-2">Schedule Pickup</h3>
-                            <div className="flex gap-4">
-                                <div className="flex-1">
-                                    <select
-                                        value={scheduleDate}
-                                        onChange={e => setScheduleDate(e.target.value)}
-                                        className="w-full bg-white border-2 border-[#510813]/10 py-2 px-3 rounded-xl text-lg font-bold text-[#510813] focus:border-[#E5562E] focus:outline-none transition-colors appearance-none cursor-pointer"
-                                    >
-                                        <option value="2025-12-31">Wednesday, Dec 31, 2025</option>
-                                    </select>
-                                </div>
-                                <div className="flex-1">
-                                    <label className="text-[#510813]/70 text-sm block mb-1 font-medium">Pick Up Time</label>
-                                    <input
-                                        type="time"
-                                        value={scheduleTime}
-                                        onChange={e => setScheduleTime(e.target.value)}
-                                        className="w-full bg-white border-2 border-[#510813]/10 py-2 px-3 rounded-xl text-lg font-bold text-[#510813] focus:border-[#E5562E] focus:outline-none transition-colors"
-                                    />
-                                </div>
+
+                        <div className="flex gap-4 items-end">
+                            <div className="flex-[2]">
+                                <label className="text-[#510813]/70 text-sm block mb-1 font-medium">Pick Up Date</label>
+                                <select
+                                    value={scheduleDate}
+                                    onChange={e => setScheduleDate(e.target.value)}
+                                    className="w-full bg-white border-2 border-[#510813]/10 py-2 px-3 rounded-xl text-lg font-bold text-[#510813] focus:border-[#E5562E] focus:outline-none transition-colors appearance-none cursor-pointer"
+                                >
+                                    <option value="2025-12-31">Dec 31, Wed</option>
+                                </select>
+                            </div>
+                            <div className="flex-1">
+                                <label className="text-[#510813]/70 text-sm block mb-1 font-medium">Pick Up Time</label>
+                                <input
+                                    type="time"
+                                    value={scheduleTime}
+                                    onChange={e => setScheduleTime(e.target.value)}
+                                    className="w-full bg-white border-2 border-[#510813]/10 py-2 px-3 rounded-xl text-lg font-bold text-[#510813] focus:border-[#E5562E] focus:outline-none transition-colors"
+                                />
                             </div>
                         </div>
                     </div>
