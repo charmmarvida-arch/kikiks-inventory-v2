@@ -104,44 +104,61 @@ const ChristmasOrder = () => {
     useEffect(() => {
         if (inventory.length > 0) {
             setMenuConfig(prev => {
+                const cloudMap = new Map();
+                inventory.forEach(i => cloudMap.set(i.sku, i));
+
+                // Helper to extract prices
+                const getCloudPrices = (i) => {
+                    let rawLocs = Array.isArray(i.locations) ? i.locations : [];
+                    const locData = rawLocs.map(l => {
+                        if (typeof l === 'string' && l.trim().startsWith('{')) {
+                            try { return JSON.parse(l); } catch (e) { return l; }
+                        }
+                        return l;
+                    });
+                    const leg = locData.find(l => l.name === 'Legazpi' || l === 'Legazpi')?.price;
+                    const sor = locData.find(l => l.name === 'Sorsogon' || l === 'Sorsogon')?.price;
+                    return { leg, sor };
+                };
+
+                // 1. Update Existing Items with Cloud Prices
+                const updatedPrev = prev.map(localItem => {
+                    const cloudItem = cloudMap.get(localItem.sku);
+                    if (cloudItem) {
+                        const { leg, sor } = getCloudPrices(cloudItem);
+                        // Only update if cloud has prices (prevent overwriting with undefined if cloud is partial)
+                        // But if 0, we should update.
+                        const newLeg = leg !== undefined ? leg : localItem.priceLeg;
+                        const newSor = sor !== undefined ? sor : localItem.priceSor;
+                        return { ...localItem, priceLeg: newLeg, priceSor: newSor, description: cloudItem.description || localItem.description };
+                    }
+                    return localItem;
+                });
+
+                // 2. Add New Items
                 const existingSkus = new Set(prev.map(i => i.sku));
                 const newItems = inventory
                     .filter(i => !existingSkus.has(i.sku))
                     .filter(i => {
                         const prefix = i.sku.split('-')[0];
-                        return !['FGT', 'OTH'].includes(prefix); // Exclude hidden cats
+                        return !['FGT', 'OTH'].includes(prefix);
                     })
                     .map(i => {
-                        // Attempt to derive price or use default
                         const prefix = i.sku.split('-')[0];
                         const defaultPrice = CHRISTMAS_PRICES[prefix] || 0;
-
-                        // Extract prices from 'locations'
-                        // Support both ["Legazpi"] (Legacy Strings) AND ['{"name":"Legazpi",...}'] (JSON Strings)
-                        // AND [{name:"Legazpi"...}] (Actual Objects if JSONB)
-                        let rawLocs = Array.isArray(i.locations) ? i.locations : [];
-                        const locData = rawLocs.map(l => {
-                            if (typeof l === 'string' && l.trim().startsWith('{')) {
-                                try { return JSON.parse(l); } catch (e) { return l; }
-                            }
-                            return l;
-                        });
-
-                        const cloudPriceLeg = locData.find(l => l.name === 'Legazpi' || l === 'Legazpi')?.price;
-                        const cloudPriceSor = locData.find(l => l.name === 'Sorsogon' || l === 'Sorsogon')?.price;
-
+                        const { leg, sor } = getCloudPrices(i);
                         return {
                             sku: i.sku,
                             description: i.description,
                             category: prefix,
-                            priceLeg: cloudPriceLeg !== undefined ? cloudPriceLeg : (i.price_leg || defaultPrice),
-                            priceSor: cloudPriceSor !== undefined ? cloudPriceSor : (i.price_sor || (defaultPrice + (prefix === 'FGC' ? 1 : 5)))
+                            priceLeg: leg !== undefined ? leg : (i.price_leg || defaultPrice),
+                            priceSor: sor !== undefined ? sor : (i.price_sor || (defaultPrice + (prefix === 'FGC' ? 1 : 5)))
                         };
                     });
 
-                if (newItems.length > 0) {
-                    console.log("Auto-populating menu with new items:", newItems);
-                    return [...prev, ...newItems];
+                if (JSON.stringify(updatedPrev) !== JSON.stringify(prev) || newItems.length > 0) {
+                    console.log("Synced menu with cloud (Updates + New Items)");
+                    return [...updatedPrev, ...newItems];
                 }
                 return prev;
             });
