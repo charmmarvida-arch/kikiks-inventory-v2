@@ -325,6 +325,7 @@ const ChristmasOrder = () => {
         }
 
         try {
+            // 1. Identify SKUs to Upsert (Update/Insert)
             const itemsToUpsert = currentMenu.map(item => ({
                 sku: item.sku,
                 description: item.description,
@@ -332,25 +333,53 @@ const ChristmasOrder = () => {
                 quantity: 0, // Default
                 is_visible_in_reseller_order: true,
                 // Store prices in locations JSONB as JSON Array of Objects
-                // This satisfies "expected JSON array" (or compat requirement) while storing metadata
                 locations: [
                     { name: 'Legazpi', price: item.priceLeg || 0 },
                     { name: 'Sorsogon', price: item.priceSor || 0 }
                 ]
             }));
 
-            console.log('Sync Payload:', itemsToUpsert);
+            // 2. Identify SKUs to Delete (Exists in Cloud, Missing Locally)
+            // Fetch all items from cloud that match our managed prefixes
+            const prefixes = ['FGC', 'FGP', 'FGL', 'FGG', 'FGCK', ...currentMenu.map(i => i.sku.split('-')[0])];
+            const uniquePrefixes = [...new Set(prefixes)];
 
-            const { error } = await supabase
+            // Should theoretically fetch all, but let's just fetch all and filter in JS to be safe/easy
+            const { data: cloudItems, error: fetchError } = await supabase
+                .from('inventory')
+                .select('sku');
+
+            if (fetchError) throw fetchError;
+
+            const localSkus = new Set(currentMenu.map(i => i.sku));
+
+            // Filter cloud items that match our known prefixes AND are NOT in local menu
+            const skusToDelete = cloudItems
+                .filter(i => {
+                    const prefix = i.sku.split('-')[0];
+                    return uniquePrefixes.includes(prefix) && !localSkus.has(i.sku);
+                })
+                .map(i => i.sku);
+
+            console.log('Sync Upsert:', itemsToUpsert.length, 'items');
+            console.log('Sync Delete:', skusToDelete.length, 'items', skusToDelete);
+
+            // 3. Execute Operations
+            const upsertPromise = supabase
                 .from('inventory')
                 .upsert(itemsToUpsert, { onConflict: 'sku' });
 
-            if (error) {
-                console.error('Sync failed:', error);
-                throw error;
-            } else {
-                alert('Menu synced to cloud! Refresh your specific mobile device to see changes.');
-            }
+            const deletePromise = skusToDelete.length > 0
+                ? supabase.from('inventory').delete().in('sku', skusToDelete)
+                : Promise.resolve({ error: null });
+
+            const [upsertRes, deleteRes] = await Promise.all([upsertPromise, deletePromise]);
+
+            if (upsertRes.error) throw upsertRes.error;
+            if (deleteRes.error) throw deleteRes.error;
+
+            alert(`Menu synced! Updated: ${itemsToUpsert.length}, Deleted: ${skusToDelete.length}. Refresh mobile to see changes.`);
+
         } catch (error) {
             console.error('Sync Error:', error);
             alert('Sync failed: ' + (error.message || 'Unknown error'));
