@@ -12,9 +12,9 @@ const ChristmasMenuSettings = ({ isOpen, onClose, menuConfig, onSaveMenu }) => {
         setTempItem({ ...item });
     };
 
-    const handleAddNew = () => {
+    const handleAddNew = (categoryPrefix = 'FGC') => {
         setEditingItem('new');
-        setTempItem({ sku: '', description: '', category: 'FGC', priceLeg: 0, priceSor: 0 });
+        setTempItem({ sku: `${categoryPrefix}-`, description: '', category: categoryPrefix, priceLeg: 0, priceSor: 0 });
     };
 
     const handleSave = () => {
@@ -124,46 +124,72 @@ const ChristmasMenuSettings = ({ isOpen, onClose, menuConfig, onSaveMenu }) => {
                     ) : (
                         // List View
                         <>
-                            <div className="flex justify-end mb-4">
-                                <button
-                                    onClick={handleAddNew}
-                                    className="px-4 py-2 bg-[#0f172a] text-white rounded-lg font-bold text-sm shadow hover:bg-[#1e293b] flex items-center gap-2"
-                                >
-                                    <Plus size={16} /> Add Item
-                                </button>
-                            </div>
-
-                            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                                <table className="w-full text-left">
-                                    <thead className="bg-gray-50 border-b border-gray-200">
-                                        <tr>
-                                            <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase">Description</th>
-                                            <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase text-right">Legazpi</th>
-                                            <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase text-right">Sorsogon</th>
-                                            <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase text-right">Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-gray-100">
-                                        {menuConfig.map((item, idx) => (
-                                            <tr key={idx} className="hover:bg-gray-50">
-                                                <td className="px-4 py-3">
-                                                    <div className="font-bold text-gray-800">{item.description}</div>
-                                                    <div className="text-xs text-gray-400 font-mono">{item.sku}</div>
-                                                </td>
-                                                <td className="px-4 py-3 text-right font-medium text-gray-600">₱{item.priceLeg}</td>
-                                                <td className="px-4 py-3 text-right font-medium text-gray-600">₱{item.priceSor}</td>
-                                                <td className="px-4 py-3 text-right">
-                                                    <button
-                                                        onClick={() => handleEdit(item, idx)}
-                                                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                                                    >
-                                                        <Edit2 size={16} />
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                            <div className="space-y-8">
+                                {[
+                                    { id: 'FGC', label: 'Cups 🍦', color: 'bg-orange-50 border-orange-200' },
+                                    { id: 'FGP', label: 'Pints 🍨', color: 'bg-red-50 border-red-200' },
+                                    { id: 'FGL', label: 'Liters 🥛', color: 'bg-yellow-50 border-yellow-200' },
+                                    { id: 'FGG', label: 'Gallons 📦', color: 'bg-orange-100 border-orange-300' }
+                                ].map(cat => (
+                                    <div key={cat.id} className={`rounded-xl border ${cat.color} overflow-hidden`}>
+                                        <div className="p-4 flex justify-between items-center bg-white/50 border-b border-inherit">
+                                            <h3 className="font-black text-[#510813] text-lg uppercase tracking-wider">{cat.label}</h3>
+                                            <button
+                                                onClick={() => handleAddNew(cat.id)}
+                                                className="px-3 py-1.5 bg-[#510813] text-white rounded-lg text-xs font-bold shadow hover:bg-[#510813]/80 flex items-center gap-1"
+                                            >
+                                                <Plus size={14} /> Add {cat.id} Item
+                                            </button>
+                                        </div>
+                                        <div className="divide-y divide-gray-200/50">
+                                            {menuConfig
+                                                .filter(item => item.sku.startsWith(cat.id))
+                                                .map((item, idx) => {
+                                                    // Find original index in master list to handle edit correctly
+                                                    const originalIndex = menuConfig.indexOf(item);
+                                                    return (
+                                                        <div key={item.sku} className="p-4 flex justify-between items-center bg-white/40 hover:bg-white transition-colors">
+                                                            <div>
+                                                                <div className="font-bold text-[#510813]">{item.description}</div>
+                                                                <div className="text-xs text-[#510813]/50 font-mono">{item.sku}</div>
+                                                            </div>
+                                                            <div className="flex items-center gap-4">
+                                                                <div className="text-right">
+                                                                    <div className="text-xs text-[#510813]/60 uppercase font-bold">Legazpi</div>
+                                                                    <div className="font-bold text-[#510813]">₱{item.priceLeg}</div>
+                                                                </div>
+                                                                <div className="text-right">
+                                                                    <div className="text-xs text-[#510813]/60 uppercase font-bold">Sorsogon</div>
+                                                                    <div className="font-bold text-[#510813]">₱{item.priceSor}</div>
+                                                                </div>
+                                                                <div className="flex gap-1 pl-2 border-l border-[#510813]/10 ml-2">
+                                                                    <button
+                                                                        onClick={() => handleEdit(item, originalIndex)}
+                                                                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                                                        title="Edit"
+                                                                    >
+                                                                        <Edit2 size={16} />
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={() => handleDelete(originalIndex)}
+                                                                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                                        title="Delete"
+                                                                    >
+                                                                        <X size={16} />
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+                                            {menuConfig.filter(item => item.sku.startsWith(cat.id)).length === 0 && (
+                                                <div className="p-8 text-center text-[#510813]/30 text-sm font-medium italic">
+                                                    No items yet. Click "Add Item" to start.
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
                         </>
                     )}

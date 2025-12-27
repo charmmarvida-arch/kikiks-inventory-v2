@@ -814,50 +814,85 @@ const ChristmasOrder = () => {
                         </div>
 
                         {/* List */}
-                        <div className="flex-1 overflow-y-auto p-6 md:p-8">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {modalItems.map(item => {
-                                    const qty = cart[item.sku] || 0;
-                                    const price = location === 'Sorsogon' ? item.priceSor : item.priceLeg;
-                                    return (
-                                        <button
-                                            key={item.sku}
-                                            onClick={() => updateCart(item.sku, 1)}
-                                            className="group bg-white rounded-2xl p-4 border border-[#510813]/10 text-left hover:border-[#E5562E] hover:shadow-lg transition-all relative overflow-hidden"
-                                        >
-                                            <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <div className="bg-[#E5562E] text-white p-2 rounded-full shadow-lg">
-                                                    <Plus size={20} />
-                                                </div>
-                                            </div>
+                        <div className="flex-1 overflow-y-auto p-0">
+                            <table className="w-full text-left border-collapse">
+                                <thead className="bg-[#FFF1B5] sticky top-0 z-10 shadow-sm text-[#510813]">
+                                    <tr>
+                                        <th className="p-4 text-xs font-bold uppercase tracking-wider">Description</th>
+                                        <th className="p-4 text-xs font-bold uppercase tracking-wider text-right">Price</th>
+                                        <th className="p-4 text-xs font-bold uppercase tracking-wider w-32 text-center">Quantity</th>
+                                        <th className="p-4 text-xs font-bold uppercase tracking-wider text-center">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-[#510813]/10">
+                                    {modalItems.map(item => {
+                                        const price = location === 'Sorsogon' ? item.priceSor : item.priceLeg;
+                                        const qty = tempQuantities[item.sku] || 0;
+                                        const total = (qty || 0) * price;
+                                        const isSelected = qty > 0;
 
-                                            <div className="flex justify-between items-start mb-2">
-                                                <div className="bg-[#510813]/5 px-3 py-1 rounded-lg text-xs font-bold text-[#510813]/60 font-mono tracking-wider">
-                                                    {item.sku}
-                                                </div>
-                                                {qty > 0 && (
-                                                    <div className="bg-[#E5562E] text-white px-3 py-1 rounded-full text-xs font-bold shadow-sm animate-in zoom-in">
-                                                        {qty} in cart
+                                        return (
+                                            <tr key={item.sku} className={`hover:bg-[#FFF7E3] transition-colors ${isSelected ? 'bg-orange-50' : 'bg-white'}`}>
+                                                <td className="p-4 align-middle">
+                                                    <div className="font-bold text-[#510813] text-base">{item.description}</div>
+                                                    <div className="text-xs text-[#510813]/60 font-mono mt-0.5">{item.sku}</div>
+                                                </td>
+                                                <td className="p-4 text-right align-middle text-sm font-bold text-[#510813]/80">
+                                                    ₱{price.toLocaleString()}
+                                                </td>
+                                                <td className="p-4 align-middle">
+                                                    <div className="flex justify-center">
+                                                        <input
+                                                            type="number"
+                                                            min="0"
+                                                            value={tempQuantities[item.sku] === undefined ? '' : tempQuantities[item.sku]}
+                                                            onChange={(e) => handleModalQuantityChange(item.sku, e.target.value)}
+                                                            className={`w-20 p-2 text-center rounded-lg border-2 focus:ring-4 focus:ring-[#E5562E]/20 outline-none transition-all font-black text-lg ${isSelected ? 'border-[#E5562E] text-[#E5562E] bg-white' : 'border-[#510813]/20 focus:border-[#E5562E] text-[#510813] bg-gray-50'}`}
+                                                            placeholder="0"
+                                                        />
                                                     </div>
-                                                )}
-                                            </div>
-
-                                            <h3 className="font-bold text-[#510813] text-lg mb-1 group-hover:text-[#E5562E] transition-colors line-clamp-2">
-                                                {item.description}
-                                            </h3>
-
-                                            <p className="text-[#510813]/60 text-sm font-medium">
-                                                ₱{price}
-                                            </p>
-                                        </button>
-                                    );
-                                })}
-                            </div>
+                                                </td>
+                                                <td className="p-4 text-right align-middle font-black text-[#E5562E] text-lg">
+                                                    {total > 0 && `₱${total.toLocaleString()}`}
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
                             {modalItems.length === 0 && (
                                 <div className="text-center py-20 text-[#510813]/40">
                                     <p>No items found matching "{searchTerm}"</p>
                                 </div>
                             )}
+                        </div>
+
+                        {/* Modal Footer */}
+                        <div className="p-6 border-t border-[#510813]/10 bg-white md:rounded-b-3xl shrink-0">
+                            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+                                <div className="text-center md:text-left w-full md:w-auto flex justify-between md:block items-center">
+                                    <span className="text-sm font-bold text-[#510813]/60 block">Category Total</span>
+                                    <span className="text-2xl font-black text-[#E5562E]">
+                                        ₱{modalItems.reduce((sum, item) => sum + ((tempQuantities[item.sku] || 0) * (location === 'Sorsogon' ? item.priceSor : item.priceLeg)), 0).toLocaleString()}
+                                    </span>
+                                </div>
+
+                                <div className="flex gap-3 w-full md:w-auto">
+                                    <button
+                                        onClick={() => setActiveCategory(null)}
+                                        className="flex-1 md:flex-none px-6 py-3 rounded-xl font-bold text-[#510813]/70 hover:bg-[#510813]/5 transition-colors"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        onClick={handleSaveModal}
+                                        className="flex-1 md:flex-none px-8 py-3 bg-[#E5562E] text-white font-bold rounded-xl shadow-lg hover:bg-[#c03e1b] transition-all flex items-center justify-center gap-2"
+                                    >
+                                        <CheckCircle size={20} />
+                                        Save Changes
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
