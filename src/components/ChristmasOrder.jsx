@@ -116,9 +116,17 @@ const ChristmasOrder = () => {
                         const prefix = i.sku.split('-')[0];
                         const defaultPrice = CHRISTMAS_PRICES[prefix] || 0;
 
-                        // Extract prices from 'locations' (Array of Objects)
-                        // Schema: [ { "name": "Legazpi", "price": 123 }, { "name": "Sorsogon", "price": 456 } ]
-                        const locData = Array.isArray(i.locations) ? i.locations : [];
+                        // Extract prices from 'locations'
+                        // Support both ["Legazpi"] (Legacy Strings) AND ['{"name":"Legazpi",...}'] (JSON Strings)
+                        // AND [{name:"Legazpi"...}] (Actual Objects if JSONB)
+                        let rawLocs = Array.isArray(i.locations) ? i.locations : [];
+                        const locData = rawLocs.map(l => {
+                            if (typeof l === 'string' && l.trim().startsWith('{')) {
+                                try { return JSON.parse(l); } catch (e) { return l; }
+                            }
+                            return l;
+                        });
+
                         const cloudPriceLeg = locData.find(l => l.name === 'Legazpi' || l === 'Legazpi')?.price;
                         const cloudPriceSor = locData.find(l => l.name === 'Sorsogon' || l === 'Sorsogon')?.price;
 
