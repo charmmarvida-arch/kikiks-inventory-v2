@@ -545,7 +545,7 @@ const ChristmasOrder = () => {
     const modalItems = activeCategory
         ? mergedInventory
             .filter(item => item.isVisible !== false)
-            .filter(item => item.sku.startsWith(activeCategory))
+            .filter(item => item.sku === activeCategory || item.sku.startsWith(activeCategory + '-'))
             .filter(item => item.description.toLowerCase().includes(searchTerm.toLowerCase()))
         : [];
 
