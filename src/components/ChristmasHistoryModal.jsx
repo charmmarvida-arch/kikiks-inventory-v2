@@ -175,74 +175,7 @@ const ChristmasHistoryModal = ({
             </div>
 
             {/* Add/Edit Item Modal */}
-            {isItemModalOpen && (
-                <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-                    <div className="bg-white w-full max-w-md rounded-2xl shadow-xl overflow-hidden">
-                        <div className="bg-[#0f172a] p-4 text-white flex justify-between items-center">
-                            <h3 className="font-bold">{editingItem !== null ? 'Edit Item' : 'Add New Item'}</h3>
-                            <button onClick={() => setIsItemModalOpen(false)}><X size={20} /></button>
-                        </div>
-                        <div className="p-6 space-y-4">
-                            <div>
-                                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">SKU</label>
-                                <input
-                                    type="text"
-                                    value={tempItem.sku}
-                                    onChange={e => setTempItem(prev => ({ ...prev, sku: e.target.value }))}
-                                    className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#D97706] outline-none font-mono"
-                                    placeholder="e.g. FGC-SPECIAL"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Description</label>
-                                <input
-                                    type="text"
-                                    value={tempItem.description}
-                                    onChange={e => setTempItem(prev => ({ ...prev, description: e.target.value }))}
-                                    className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#D97706] outline-none"
-                                    placeholder="e.g. Special Holiday Cup"
-                                />
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Legazpi Price</label>
-                                    <input
-                                        type="number"
-                                        value={tempItem.priceLeg}
-                                        onChange={e => setTempItem(prev => ({ ...prev, priceLeg: parseInt(e.target.value) || 0 }))}
-                                        className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#D97706] outline-none"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Sorsogon Price</label>
-                                    <input
-                                        type="number"
-                                        value={tempItem.priceSor}
-                                        onChange={e => setTempItem(prev => ({ ...prev, priceSor: parseInt(e.target.value) || 0 }))}
-                                        className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#D97706] outline-none"
-                                    />
-                                </div>
-                            </div>
-                            <button
-                                onClick={() => {
-                                    if (!tempItem.sku || !tempItem.description) return alert("SKU and Description required");
-                                    const newMenu = [...menuConfig];
-                                    if (editingItem !== null) {
-                                        newMenu[editingItem] = tempItem;
-                                    } else {
-                                        newMenu.push(tempItem);
-                                    }
-                                    onSaveMenu(newMenu);
-                                    setIsItemModalOpen(false);
-                                }}
-                                className="w-full py-3 bg-[#D97706] text-white font-bold rounded-xl shadow-lg hover:bg-[#b45309] mt-4"
-                            >
-                                Save Item
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+
 
             {/* View Details Modal Overlay */}
             {selectedOrder && (

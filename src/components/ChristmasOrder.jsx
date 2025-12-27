@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import ChristmasHistoryModal from './ChristmasHistoryModal';
 import ChristmasMenuSettings from './ChristmasMenuSettings';
+import ErrorBoundary from './ErrorBoundary';
 
 // --- New Year Pattern Component ---
 const ChristmasPattern = ({ className, opacity = 0.2, color = "text-white" }) => {
@@ -804,15 +805,17 @@ const ChristmasOrder = () => {
             {/* --- History / Settings Modal --- */}
             {/* --- History Modal --- */}
             {isHistoryOpen && (
-                <ChristmasHistoryModal
-                    orders={resellerOrders}
-                    inventory={inventory}
-                    onClose={() => setIsHistoryOpen(false)}
-                    onStatusChange={handleStatusChange}
-                    onEdit={handleEditHistoryOrder}
-                    onDelete={handleDeleteHistoryOrder}
-                    isProcessing={false}
-                />
+                <ErrorBoundary>
+                    <ChristmasHistoryModal
+                        orders={resellerOrders || []}
+                        inventory={inventory || []}
+                        onClose={() => setIsHistoryOpen(false)}
+                        onStatusChange={handleStatusChange}
+                        onEdit={handleEditHistoryOrder}
+                        onDelete={handleDeleteHistoryOrder}
+                        isProcessing={false}
+                    />
+                </ErrorBoundary>
             )}
 
             {/* --- PIN Confirmation Modal --- */}
@@ -855,12 +858,14 @@ const ChristmasOrder = () => {
             )}
 
             {/* --- Menu Settings Modal --- */}
-            <ChristmasMenuSettings
-                isOpen={isMenuOpen}
-                onClose={() => setIsMenuOpen(false)}
-                menuConfig={menuConfig}
-                onSaveMenu={setMenuConfig}
-            />
+            <ErrorBoundary>
+                <ChristmasMenuSettings
+                    isOpen={isMenuOpen}
+                    onClose={() => setIsMenuOpen(false)}
+                    menuConfig={menuConfig || []}
+                    onSaveMenu={setMenuConfig}
+                />
+            </ErrorBoundary>
         </div>
     );
 };
