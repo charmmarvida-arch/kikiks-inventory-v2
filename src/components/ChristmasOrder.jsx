@@ -1,29 +1,30 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 // import { useInventory } from '../context/InventoryContext'; // Removed for optimization
 import { useNavigate } from 'react-router-dom';
 import {
     Settings, ShoppingCart,
     Coffee, IceCream, Droplet, Box, Grid,
     X, CheckCircle,
-    Sparkles, Gift, Star, Clock, Calendar, ClipboardList // New Year Icons
+    Sparkles, Gift, Star, Clock, Calendar, ClipboardList,
+    Leaf, Sun, Flower2, Utensils // Tropical Icons
 } from 'lucide-react';
 import ChristmasHistoryModal from './ChristmasHistoryModal';
 import ChristmasMenuSettings from './ChristmasMenuSettings';
 import ErrorBoundary from './ErrorBoundary';
 
-// --- New Year Pattern Component ---
-const ChristmasPattern = ({ className, opacity = 0.2, color = "text-white" }) => {
+// --- Tropical New Year Pattern ---
+const ChristmasPattern = ({ className, opacity = 0.15, color = "text-[#E5562E]" }) => {
     const icons = [
-        { Icon: Sparkles, top: '5%', left: '5%', rot: '45deg', size: 64 },
-        { Icon: Gift, top: '15%', left: '25%', rot: '-12deg', size: 48 },
-        { Icon: Star, top: '10%', right: '10%', rot: '0deg', size: 80 },
-        { Icon: Clock, top: '35%', left: '80%', rot: '20deg', size: 56 }, // Countdown clock
-        { Icon: Sparkles, top: '45%', left: '10%', rot: '-25deg', size: 60 },
-        { Icon: Gift, top: '55%', right: '20%', rot: '15deg', size: 50 },
+        { Icon: Leaf, top: '5%', left: '5%', rot: '45deg', size: 64 },
+        { Icon: Sparkles, top: '15%', left: '25%', rot: '-12deg', size: 48 },
+        { Icon: Sun, top: '10%', right: '10%', rot: '0deg', size: 80 },
+        { Icon: Clock, top: '35%', left: '80%', rot: '20deg', size: 56 },
+        { Icon: IceCream, top: '45%', left: '10%', rot: '-25deg', size: 60 },
+        { Icon: Utensils, top: '55%', right: '20%', rot: '15deg', size: 50 },
         { Icon: Star, top: '75%', left: '30%', rot: '130deg', size: 70 },
         { Icon: Clock, top: '85%', right: '5%', rot: '10deg', size: 55 },
-        { Icon: Sparkles, top: '90%', left: '15%', rot: '0deg', size: 40 },
-        { Icon: Star, top: '65%', left: '50%', rot: '-45deg', size: 55 },
+        { Icon: Sun, top: '90%', left: '15%', rot: '0deg', size: 40 },
+        { Icon: Flower2, top: '65%', left: '50%', rot: '-45deg', size: 55 },
     ];
 
     return (
@@ -46,15 +47,16 @@ const ChristmasPattern = ({ className, opacity = 0.2, color = "text-white" }) =>
     );
 };
 
-// Category Configuration - New Year Theme
-const CATEGORIES = [
-    { id: 'FGC', label: 'Cups', icon: Coffee, color: 'bg-[#D97706] text-white', border: 'border-white/20', shadow: 'shadow-[#D97706]/40', ring: 'ring-[#D97706]' }, // Gold/Amber
-    { id: 'FGP', label: 'Pints', icon: IceCream, color: 'bg-[#059669] text-white', border: 'border-white/20', shadow: 'shadow-[#059669]/40', ring: 'ring-[#059669]' }, // Emerald (prosperity)
-    { id: 'FGL', label: 'Liters', icon: Droplet, color: 'bg-[#7C3AED] text-white', border: 'border-white/20', shadow: 'shadow-[#7C3AED]/40', ring: 'ring-[#7C3AED]' }, // Purple (Royalty/Festive)
-    { id: 'FGG', label: 'Gallons', icon: Box, color: 'bg-[#BE123C] text-white', border: 'border-white/20', shadow: 'shadow-[#BE123C]/40', ring: 'ring-[#BE123C]' } // Ruby Red
+// Standard Categories with Tropical Palette
+const STANDARD_CATEGORIES = [
+    { id: 'FGC', label: 'Cups', icon: Coffee, color: 'bg-[#F49306] text-white', border: 'border-white/20', shadow: 'shadow-[#F49306]/40', ring: 'ring-[#F49306]' },
+    { id: 'FGP', label: 'Pints', icon: IceCream, color: 'bg-[#FF5A5F] text-white', border: 'border-white/20', shadow: 'shadow-[#FF5A5F]/40', ring: 'ring-[#FF5A5F]' },
+    { id: 'FGL', label: 'Liters', icon: Droplet, color: 'bg-[#888625] text-white', border: 'border-white/20', shadow: 'shadow-[#888625]/40', ring: 'ring-[#888625]' },
+    { id: 'FGG', label: 'Gallons', icon: Box, color: 'bg-[#E5562E] text-white', border: 'border-white/20', shadow: 'shadow-[#E5562E]/40', ring: 'ring-[#E5562E]' },
+    { id: 'FGT', label: 'Trays', icon: Grid, color: 'bg-[#510813] text-white', border: 'border-white/20', shadow: 'shadow-[#510813]/40', ring: 'ring-[#510813]' }
 ];
 
-// Special Christmas Pricing
+// Special Pricing
 const CHRISTMAS_PRICES = {
     'FGC': 29,
     'FGP': 99,
@@ -66,25 +68,75 @@ const CHRISTMAS_PRICES = {
 import { supabase } from '../supabaseClient'; // Direct Supabase for performance
 
 const ChristmasOrder = () => {
-    // const { inventory, addResellerOrder, resellerOrders, updateResellerOrder, deleteResellerOrder } = useInventory(); // Removed global context for speed
     const navigate = useNavigate();
 
-    // --- Local Data State for Speed ---
+    // --- State: Inventory & Menu ---
     const [inventory, setInventory] = useState([]);
-    const [resellerOrders, setResellerOrders] = useState([]); // Only for History Modal which is PIN protected
 
-    // Optimized Fetch
+    // Default Menu Config
+    const DEFAULT_MENU = [
+        { sku: 'FGC', description: 'Cups', category: 'FGC', priceLeg: 29, priceSor: 30 },
+        { sku: 'FGP', description: 'Pints', category: 'FGP', priceLeg: 99, priceSor: 105 },
+        { sku: 'FGL', description: 'Liters', category: 'FGL', priceLeg: 200, priceSor: 210 },
+        { sku: 'FGG', description: 'Gallons', category: 'FGG', priceLeg: 735, priceSor: 750 }
+    ];
+
+    const [menuConfig, setMenuConfig] = useState(() => {
+        try {
+            const saved = localStorage.getItem('kikiks-newyear-menu');
+            const parsed = saved ? JSON.parse(saved) : null;
+            return Array.isArray(parsed) ? parsed : DEFAULT_MENU;
+        } catch (e) {
+            console.error("Failed to parse menu config:", e);
+            return DEFAULT_MENU;
+        }
+    });
+
+    // Save Menu on Change
     useEffect(() => {
-        const fetchEssentialData = async () => {
-            // 1. Fetch Products (Only what's needed)
+        localStorage.setItem('kikiks-newyear-menu', JSON.stringify(menuConfig));
+    }, [menuConfig]);
+
+    const [resellerOrders, setResellerOrders] = useState([]);
+
+    // --- Derived State: Merged Inventory ---
+    // Combines Supabase inventory with local Menu Config items
+    const mergedInventory = useMemo(() => {
+        // 1. Convert Supabase inventory to map for easy lookup
+        const invMap = new Map(inventory.map(i => [i.sku, i]));
+
+        // 2. Start with local menu items (priority for description/price override if we wanted, currently just adding missing ones)
+        const combined = [...inventory];
+
+        menuConfig.forEach(localItem => {
+            if (!invMap.has(localItem.sku)) {
+                // Item exists locally but not in Supabase yet (or just a menu item)
+                combined.push({
+                    sku: localItem.sku,
+                    description: localItem.description,
+                    quantity: 999, // limitless for "menu only" items effectively
+                    priceLeg: localItem.priceLeg,
+                    priceSor: localItem.priceSor,
+                    isLocal: true // flag to identify
+                });
+            }
+        });
+
+        return combined;
+    }, [inventory, menuConfig]);
+
+    // --- Fetch Data ---
+    useEffect(() => {
+        const fetchData = async () => {
+            // 1. Fetch Inventory (All relevant items)
             const { data: products } = await supabase
                 .from('inventory')
-                .select('sku, description, quantity')
-                .or('sku.ilike.FGC%,sku.ilike.FGP%,sku.ilike.FGL%,sku.ilike.FGG%'); // Only fetch relevant categories
+                .select('*')
+                .order('sku', { ascending: true });
 
             if (products) setInventory(products);
 
-            // 2. Fetch Orders for History (Only fetch recent ones to save data?)
+            // 2. Fetch Orders (For History)
             const { data: orders } = await supabase
                 .from('reseller_orders')
                 .select('*')
@@ -94,8 +146,34 @@ const ChristmasOrder = () => {
             if (orders) setResellerOrders(orders);
         };
 
-        fetchEssentialData();
+        fetchData();
     }, []);
+
+    // --- Dynamic Category Generation ---
+    // Generate categories based on what items exist in mergedInventory
+    const dynamicCategories = useMemo(() => {
+        const uniquePrefixes = new Set(mergedInventory.map(i => i.sku.split('-')[0])); // Get content before first hyphen
+
+        // Filter standard categories that exist
+        const standardCats = STANDARD_CATEGORIES.filter(cat => uniquePrefixes.has(cat.id));
+
+        // Create new categories for unknown prefixes
+        const customPrefixes = [...uniquePrefixes].filter(p => !STANDARD_CATEGORIES.find(c => c.id === p));
+
+        const customCats = customPrefixes.map(prefix => ({
+            id: prefix,
+            label: prefix, // Or try to derive a label
+            icon: Sparkles, // Default icon
+            color: 'bg-[#510813] text-white', // Default Value
+            border: 'border-white/20',
+            shadow: 'shadow-[#510813]/40',
+            ring: 'ring-[#510813]'
+        }));
+
+        return [...standardCats, ...customCats];
+    }, [mergedInventory]);
+
+
 
     // Local Add Order Function (Bypassing Context)
     const addResellerOrder = async (orderData) => {
@@ -153,28 +231,7 @@ const ChristmasOrder = () => {
     const [location, setLocation] = useState('Legazpi'); // 'Legazpi' | 'Sorsogon'
 
     // Default Menu Config (Prefix-based default prices)
-    const DEFAULT_MENU = [
-        { sku: 'FGC', description: 'Cups', category: 'FGC', priceLeg: 29, priceSor: 30 },
-        { sku: 'FGP', description: 'Pints', category: 'FGP', priceLeg: 99, priceSor: 105 },
-        { sku: 'FGL', description: 'Liters', category: 'FGL', priceLeg: 200, priceSor: 210 },
-        { sku: 'FGG', description: 'Gallons', category: 'FGG', priceLeg: 735, priceSor: 750 }
-    ];
 
-    const [menuConfig, setMenuConfig] = useState(() => {
-        try {
-            const saved = localStorage.getItem('kikiks-newyear-menu');
-            const parsed = saved ? JSON.parse(saved) : null;
-            return Array.isArray(parsed) ? parsed : DEFAULT_MENU;
-        } catch (e) {
-            console.error("Failed to parse menu config:", e);
-            return DEFAULT_MENU;
-        }
-    });
-
-    // Save Menu on Change
-    useEffect(() => {
-        localStorage.setItem('kikiks-newyear-menu', JSON.stringify(menuConfig));
-    }, [menuConfig]);
 
     const DRAFT_KEY = 'kikiks-newyear-draft';
 
@@ -485,21 +542,26 @@ const ChristmasOrder = () => {
         }
     };
 
+    // Save Menu Config
+    const handleSaveMenu = (newMenu) => {
+        setMenuConfig(newMenu);
+    };
+
     // Filter items for Modal
     const modalItems = activeCategory
-        ? inventory
+        ? mergedInventory
             .filter(item => item.isVisible !== false)
             .filter(item => item.sku.startsWith(activeCategory))
             .filter(item => item.description.toLowerCase().includes(searchTerm.toLowerCase()))
         : [];
 
     return (
-        <div className="fade-in min-h-[100dvh] md:h-screen flex flex-col bg-[#0f172a] md:overflow-hidden relative font-sans">
-            {/* New Year BG Pattern */}
-            <ChristmasPattern opacity={0.15} color="text-white" />
+        <div className="fade-in min-h-[100dvh] md:h-screen flex flex-col bg-[#F5F5DC] md:overflow-hidden relative font-sans text-[#510813]">
+            {/* Tropical BG Pattern */}
+            <ChristmasPattern opacity={0.12} color="text-[#E5562E]" />
 
             {/* --- Top Bar --- */}
-            <div className="bg-[#0f172a]/80 backdrop-blur-md px-4 md:px-8 py-4 md:py-6 z-10 flex flex-col-reverse md:flex-row justify-between items-center gap-4 md:gap-0 border-b border-white/10">
+            <div className="bg-[#FEFCE8]/80 backdrop-blur-md px-4 md:px-8 py-4 md:py-6 z-10 flex flex-col-reverse md:flex-row justify-between items-center gap-4 md:gap-0 border-b border-[#510813]/10 shadow-sm">
                 <div className="flex gap-4 items-center w-full md:w-auto">
                     {/* Reseller Name Input */}
                     <input
@@ -507,7 +569,7 @@ const ChristmasOrder = () => {
                         placeholder="Enter Your Name..."
                         value={resellerName}
                         onChange={e => setResellerName(e.target.value)}
-                        className="w-full md:min-w-[300px] bg-[#D97706] text-white placeholder-white/70 px-6 py-3 rounded-full font-bold shadow-lg hover:bg-[#b45309] transition-all outline-none focus:ring-4 ring-white/30 text-lg"
+                        className="w-full md:min-w-[300px] bg-white border-2 border-[#E5562E] text-[#510813] placeholder-[#510813]/40 px-6 py-3 rounded-full font-bold shadow-sm hover:shadow-md transition-all outline-none focus:ring-4 ring-[#E5562E]/20 text-lg"
                     />
                 </div>
 
@@ -515,14 +577,14 @@ const ChristmasOrder = () => {
 
                     {/* Location Dropdown */}
                     <div className="relative group">
-                        <div className="flex items-center gap-2 px-4 py-2 bg-white/10 rounded-xl backdrop-blur-sm border border-white/20">
-                            <span className="text-white/70 text-sm font-bold uppercase tracking-wider">Location:</span>
+                        <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-xl border border-[#510813]/20 shadow-sm">
+                            <span className="text-[#510813]/60 text-sm font-bold uppercase tracking-wider">Location:</span>
                             <select
                                 value={location}
                                 onChange={(e) => setLocation(e.target.value)}
-                                className="bg-transparent text-white font-black text-lg outline-none cursor-pointer appearance-none pr-8"
+                                className="bg-transparent text-[#510813] font-black text-lg outline-none cursor-pointer appearance-none pr-8"
                                 style={{
-                                    backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
+                                    backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23510813' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
                                     backgroundPosition: `right 0 center`,
                                     backgroundRepeat: `no-repeat`,
                                     backgroundSize: `1.5em 1.5em`
@@ -535,47 +597,50 @@ const ChristmasOrder = () => {
                     </div>
 
                     <div className="text-left md:text-right hidden md:block">
-                        <h2 className="text-xl md:text-3xl font-black text-white tracking-tight flex items-center gap-2 px-4 py-2 bg-[#D97706]/20 rounded-xl backdrop-blur-sm border border-white/10">
+                        <h2 className="text-xl md:text-3xl font-black text-[#E5562E] tracking-tight flex items-center gap-2 px-4 py-2 bg-white/50 rounded-xl border border-[#E5562E]/10">
                             Happy New Year! 🎆
                         </h2>
                     </div>
+
+                    {/* Admin Buttons */}
                     <div className="flex gap-2">
-                        <button onClick={handleHistoryClick} className="p-3 rounded-full bg-white text-[#0f172a] shadow-md hover:scale-110 transition-transform" title="Order History">
+                        <button onClick={() => { setPinTarget('history'); setIsPinModalOpen(true); }} className="p-2 bg-[#510813]/5 text-[#510813] rounded-full hover:bg-[#510813]/10 transition-colors" title="History">
                             <ClipboardList size={20} />
                         </button>
-                        <button onClick={handleMenuClick} className="p-3 rounded-full bg-white text-[#0f172a] shadow-md hover:scale-110 transition-transform" title="Menu Settings">
+                        <button onClick={() => { setPinTarget('menu'); setIsPinModalOpen(true); }} className="p-2 bg-[#510813]/5 text-[#510813] rounded-full hover:bg-[#510813]/10 transition-colors" title="Settings">
                             <Settings size={20} />
                         </button>
                     </div>
                 </div>
             </div>
 
-            {/* --- Content Area --- */}
-            <div className="flex-1 flex flex-col md:flex-row md:overflow-hidden">
+            {/* --- Main Content --- */}
+            <div className="flex-1 flex flex-col md:flex-row overflow-hidden relative z-0">
 
                 {/* LEFT: Categories */}
-                <div className="flex-1 p-4 md:p-8 md:overflow-y-auto pb-48 md:pb-8">
-                    {/* Delivery / Pickup Section - SIMPLIFIED */}
-                    <div className="mb-8 bg-white/5 backdrop-blur-md rounded-2xl p-6 border border-white/10">
-                        {/* Pickup Only - Just Date/Time */}
-                        <div className="space-y-4 animate-in fade-in slide-in-from-top-4">
+                <div className="flex-1 p-4 md:p-8 md:overflow-y-auto pb-48 md:pb-8 scrollbar-hide">
+
+                    {/* Delivery / Pickup Section */}
+                    <div className="mb-8 bg-[#FEFCE8] rounded-2xl p-6 border border-[#510813]/10 shadow-sm">
+                        <div className="space-y-4">
+                            <h3 className="font-bold text-[#510813]/60 uppercase text-xs tracking-wider mb-2">Schedule Pickup</h3>
                             <div className="flex gap-4">
                                 <div className="flex-1">
-                                    <label className="text-white/70 text-sm block mb-1">Pick Up Date</label>
+                                    <label className="text-[#510813]/70 text-sm block mb-1 font-medium">Pick Up Date</label>
                                     <input
                                         type="date"
                                         value={scheduleDate}
                                         onChange={e => setScheduleDate(e.target.value)}
-                                        className="w-full bg-black/20 border-b-2 border-white/30 py-2 px-3 rounded-t-lg text-lg font-bold text-white focus:border-white focus:outline-none transition-colors [color-scheme:dark]"
+                                        className="w-full bg-white border-2 border-[#510813]/10 py-2 px-3 rounded-xl text-lg font-bold text-[#510813] focus:border-[#E5562E] focus:outline-none transition-colors"
                                     />
                                 </div>
                                 <div className="flex-1">
-                                    <label className="text-white/70 text-sm block mb-1">Pick Up Time</label>
+                                    <label className="text-[#510813]/70 text-sm block mb-1 font-medium">Pick Up Time</label>
                                     <input
                                         type="time"
                                         value={scheduleTime}
                                         onChange={e => setScheduleTime(e.target.value)}
-                                        className="w-full bg-black/20 border-b-2 border-white/30 py-2 px-3 rounded-t-lg text-lg font-bold text-white focus:border-white focus:outline-none transition-colors [color-scheme:dark]"
+                                        className="w-full bg-white border-2 border-[#510813]/10 py-2 px-3 rounded-xl text-lg font-bold text-[#510813] focus:border-[#E5562E] focus:outline-none transition-colors"
                                     />
                                 </div>
                             </div>
@@ -583,173 +648,211 @@ const ChristmasOrder = () => {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                        {CATEGORIES.filter(cat => inventory.some(i => i.sku.startsWith(cat.id))).map(cat => (
-                            <button
-                                key={cat.id}
-                                onClick={() => handleCategoryClick(cat.id)}
-                                className={`relative h-64 rounded-3xl p-6 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-black/20 group flex flex-col justify-between overflow-hidden ${cat.color} ${cat.shadow}`}
-                            >
-                                <cat.icon className="absolute -bottom-8 -right-8 opacity-20 rotate-[-15deg] transition-transform group-hover:rotate-0 group-hover:scale-110" size={160} />
-                                <div className="relative z-10 flex justify-between items-start">
-                                    <div className="bg-white/20 backdrop-blur-md p-3 rounded-2xl border border-white/30">
-                                        <cat.icon size={32} className="text-white drop-shadow-sm" />
-                                    </div>
-                                    <div className="bg-white text-gray-900 px-3 py-1 rounded-full text-xs font-bold shadow-sm">
-                                        {Object.keys(cart).filter(sku => sku.startsWith(cat.id)).length} Items
-                                    </div>
-                                </div>
-                                <div className="relative z-10 text-left">
-                                    <h4 className="text-3xl font-black tracking-wide drop-shadow-md">{cat.label}</h4>
-                                    <div className="h-1 w-12 bg-white/50 rounded-full mt-2 group-hover:w-full transition-all duration-500"></div>
-                                </div>
-                            </button>
-                        ))}
-                    </div>
-                </div>
+                        {dynamicCategories.length > 0 ? (
+                            dynamicCategories.map(cat => (
+                                <button
+                                    key={cat.id}
+                                    onClick={() => setActiveCategory(cat.id)}
+                                    className={`relative h-64 rounded-3xl p-6 transition-all duration-300 hover:-translate-y-2 hover:shadow-xl group flex flex-col justify-between overflow-hidden text-left ${cat.color} ${cat.shadow}`}
+                                >
+                                    <cat.icon className="absolute -bottom-8 -right-8 opacity-20 rotate-[-15deg] transition-transform group-hover:rotate-0 group-hover:scale-110" size={160} />
 
-                {/* RIGHT: Cart Sidebar (Static Flow on Mobile) */}
-                <div id="cart-section" className={`w-full md:w-[560px] flex flex-col transition-all duration-300 ease-in-out md:h-full p-4 md:pl-0 order-last md:order-none `}>
-                    <div className="relative flex-1 flex flex-col drop-shadow-2xl">
-                        <div className="relative z-10 flex-1 flex flex-col overflow-hidden bg-[#F8F9FA] rounded-2xl md:rounded-l-[40px] md:rounded-r-2xl border-4 border-[#1e293b] shadow-xl">
-                            <ChristmasPattern opacity={0.05} color="text-[#0f172a]" />
-
-                            <div className="relative z-20 flex flex-col p-6 text-[#0f172a] text-left h-full pb-6">
-                                <div className={`flex-shrink-0 hidden md:flex items-center gap-3 mb-6`}>
-                                    <div className="bg-[#D97706] text-white p-3 rounded-2xl shadow-lg rotate-3">
-                                        <ShoppingCart size={24} strokeWidth={2.5} />
-                                    </div>
-                                    <div>
-                                        <h3 className="text-2xl font-black tracking-tight">NEW YEAR CART</h3>
-                                        <p className="text-[#0f172a]/80 text-sm font-medium">{Object.values(cart).reduce((a, b) => a + b, 0)} Items added</p>
-                                    </div>
-                                </div>
-
-                                <div className={`hidden md:block flex-1 min-h-[300px] md:min-h-0 overflow-y-auto space-y-3 pr-2 -mr-2 custom-scrollbar-orange`}>
-                                    {Object.keys(cart).length === 0 ? (
-                                        <div className="h-full flex flex-col items-center justify-center text-[#0f172a]/40 border-2 border-dashed border-[#0f172a]/10 rounded-3xl p-6 py-12">
-                                            <Gift size={48} className="mb-4 opacity-50" />
-                                            <p className="text-center font-bold">Your cart is empty!</p>
+                                    <div className="relative z-10 w-full h-full flex flex-col justify-between">
+                                        <div className="flex justify-between items-start w-full">
+                                            <div className="bg-white/20 backdrop-blur-md p-3 rounded-2xl border border-white/30">
+                                                <cat.icon size={32} className="text-white drop-shadow-sm" />
+                                            </div>
+                                            <div className="bg-white text-[#510813] px-3 py-1 rounded-full text-xs font-bold shadow-sm">
+                                                {Object.keys(cart).filter(sku => sku.startsWith(cat.id)).length} Items
+                                            </div>
                                         </div>
-                                    ) : (
-                                        CATEGORIES.map(cat => {
-                                            const catItems = Object.entries(cart).filter(([sku]) => sku.startsWith(cat.id));
-                                            if (catItems.length === 0) return null;
-                                            const totalPrice = catItems.reduce((sum, [sku, qty]) => sum + (qty * getPrice(sku)), 0);
 
-                                            return (
-                                                <div key={cat.id} className="bg-white shadow-sm border border-gray-100 rounded-2xl p-4">
-                                                    <div className="flex justify-between items-center mb-2">
-                                                        <div className="flex items-center gap-2">
-                                                            <div className={`p-1 rounded-full ${cat.color}`}>
-                                                                <cat.icon size={12} />
-                                                            </div>
-                                                            <span className="font-bold text-sm text-gray-800">{cat.label}</span>
-                                                        </div>
-                                                        <span className="font-bold text-[#D97706]">₱{totalPrice.toLocaleString()}</span>
-                                                    </div>
-                                                    <div className="text-xs text-gray-600 pl-6 border-l-2 border-gray-200 ml-2 space-y-1">
-                                                        {catItems.map(([sku, qty]) => {
-                                                            const item = inventory.find(i => i.sku === sku);
-                                                            return (
-                                                                <div key={sku} className="flex justify-between">
-                                                                    <span className="truncate w-32">{item?.description || sku}</span>
-                                                                    <span>x{qty}</span>
-                                                                </div>
-                                                            );
-                                                        })}
-                                                    </div>
-                                                </div>
-                                            )
-                                        })
-                                    )}
-                                </div>
-
-                                <div className="flex-shrink-0 mt-auto pt-6 border-t border-gray-100 flex flex-col gap-3">
-                                    <div className="flex justify-between items-center">
-                                        <span className="font-bold text-lg">Grand Total</span>
-                                        <span className="text-3xl font-black text-[#D97706]">₱{cartTotal.toLocaleString()}</span>
+                                        <div>
+                                            <h3 className="text-3xl font-black tracking-tight text-white mb-1 drop-shadow-md">{cat.label}</h3>
+                                            <p className="text-white/80 font-medium text-sm">Tap to view items</p>
+                                        </div>
                                     </div>
-                                    <button
-                                        onClick={handleInitialSubmit}
-                                        disabled={Object.keys(cart).length === 0}
-                                        className="w-full bg-[#D97706] hover:bg-[#b45309] text-white py-4 rounded-xl font-bold text-xl shadow-lg transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-                                    >
-                                        <Gift size={24} />
-                                        PLACE ORDER
-                                    </button>
-                                    {/* Mobile Spacer to prevent cropping */}
-                                    <div className="h-48 md:hidden w-full"></div>
-                                </div>
+                                </button>
+                            ))
+                        ) : (
+                            <div className="col-span-full text-center py-20 opacity-50">
+                                <p>Loading menu...</p>
                             </div>
-                        </div>
+                        )}
                     </div>
                 </div>
 
-                {/* FAB for Mobile */}
-                <button
-                    onClick={() => document.getElementById('cart-section').scrollIntoView({ behavior: 'smooth' })}
-                    className="md:hidden fixed bottom-8 right-6 z-50 bg-[#D97706] text-white p-4 rounded-full shadow-2xl border-4 border-white/20 animate-bounce"
-                >
-                    <ShoppingCart size={28} />
-                    {Object.values(cart).reduce((a, b) => a + b, 0) > 0 && (
-                        <div className="absolute -top-1 -right-1 bg-[#1e293b] text-white font-bold w-6 h-6 rounded-full flex items-center justify-center text-xs shadow-md">
-                            {Object.values(cart).reduce((a, b) => a + b, 0)}
+                {/* RIGHT: Cart (Floating on Desktop, Bottom Sheet on Mobile) */}
+                <div className={`
+                    fixed md:static bottom-0 left-0 right-0 z-40
+                    bg-[#FEFCE8] border-t-2 md:border-l-2 border-[#510813]/10
+                    md:w-[400px] flex flex-col shadow-[-10px_0_30px_rgba(0,0,0,0.05)]
+                    transition-transform duration-300 md:translate-y-0
+                `}>
+                    <div className="p-6 md:p-8 flex-1 md:overflow-y-auto">
+                        <div className="flex items-center gap-3 mb-6 text-[#510813]">
+                            <ShoppingCart size={28} className="text-[#E5562E]" />
+                            <h2 className="text-2xl font-black tracking-tighter">Your Order</h2>
+                            <span className="bg-[#E5562E] text-white text-xs font-bold px-2 py-1 rounded-full ml-auto">
+                                {Object.values(cart).reduce((a, b) => a + b, 0)} Items
+                            </span>
                         </div>
-                    )}
-                </button>
+
+                        {Object.keys(cart).length === 0 ? (
+                            <div className="h-64 flex flex-col items-center justify-center text-[#510813]/40 border-2 border-dashed border-[#510813]/10 rounded-2xl bg-white/50">
+                                <ShoppingBag size={48} className="mb-4 opacity-50" />
+                                <p className="font-bold">Cart is empty</p>
+                                <p className="text-sm">Start adding some treats!</p>
+                            </div>
+                        ) : (
+                            <div className="space-y-4 pb-24 md:pb-0">
+                                {Object.entries(cart).map(([sku, qty]) => {
+                                    const item = mergedInventory.find(i => i.sku === sku);
+                                    if (!item) return null;
+                                    const price = location === 'Sorsogon' ? item.priceSor : item.priceLeg;
+
+                                    // Determine Category Color for border
+                                    const prefix = sku.split('-')[0];
+                                    const categoryColor = dynamicCategories.find(c => c.id === prefix)?.color.split(' ')[0] || 'bg-gray-500';
+
+                                    return (
+                                        <div key={sku} className="group bg-white rounded-2xl p-4 shadow-sm border border-[#510813]/5 flex gap-4 items-center">
+                                            <div className={`w-16 h-16 rounded-xl ${categoryColor} flex items-center justify-center shrink-0`}>
+                                                <span className="text-white font-bold text-xs">{sku.split('-')[1]}</span>
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <h4 className="font-bold text-[#510813] truncate">{item.description}</h4>
+                                                <p className="text-[#E5562E] font-mono font-medium">₱{price}</p>
+                                            </div>
+                                            <div className="flex flex-col items-end gap-1">
+                                                <div className="flex items-center gap-3 bg-[#FEFCE8] rounded-xl border border-[#510813]/10 p-1">
+                                                    <button
+                                                        onClick={() => updateCart(sku, -1)}
+                                                        className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-[#E5562E]/10 text-[#510813] transition-colors"
+                                                    >
+                                                        <Minus size={14} strokeWidth={3} />
+                                                    </button>
+                                                    <span className="font-bold text-lg w-4 text-center">{qty}</span>
+                                                    <button
+                                                        onClick={() => updateCart(sku, 1)}
+                                                        className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-[#E5562E]/10 text-[#510813] transition-colors"
+                                                    >
+                                                        <Plus size={14} strokeWidth={3} />
+                                                    </button>
+                                                </div>
+                                                <p className="text-xs font-bold text-[#510813]/50">₱{(price * qty).toLocaleString()}</p>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Footer Totals */}
+                    <div className="p-6 md:p-8 bg-white border-t border-[#510813]/5">
+                        <div className="flex justify-between items-center mb-6">
+                            <span className="text-[#510813]/60 font-bold uppercase tracking-wider text-sm">Total Amount</span>
+                            <span className="text-4xl font-black text-[#510813] tracking-tighter">
+                                ₱{cartTotal.toLocaleString()}
+                            </span>
+                        </div>
+
+                        <button
+                            disabled={Object.keys(cart).length === 0 || !resellerName || isSubmitting || !scheduleDate}
+                            onClick={() => setIsConfirmOpen(true)}
+                            className="w-full py-4 bg-[#E5562E] text-white rounded-2xl font-black text-xl shadow-lg hover:shadow-[#E5562E]/30 hover:-translate-y-1 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
+                        >
+                            {isSubmitting ? (
+                                <>
+                                    <div className="w-6 h-6 border-4 border-white/30 border-t-white rounded-full animate-spin" />
+                                    Submitting...
+                                </>
+                            ) : (
+                                <>
+                                    {editingOrderId ? 'Update Order' : 'Place Order'}
+                                    <ArrowRight size={24} />
+                                </>
+                            )}
+                        </button>
+                    </div>
+                </div>
             </div>
 
-            {/* --- SKU Selection Modal --- */}
-            {isModalOpen && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setIsModalOpen(false)}>
-                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
-                        <div className={`p-6 border-b border-gray-100 flex justify-between items-center ${CATEGORIES.find(c => c.id === activeCategory)?.color.split(' ')[0]}`}>
-                            <div>
-                                <h3 className="text-2xl font-bold text-white">Select {CATEGORIES.find(c => c.id === activeCategory)?.label}</h3>
+            {/* --- Modals --- */}
+
+            {/* Item Selection Modal (Standardized) */}
+            {activeCategory && (
+                <div className="fixed inset-0 z-50 bg-[#510813]/80 backdrop-blur-sm flex md:items-center justify-end md:justify-center animate-in fade-in duration-200">
+                    <div className="bg-[#F5F5DC] w-full md:w-[800px] h-[90vh] md:h-[80vh] md:rounded-3xl shadow-2xl flex flex-col md:border border-white/20 overflow-hidden transform transition-all animate-in slide-in-from-bottom-10">
+                        {/* Header */}
+                        <div className={`p-6 ${dynamicCategories.find(c => c.id === activeCategory)?.color.split(' ')[0] || 'bg-gray-800'} text-white flex justify-between items-center shrink-0`}>
+                            <div className="flex items-center gap-4">
+                                <button onClick={() => setActiveCategory(null)} className="p-2 bg-white/20 rounded-full hover:bg-white/30 transition-colors">
+                                    <ArrowLeft size={24} />
+                                </button>
+                                <div>
+                                    <h2 className="text-3xl font-black tracking-tight">{dynamicCategories.find(c => c.id === activeCategory)?.label}</h2>
+                                    <p className="text-white/80 font-medium">Select items to add</p>
+                                </div>
                             </div>
-                            <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-white/20 rounded-full text-white">
-                                <X size={24} />
-                            </button>
+                            <div className="relative hidden md:block w-64">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white/50" size={18} />
+                                <input
+                                    type="text"
+                                    placeholder="Search..."
+                                    value={searchTerm}
+                                    onChange={e => setSearchTerm(e.target.value)}
+                                    className="w-full bg-black/20 text-white placeholder-white/50 pl-10 pr-4 py-2 rounded-xl border border-white/10 focus:outline-none focus:border-white/50"
+                                />
+                            </div>
                         </div>
-                        <div className="flex-1 overflow-y-auto p-4">
-                            <table className="w-full text-left border-collapse">
-                                <thead className="bg-gray-50 sticky top-0 z-10">
-                                    <tr>
-                                        <th className="p-4 text-xs font-bold text-gray-500 uppercase">Description</th>
-                                        <th className="p-4 text-xs font-bold text-gray-500 uppercase text-right">Price</th>
-                                        <th className="p-4 text-xs font-bold text-gray-500 uppercase text-center w-32">Qty</th>
-                                        <th className="p-4 text-xs font-bold text-gray-500 uppercase text-right">Total</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-100">
-                                    {modalItems.map(item => {
-                                        const price = getPrice(item.sku);
-                                        const qty = tempQuantities[item.sku] || 0;
-                                        return (
-                                            <tr key={item.sku} className={`hover:bg-gray-50 ${qty > 0 ? 'bg-indigo-50' : ''}`}>
-                                                <td className="p-4 font-bold text-gray-800">{item.description}</td>
-                                                <td className="p-4 text-right font-medium text-gray-600">₱{price.toLocaleString()}</td>
-                                                <td className="p-4">
-                                                    <input
-                                                        type="number"
-                                                        value={tempQuantities[item.sku] === undefined ? '' : tempQuantities[item.sku]}
-                                                        onChange={(e) => handleModalQuantityChange(item.sku, e.target.value)}
-                                                        className="w-full p-2 text-center border rounded-lg font-bold text-lg focus:ring-2 focus:ring-[#0f172a] outline-none"
-                                                        placeholder="0"
-                                                    />
-                                                </td>
-                                                <td className="p-4 text-right font-bold text-[#D97706]">
-                                                    {(qty * price) > 0 && `₱${(qty * price).toLocaleString()}`}
-                                                </td>
-                                            </tr>
-                                        );
-                                    })}
-                                </tbody>
-                            </table>
-                        </div>
-                        <div className="p-4 border-t border-gray-200 bg-gray-50 flex justify-end gap-3">
-                            <button onClick={() => setIsModalOpen(false)} className="px-6 py-2 rounded-lg border border-gray-300 font-bold hover:bg-gray-100">Cancel</button>
-                            <button onClick={handleSaveModal} className="px-8 py-2 rounded-lg bg-[#0f172a] text-white font-bold hover:bg-[#1e293b]">Save Items</button>
+
+                        {/* List */}
+                        <div className="flex-1 overflow-y-auto p-6 md:p-8">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {modalItems.map(item => {
+                                    const qty = cart[item.sku] || 0;
+                                    const price = location === 'Sorsogon' ? item.priceSor : item.priceLeg;
+                                    return (
+                                        <button
+                                            key={item.sku}
+                                            onClick={() => updateCart(item.sku, 1)}
+                                            className="group bg-white rounded-2xl p-4 border border-[#510813]/10 text-left hover:border-[#E5562E] hover:shadow-lg transition-all relative overflow-hidden"
+                                        >
+                                            <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <div className="bg-[#E5562E] text-white p-2 rounded-full shadow-lg">
+                                                    <Plus size={20} />
+                                                </div>
+                                            </div>
+
+                                            <div className="flex justify-between items-start mb-2">
+                                                <div className="bg-[#510813]/5 px-3 py-1 rounded-lg text-xs font-bold text-[#510813]/60 font-mono tracking-wider">
+                                                    {item.sku}
+                                                </div>
+                                                {qty > 0 && (
+                                                    <div className="bg-[#E5562E] text-white px-3 py-1 rounded-full text-xs font-bold shadow-sm animate-in zoom-in">
+                                                        {qty} in cart
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            <h3 className="font-bold text-[#510813] text-lg mb-1 group-hover:text-[#E5562E] transition-colors line-clamp-2">
+                                                {item.description}
+                                            </h3>
+
+                                            <p className="text-[#510813]/60 text-sm font-medium">
+                                                ₱{price}
+                                            </p>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                            {modalItems.length === 0 && (
+                                <div className="text-center py-20 text-[#510813]/40">
+                                    <p>No items found matching "{searchTerm}"</p>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -758,25 +861,39 @@ const ChristmasOrder = () => {
             {/* --- Confirmation Modal --- */}
             {isConfirmOpen && (
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-2xl p-8 max-w-md w-full animate-in zoom-in-95 duration-200 shadow-2xl">
-                        <h3 className="text-2xl font-black text-[#0f172a] mb-4">Confirm Order</h3>
-                        <div className="space-y-4 mb-6">
-                            <div className="flex justify-between border-b border-gray-100 pb-2">
-                                <span className="text-gray-500">Name</span>
-                                <span className="font-bold">{resellerName}</span>
+                    <div className="bg-[#F5F5DC] w-full max-w-md rounded-3xl p-8 shadow-2xl relative overflow-hidden">
+                        <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-[#E5562E] via-[#FF5A5F] to-[#E5562E]" />
+
+                        <h3 className="text-2xl font-black text-[#510813] mb-2">{editingOrderId ? 'Update Order?' : 'Confirm Order?'}</h3>
+                        <p className="text-[#510813]/80 mb-6">
+                            Ready to send your order for <span className="font-bold text-[#E5562E]">{resellerName}</span>?
+                        </p>
+
+                        <div className="bg-[#FEFCE8] rounded-xl p-4 mb-6 border border-[#510813]/5">
+                            <div className="flex justify-between mb-2">
+                                <span className="text-sm font-bold text-[#510813]/60">Items</span>
+                                <span className="font-bold text-[#510813]">{Object.values(cart).reduce((a, b) => a + b, 0)}</span>
                             </div>
-                            <div className="flex justify-between border-b border-gray-100 pb-2">
-                                <span className="text-gray-500">Total Items</span>
-                                <span className="font-bold">{Object.values(cart).reduce((a, b) => a + b, 0)}</span>
-                            </div>
-                            <div className="flex justify-between items-center pt-2">
-                                <span className="text-gray-500">Grand Total</span>
-                                <span className="text-3xl font-black text-[#D97706]">₱{cartTotal.toLocaleString()}</span>
+                            <div className="flex justify-between text-lg">
+                                <span className="font-bold text-[#510813]">Total</span>
+                                <span className="font-black text-[#E5562E]">₱{cartTotal.toLocaleString()}</span>
                             </div>
                         </div>
-                        <div className="flex gap-4">
-                            <button onClick={() => setIsConfirmOpen(false)} className="flex-1 py-3 rounded-xl border border-gray-300 font-bold text-gray-600 hover:bg-gray-50">Back</button>
-                            <button onClick={handleFinalSubmit} className="flex-1 py-3 rounded-xl bg-[#0f172a] text-white font-bold hover:bg-[#1e293b] shadow-lg">Confirm</button>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <button
+                                onClick={() => setIsConfirmOpen(false)}
+                                className="py-4 rounded-xl font-bold text-[#510813]/70 hover:bg-[#510813]/5 transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleFinalSubmit}
+                                disabled={isSubmitting}
+                                className="py-4 rounded-xl bg-[#E5562E] text-white font-bold shadow-lg hover:shadow-xl hover:shadow-[#E5562E]/20 transition-all"
+                            >
+                                {isSubmitting ? 'Sending...' : 'Confirm'}
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -784,31 +901,29 @@ const ChristmasOrder = () => {
 
             {/* --- Success Modal --- */}
             {isSuccessOpen && (
-                <div className="fixed inset-0 bg-[#0f172a]/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-2xl p-8 max-w-sm w-full text-center shadow-2xl animate-in zoom-in-95">
-                        <div className="w-20 h-20 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <CheckCircle size={40} className="text-amber-600" />
+                <div className="fixed inset-0 bg-[#510813]/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
+                    <div className="bg-[#F5F5DC] rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl animate-in zoom-in-95">
+                        <div className="w-20 h-20 bg-[#FEFCE8] rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-[#E5562E]/20">
+                            <CheckCircle size={40} className="text-[#E5562E]" />
                         </div>
-                        <h3 className="text-2xl font-black text-[#0f172a] mb-2">Order Submitted!</h3>
-                        <p className="text-gray-600 mb-6 font-medium">
+                        <h3 className="text-2xl font-black text-[#510813] mb-2">Order Submitted!</h3>
+                        <p className="text-[#510813]/80 mb-6 font-medium">
                             From all of us at Kikiks, thank you 🤍.<br />
                             Wishing you a Happy New Year 🎆
                         </p>
-                        <button onClick={() => { setIsSuccessOpen(false); navigate(0); }} className="w-full py-3 rounded-xl bg-[#D97706] text-white font-bold shadow-lg hover:bg-[#b45309]">
+                        <button onClick={() => { setIsSuccessOpen(false); navigate(0); }} className="w-full py-4 rounded-xl bg-[#E5562E] text-white font-bold shadow-lg hover:bg-[#c03e1b]">
                             Start New Order
                         </button>
                     </div>
                 </div>
             )}
 
-            {/* --- Settings Modal (History) --- */}
-            {/* --- History / Settings Modal --- */}
             {/* --- History Modal --- */}
             {isHistoryOpen && (
                 <ErrorBoundary>
                     <ChristmasHistoryModal
                         orders={resellerOrders || []}
-                        inventory={inventory || []}
+                        inventory={mergedInventory || []}
                         onClose={() => setIsHistoryOpen(false)}
                         onStatusChange={handleStatusChange}
                         onEdit={handleEditHistoryOrder}
@@ -821,13 +936,13 @@ const ChristmasOrder = () => {
             {/* --- PIN Confirmation Modal --- */}
             {isPinModalOpen && (
                 <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-                    <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl animate-in zoom-in-95">
+                    <div className="bg-[#F5F5DC] rounded-2xl p-6 w-full max-w-sm shadow-2xl animate-in zoom-in-95">
                         <div className="text-center mb-6">
-                            <div className="mx-auto w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-3">
-                                <Settings size={24} className="text-gray-600" />
+                            <div className="mx-auto w-12 h-12 bg-[#FEFCE8] rounded-full flex items-center justify-center mb-3">
+                                <Settings size={24} className="text-[#510813]" />
                             </div>
-                            <h3 className="text-lg font-bold text-gray-900">Admin Access</h3>
-                            <p className="text-sm text-gray-500">Please enter PIN to continue</p>
+                            <h3 className="text-lg font-bold text-[#510813]">Admin Access</h3>
+                            <p className="text-sm text-[#510813]/60">Please enter PIN to continue</p>
                         </div>
                         <input
                             type="password"
@@ -836,19 +951,19 @@ const ChristmasOrder = () => {
                             value={pinInput}
                             onChange={(e) => setPinInput(e.target.value)}
                             onKeyDown={(e) => e.key === 'Enter' && handlePinSubmit()}
-                            className="w-full text-center text-3xl font-mono tracking-widest py-3 border-2 border-gray-200 rounded-xl focus:border-[#D97706] outline-none mb-6"
+                            className="w-full text-center text-3xl font-mono tracking-widest py-3 border-2 border-[#510813]/20 bg-white rounded-xl focus:border-[#E5562E] outline-none mb-6 text-[#510813]"
                             placeholder="••••"
                         />
                         <div className="grid grid-cols-2 gap-3">
                             <button
                                 onClick={() => setIsPinModalOpen(false)}
-                                className="py-3 font-bold text-gray-600 hover:bg-gray-50 rounded-xl"
+                                className="py-3 font-bold text-[#510813]/70 hover:bg-[#510813]/5 rounded-xl"
                             >
                                 Cancel
                             </button>
                             <button
                                 onClick={handlePinSubmit}
-                                className="py-3 bg-[#0f172a] text-white font-bold rounded-xl hover:bg-[#1e293b]"
+                                className="py-3 bg-[#E5562E] text-white font-bold rounded-xl hover:bg-[#c03e1b]"
                             >
                                 Enter
                             </button>
@@ -863,7 +978,8 @@ const ChristmasOrder = () => {
                     isOpen={isMenuOpen}
                     onClose={() => setIsMenuOpen(false)}
                     menuConfig={menuConfig || []}
-                    onSaveMenu={setMenuConfig}
+                    onSaveMenu={handleSaveMenu}
+                    inventory={inventory}
                 />
             </ErrorBoundary>
         </div>
