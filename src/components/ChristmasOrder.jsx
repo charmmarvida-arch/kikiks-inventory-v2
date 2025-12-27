@@ -5,7 +5,7 @@ import {
     Settings, ShoppingCart,
     Coffee, IceCream, Droplet, Box, Grid,
     X, CheckCircle, AlertCircle, Check, Info,
-    Sparkles, Gift, Star, Clock, Calendar, ClipboardList,
+    Sparkles, Gift, Star, Clock, Calendar, ClipboardList, Snowflake,
     Leaf, Sun, Flower2, Utensils, // Tropical Icons
     ArrowLeft, ArrowRight, Search, Plus, Minus, ShoppingBag, ChevronUp, ChevronDown, MapPin
 } from 'lucide-react';
@@ -158,7 +158,6 @@ const ChristmasOrder = () => {
 
     // Default Menu Config
     const DEFAULT_MENU = [
-        { sku: 'Cake', description: 'Cake', category: 'Cake', priceLeg: 0, priceSor: 0 },
         { sku: 'FGC', description: 'Cups', category: 'FGC', priceLeg: 29, priceSor: 30 },
         { sku: 'FGP', description: 'Pints', category: 'FGP', priceLeg: 99, priceSor: 105 },
         { sku: 'FGL', description: 'Liters', category: 'FGL', priceLeg: 200, priceSor: 210 },
@@ -271,22 +270,24 @@ const ChristmasOrder = () => {
     // --- Fetch Data ---
     useEffect(() => {
         const fetchData = async () => {
-            // 1. Fetch Inventory (All relevant items)
-            const { data: products } = await supabase
-                .from('inventory')
-                .select('*')
-                .order('sku', { ascending: true });
+            const [inventoryRes, ordersRes] = await Promise.all([
+                // 1. Fetch Inventory (Optimized columns)
+                supabase
+                    .from('inventory')
+                    .select('id, sku, description, category, price_leg, price_sor, stock_leg, stock_sor, locations')
+                    .order('sku', { ascending: true }),
 
-            if (products) setInventory(products);
+                // 2. Fetch Orders (For History - Limited & Optimized)
+                supabase
+                    .from('reseller_orders')
+                    .select('id, reseller_name, location, date, status, total_amount, items')
+                    .eq('location', 'Christmas Order')
+                    .order('date', { ascending: false })
+                    .limit(20)
+            ]);
 
-            // 2. Fetch Orders (For History)
-            const { data: orders } = await supabase
-                .from('reseller_orders')
-                .select('*')
-                .eq('location', 'Christmas Order')
-                .order('date', { ascending: false });
-
-            if (orders) setResellerOrders(orders);
+            if (inventoryRes.data) setInventory(inventoryRes.data);
+            if (ordersRes.data) setResellerOrders(ordersRes.data);
         };
 
         fetchData();
@@ -1191,22 +1192,25 @@ const ChristmasOrder = () => {
                         </div>
                         <h3 className="text-xl font-black text-[#510813] mb-1">Order Submitted!</h3>
 
-                        <div className="bg-white p-2 rounded-xl shadow-inner border border-[#510813]/10 my-2">
-                            <img src="/gcash-payment-qr.png" alt="GCash QR Code" className="h-40 w-auto object-contain mx-auto rounded-lg mb-1" />
-                            <p className="text-[#510813] font-bold text-xs">Please send payment to this GCash.</p>
+                        <div className="bg-white p-3 rounded-2xl shadow-sm border border-[#510813]/10 my-3">
+                            <img src="/gcash-payment-qr.png" alt="GCash QR Code" className="h-40 w-auto object-contain mx-auto rounded-lg mb-2" />
+                            <p className="text-[#E5562E] font-bold text-sm">Scan to pay & send description screenshot to Messenger</p>
                         </div>
 
-                        <p className="text-[#510813]/80 mb-3 text-xs font-medium leading-tight">
-                            ⚠️ Important: <br />
-                            <span className="font-bold text-[#E5562E]">Send proof of payment screenshot to Messenger.</span> <br />
-                            <br />
-                            <span className="font-bold text-[#510813]">Note: Store Ice Cream Cake in Freezer.</span>
-                            <br />
-                            <span className="block mt-2 font-normal text-[#510813]/70">
-                                • Don't forget to claim your order by December 31<br />
-                                • Payment must be made the day the order is placed otherwise order is void
-                            </span>
-                        </p>
+                        <div className="bg-[#FEFCE8] rounded-xl p-4 border border-[#510813]/10 text-left space-y-3 mb-4">
+                            <div className="flex items-start gap-3">
+                                <Sparkles className="text-[#510813] shrink-0 mt-0.5" size={18} />
+                                <span className="text-[#510813] text-sm font-medium">Store Ice Cream Cake in Freezer</span>
+                            </div>
+                            <div className="flex items-start gap-3">
+                                <Calendar className="text-[#510813] shrink-0 mt-0.5" size={18} />
+                                <span className="text-[#510813] text-sm font-medium">Don't forget to claim your order by December 31</span>
+                            </div>
+                            <div className="flex items-start gap-3">
+                                <Clock className="text-[#510813] shrink-0 mt-0.5" size={18} />
+                                <span className="text-[#510813] text-sm font-medium">Payment must be made the day the order is placed otherwise order is void</span>
+                            </div>
+                        </div>
 
                         <button onClick={() => { setIsSuccessOpen(false); navigate(0); }} className="w-full py-3 rounded-xl bg-[#E5562E] text-white font-bold shadow-lg hover:bg-[#c03e1b] text-sm">
                             Start New Order
