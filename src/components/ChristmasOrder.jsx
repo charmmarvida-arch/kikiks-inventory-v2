@@ -160,8 +160,14 @@ const ChristmasOrder = () => {
     ];
 
     const [menuConfig, setMenuConfig] = useState(() => {
-        const saved = localStorage.getItem('kikiks-newyear-menu');
-        return saved ? JSON.parse(saved) : DEFAULT_MENU;
+        try {
+            const saved = localStorage.getItem('kikiks-newyear-menu');
+            const parsed = saved ? JSON.parse(saved) : null;
+            return Array.isArray(parsed) ? parsed : DEFAULT_MENU;
+        } catch (e) {
+            console.error("Failed to parse menu config:", e);
+            return DEFAULT_MENU;
+        }
     });
 
     // Save Menu on Change
@@ -203,6 +209,11 @@ const ChristmasOrder = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false); // For Menu Settings
     const [isHistoryOpen, setIsHistoryOpen] = useState(false); // For History Modal
     const [editingOrderId, setEditingOrderId] = useState(null); // For Edit Mode
+
+    // PIN Modal State
+    const [isPinModalOpen, setIsPinModalOpen] = useState(false);
+    const [pinTarget, setPinTarget] = useState(null); // 'menu' | 'history'
+    const [pinInput, setPinInput] = useState('');
 
     // Confirmation Modal State
     const [isConfirmOpen, setIsConfirmOpen] = useState(false);
@@ -316,20 +327,25 @@ const ChristmasOrder = () => {
 
     // --- History / Settings Handlers ---
     const handleMenuClick = () => {
-        const pin = prompt("Enter Admin PIN:");
-        if (pin === '1234') {
-            setIsMenuOpen(true);
-        } else if (pin !== null) {
-            alert("Incorrect PIN");
-        }
+        setPinTarget('menu');
+        setPinInput('');
+        setIsPinModalOpen(true);
     };
 
     const handleHistoryClick = () => {
-        const pin = prompt("Enter Admin PIN:");
-        if (pin === '1234') {
-            setIsHistoryOpen(true);
-        } else if (pin !== null) {
-            alert("Incorrect PIN");
+        setPinTarget('history');
+        setPinInput('');
+        setIsPinModalOpen(true);
+    };
+
+    const handlePinSubmit = () => {
+        if (pinInput === '1234') {
+            if (pinTarget === 'menu') setIsMenuOpen(true);
+            if (pinTarget === 'history') setIsHistoryOpen(true);
+            setIsPinModalOpen(false);
+        } else {
+            alert('Incorrect PIN');
+            setPinInput('');
         }
     };
 
@@ -797,6 +813,45 @@ const ChristmasOrder = () => {
                     onDelete={handleDeleteHistoryOrder}
                     isProcessing={false}
                 />
+            )}
+
+            {/* --- PIN Confirmation Modal --- */}
+            {isPinModalOpen && (
+                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+                    <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl animate-in zoom-in-95">
+                        <div className="text-center mb-6">
+                            <div className="mx-auto w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-3">
+                                <Settings size={24} className="text-gray-600" />
+                            </div>
+                            <h3 className="text-lg font-bold text-gray-900">Admin Access</h3>
+                            <p className="text-sm text-gray-500">Please enter PIN to continue</p>
+                        </div>
+                        <input
+                            type="password"
+                            inputMode="numeric"
+                            autoFocus
+                            value={pinInput}
+                            onChange={(e) => setPinInput(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && handlePinSubmit()}
+                            className="w-full text-center text-3xl font-mono tracking-widest py-3 border-2 border-gray-200 rounded-xl focus:border-[#D97706] outline-none mb-6"
+                            placeholder="••••"
+                        />
+                        <div className="grid grid-cols-2 gap-3">
+                            <button
+                                onClick={() => setIsPinModalOpen(false)}
+                                className="py-3 font-bold text-gray-600 hover:bg-gray-50 rounded-xl"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handlePinSubmit}
+                                className="py-3 bg-[#0f172a] text-white font-bold rounded-xl hover:bg-[#1e293b]"
+                            >
+                                Enter
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
 
             {/* --- Menu Settings Modal --- */}
