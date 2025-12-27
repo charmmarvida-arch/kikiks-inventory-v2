@@ -756,7 +756,7 @@ const ChristmasOrder = () => {
                     </div>
 
                     {/* Footer Totals */}
-                    <div className="p-4 md:p-8 bg-white border-t border-[#510813]/5">
+                    <div className="p-4 pb-8 md:p-8 bg-white border-t border-[#510813]/5">
                         <div className="flex justify-between items-center mb-6">
                             <span className="text-[#510813]/60 font-bold uppercase tracking-wider text-sm">Total Amount</span>
                             <span className="text-4xl font-black text-[#510813] tracking-tighter">
