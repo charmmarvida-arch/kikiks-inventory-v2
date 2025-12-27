@@ -97,6 +97,40 @@ const ChristmasOrder = () => {
         localStorage.setItem('kikiks-newyear-menu', JSON.stringify(menuConfig));
     }, [menuConfig]);
 
+    // Auto-Populate Menu from Inventory (Fix for Mobile/New Devices)
+    useEffect(() => {
+        if (inventory.length > 0) {
+            setMenuConfig(prev => {
+                const existingSkus = new Set(prev.map(i => i.sku));
+                const newItems = inventory
+                    .filter(i => !existingSkus.has(i.sku))
+                    .filter(i => {
+                        const prefix = i.sku.split('-')[0];
+                        return !['FGT', 'OTH'].includes(prefix); // Exclude hidden cats
+                    })
+                    .map(i => {
+                        // Attempt to derive price or use default
+                        const prefix = i.sku.split('-')[0];
+                        const defaultPrice = CHRISTMAS_PRICES[prefix] || 0;
+
+                        return {
+                            sku: i.sku,
+                            description: i.description,
+                            category: prefix,
+                            priceLeg: i.price_leg || defaultPrice,
+                            priceSor: i.price_sor || (defaultPrice + (prefix === 'FGC' ? 1 : 5)) // Heuristic markup
+                        };
+                    });
+
+                if (newItems.length > 0) {
+                    console.log("Auto-populating menu with new items:", newItems);
+                    return [...prev, ...newItems];
+                }
+                return prev;
+            });
+        }
+    }, [inventory]);
+
     const [resellerOrders, setResellerOrders] = useState([]);
 
     // --- Derived State: Merged Inventory ---
