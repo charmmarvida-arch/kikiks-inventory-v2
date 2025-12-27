@@ -936,23 +936,23 @@ const ChristmasOrder = () => {
             {/* --- Success Modal --- */}
             {isSuccessOpen && (
                 <div className="fixed inset-0 bg-[#510813]/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
-                    <div className="bg-[#F5F5DC] rounded-3xl p-6 max-w-md w-full text-center shadow-2xl animate-in zoom-in-95 overflow-hidden">
-                        <div className="w-16 h-16 bg-[#FEFCE8] rounded-full flex items-center justify-center mx-auto mb-3 border-2 border-[#E5562E]/20">
-                            <CheckCircle size={32} className="text-[#E5562E]" />
+                    <div className="bg-[#F5F5DC] rounded-3xl p-4 max-w-sm w-full text-center shadow-2xl animate-in zoom-in-95 overflow-hidden border-2 border-[#E5562E]">
+                        <div className="w-12 h-12 bg-[#FEFCE8] rounded-full flex items-center justify-center mx-auto mb-2 border-2 border-[#E5562E]/20">
+                            <CheckCircle size={24} className="text-[#E5562E]" />
                         </div>
-                        <h3 className="text-2xl font-black text-[#510813] mb-1">Order Submitted!</h3>
+                        <h3 className="text-xl font-black text-[#510813] mb-1">Order Submitted!</h3>
 
-                        <div className="bg-white p-4 rounded-xl shadow-inner border border-[#510813]/10 my-4">
-                            <img src="/gcash-payment-qr.png" alt="GCash QR Code" className="w-full h-auto rounded-lg mb-2" />
-                            <p className="text-[#510813] font-bold text-sm">Please send your payment to this GCash account.</p>
+                        <div className="bg-white p-2 rounded-xl shadow-inner border border-[#510813]/10 my-2">
+                            <img src="/gcash-payment-qr.png" alt="GCash QR Code" className="h-40 w-auto object-contain mx-auto rounded-lg mb-1" />
+                            <p className="text-[#510813] font-bold text-xs">Please send payment to this GCash.</p>
                         </div>
 
-                        <p className="text-[#510813]/80 mb-6 text-sm font-medium">
+                        <p className="text-[#510813]/80 mb-3 text-xs font-medium leading-tight">
                             ⚠️ Important: <br />
-                            <span className="font-bold text-[#E5562E]">Send a screenshot of the proof of payment to our Messenger account.</span>
+                            <span className="font-bold text-[#E5562E]">Send proof of payment screenshot to Messenger.</span>
                         </p>
 
-                        <button onClick={() => { setIsSuccessOpen(false); navigate(0); }} className="w-full py-4 rounded-xl bg-[#E5562E] text-white font-bold shadow-lg hover:bg-[#c03e1b]">
+                        <button onClick={() => { setIsSuccessOpen(false); navigate(0); }} className="w-full py-3 rounded-xl bg-[#E5562E] text-white font-bold shadow-lg hover:bg-[#c03e1b] text-sm">
                             Start New Order
                         </button>
                     </div>
