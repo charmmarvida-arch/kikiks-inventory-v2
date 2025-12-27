@@ -137,6 +137,7 @@ const ChristmasMenuSettings = ({ isOpen, onClose, menuConfig, onSaveMenu, onSync
                         <>
                             <div className="space-y-8">
                                 {[
+                                    { id: 'FGCK', label: 'Cakes 🎂', color: 'bg-pink-50 border-pink-200' },
                                     { id: 'FGC', label: 'Cups 🍦', color: 'bg-orange-50 border-orange-200' },
                                     { id: 'FGP', label: 'Pints 🍨', color: 'bg-red-50 border-red-200' },
                                     { id: 'FGL', label: 'Liters 🥛', color: 'bg-yellow-50 border-yellow-200' },
