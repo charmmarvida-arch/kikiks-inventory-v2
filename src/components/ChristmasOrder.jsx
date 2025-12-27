@@ -116,12 +116,18 @@ const ChristmasOrder = () => {
                         const prefix = i.sku.split('-')[0];
                         const defaultPrice = CHRISTMAS_PRICES[prefix] || 0;
 
+                        // Extract prices from 'locations' JSONB column
+                        // Schema: { "Legazpi": { "price": 123 }, "Sorsogon": { "price": 456 } }
+                        const locData = i.locations || {};
+                        const cloudPriceLeg = locData['Legazpi']?.price;
+                        const cloudPriceSor = locData['Sorsogon']?.price;
+
                         return {
                             sku: i.sku,
                             description: i.description,
                             category: prefix,
-                            priceLeg: i.price_leg || defaultPrice,
-                            priceSor: i.price_sor || (defaultPrice + (prefix === 'FGC' ? 1 : 5)) // Heuristic markup
+                            priceLeg: cloudPriceLeg !== undefined ? cloudPriceLeg : (i.price_leg || defaultPrice),
+                            priceSor: cloudPriceSor !== undefined ? cloudPriceSor : (i.price_sor || (defaultPrice + (prefix === 'FGC' ? 1 : 5)))
                         };
                     });
 
@@ -293,7 +299,12 @@ const ChristmasOrder = () => {
             description: item.description,
             uom: 'Unit', // Default
             quantity: 0, // Default
-            is_visible_in_reseller_order: true
+            is_visible_in_reseller_order: true,
+            // Store prices in locations JSONB since specific columns might be missing
+            locations: {
+                'Legazpi': { price: item.priceLeg || 0 },
+                'Sorsogon': { price: item.priceSor || 0 }
+            }
         }));
 
         const { error } = await supabase
