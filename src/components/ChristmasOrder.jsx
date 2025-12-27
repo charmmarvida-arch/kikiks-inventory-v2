@@ -674,7 +674,7 @@ const ChristmasOrder = () => {
             <div className="flex-1 flex flex-col md:flex-row overflow-hidden relative z-0">
 
                 {/* LEFT: Categories */}
-                <div className="flex-1 p-4 md:p-8 overflow-y-auto pb-48 md:pb-8 scrollbar-hide">
+                <div className="flex-1 p-4 md:p-8 overflow-y-auto pb-64 md:pb-8 scrollbar-hide">
 
                     {/* Delivery / Pickup Section */}
                     <div className="mb-8 bg-[#FEFCE8] rounded-2xl p-6 border border-[#510813]/10 shadow-sm">
