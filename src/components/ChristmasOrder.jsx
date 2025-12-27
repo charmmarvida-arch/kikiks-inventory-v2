@@ -261,7 +261,7 @@ const ChristmasOrder = () => {
     // const [deliveryMethod, setDeliveryMethod] = useState('pickup'); // REMOVED: Always pickup
     // const [address, setAddress] = useState(''); // REMOVED: No delivery
     // const [contactNumber, setContactNumber] = useState(''); // REMOVED
-    const [scheduleDate, setScheduleDate] = useState('');
+    const [scheduleDate, setScheduleDate] = useState('2025-12-31');
     const [scheduleTime, setScheduleTime] = useState('');
 
     // New Year: Location & Pricing State
@@ -294,28 +294,40 @@ const ChristmasOrder = () => {
     const syncMenuToCloud = async (currentMenu) => {
         if (!confirm("Upload local menu items to cloud? This makes them visible on other devices.")) return;
 
-        const itemsToUpsert = currentMenu.map(item => ({
-            sku: item.sku,
-            description: item.description,
-            uom: 'Unit', // Default
-            quantity: 0, // Default
-            is_visible_in_reseller_order: true,
-            // Store prices in locations JSONB since specific columns might be missing
-            locations: {
-                'Legazpi': { price: item.priceLeg || 0 },
-                'Sorsogon': { price: item.priceSor || 0 }
+        if (!Array.isArray(currentMenu)) {
+            alert('Sync failed: Invalid menu configuration (not an array).');
+            return;
+        }
+
+        try {
+            const itemsToUpsert = currentMenu.map(item => ({
+                sku: item.sku,
+                description: item.description,
+                uom: 'Unit', // Default
+                quantity: 0, // Default
+                is_visible_in_reseller_order: true,
+                // Store prices in locations JSONB since specific columns might be missing
+                locations: {
+                    'Legazpi': { price: item.priceLeg || 0 },
+                    'Sorsogon': { price: item.priceSor || 0 }
+                }
+            }));
+
+            console.log('Sync Payload:', itemsToUpsert);
+
+            const { error } = await supabase
+                .from('inventory')
+                .upsert(itemsToUpsert, { onConflict: 'sku' });
+
+            if (error) {
+                console.error('Sync failed:', error);
+                throw error;
+            } else {
+                alert('Menu synced to cloud! Refresh your specific mobile device to see changes.');
             }
-        }));
-
-        const { error } = await supabase
-            .from('inventory')
-            .upsert(itemsToUpsert, { onConflict: 'sku' });
-
-        if (error) {
-            console.error('Sync failed:', error);
-            alert('Sync failed: ' + error.message);
-        } else {
-            alert('Menu synced to cloud! Refresh your specific mobile device to see changes.');
+        } catch (error) {
+            console.error('Sync Error:', error);
+            alert('Sync failed: ' + (error.message || 'Unknown error'));
         }
     };
 
@@ -448,6 +460,7 @@ const ChristmasOrder = () => {
 
         setCart(newCart);
         setIsModalOpen(false);
+        alert('Changes saved successfully!');
     };
 
     // --- History / Settings Handlers ---
@@ -693,13 +706,13 @@ const ChristmasOrder = () => {
                             <h3 className="font-bold text-[#510813]/60 uppercase text-xs tracking-wider mb-2">Schedule Pickup</h3>
                             <div className="flex gap-4">
                                 <div className="flex-1">
-                                    <label className="text-[#510813]/70 text-sm block mb-1 font-medium">Pick Up Date</label>
-                                    <input
-                                        type="date"
+                                    <select
                                         value={scheduleDate}
                                         onChange={e => setScheduleDate(e.target.value)}
-                                        className="w-full bg-white border-2 border-[#510813]/10 py-2 px-3 rounded-xl text-lg font-bold text-[#510813] focus:border-[#E5562E] focus:outline-none transition-colors"
-                                    />
+                                        className="w-full bg-white border-2 border-[#510813]/10 py-2 px-3 rounded-xl text-lg font-bold text-[#510813] focus:border-[#E5562E] focus:outline-none transition-colors appearance-none cursor-pointer"
+                                    >
+                                        <option value="2025-12-31">Wednesday, Dec 31, 2025</option>
+                                    </select>
                                 </div>
                                 <div className="flex-1">
                                     <label className="text-[#510813]/70 text-sm block mb-1 font-medium">Pick Up Time</label>
@@ -861,8 +874,8 @@ const ChristmasOrder = () => {
 
             {/* Item Selection Modal (Standardized) */}
             {activeCategory && (
-                <div className="fixed inset-0 z-50 bg-[#510813]/80 backdrop-blur-sm flex md:items-center justify-end md:justify-center animate-in fade-in duration-200">
-                    <div className="bg-[#F5F5DC] w-full md:w-[800px] h-[90vh] md:h-[80vh] md:rounded-3xl shadow-2xl flex flex-col md:border border-white/20 overflow-hidden transform transition-all animate-in slide-in-from-bottom-10">
+                <div className="fixed inset-0 z-50 bg-[#510813]/80 backdrop-blur-sm flex md:items-center justify-end md:justify-center animate-in fade-in duration-200 p-4 md:p-0">
+                    <div className="bg-[#F5F5DC] w-full md:w-[800px] h-[90vh] md:h-[80vh] rounded-t-2xl md:rounded-3xl shadow-2xl flex flex-col md:border border-white/20 overflow-hidden transform transition-all animate-in slide-in-from-bottom-10">
                         {/* Header */}
                         <div className={`p-6 ${dynamicCategories.find(c => c.id === activeCategory)?.color.split(' ')[0] || 'bg-gray-800'} text-white flex justify-between items-center shrink-0`}>
                             <div className="flex items-center gap-4">
