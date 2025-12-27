@@ -5,9 +5,10 @@ import {
     Settings, ShoppingCart,
     Coffee, IceCream, Droplet, Box, Grid,
     X, CheckCircle,
-    Sparkles, Gift, Star, Clock, Calendar // New Year Icons
+    Sparkles, Gift, Star, Clock, Calendar, ClipboardList // New Year Icons
 } from 'lucide-react';
 import ChristmasHistoryModal from './ChristmasHistoryModal';
+import ChristmasMenuSettings from './ChristmasMenuSettings';
 
 // --- New Year Pattern Component ---
 const ChristmasPattern = ({ className, opacity = 0.2, color = "text-white" }) => {
@@ -198,7 +199,8 @@ const ChristmasOrder = () => {
     const [searchTerm, setSearchTerm] = useState('');
 
     // Settings Modal
-    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    // const [isSettingsOpen, setIsSettingsOpen] = useState(false); // Removed unused
+    const [isMenuOpen, setIsMenuOpen] = useState(false); // For Menu Settings
     const [isHistoryOpen, setIsHistoryOpen] = useState(false); // For History Modal
     const [editingOrderId, setEditingOrderId] = useState(null); // For Edit Mode
 
@@ -313,7 +315,16 @@ const ChristmasOrder = () => {
     };
 
     // --- History / Settings Handlers ---
-    const handleSettingsClick = () => {
+    const handleMenuClick = () => {
+        const pin = prompt("Enter Admin PIN:");
+        if (pin === '1234') {
+            setIsMenuOpen(true);
+        } else if (pin !== null) {
+            alert("Incorrect PIN");
+        }
+    };
+
+    const handleHistoryClick = () => {
         const pin = prompt("Enter Admin PIN:");
         if (pin === '1234') {
             setIsHistoryOpen(true);
@@ -511,7 +522,14 @@ const ChristmasOrder = () => {
                             Happy New Year! 🎆
                         </h2>
                     </div>
-                    <button onClick={handleSettingsClick} className="p-3 rounded-full bg-white text-[#0f172a] shadow-md hover:scale-110 transition-transform"><Settings size={20} /></button>
+                    <div className="flex gap-2">
+                        <button onClick={handleHistoryClick} className="p-3 rounded-full bg-white text-[#0f172a] shadow-md hover:scale-110 transition-transform" title="Order History">
+                            <ClipboardList size={20} />
+                        </button>
+                        <button onClick={handleMenuClick} className="p-3 rounded-full bg-white text-[#0f172a] shadow-md hover:scale-110 transition-transform" title="Menu Settings">
+                            <Settings size={20} />
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -768,6 +786,7 @@ const ChristmasOrder = () => {
 
             {/* --- Settings Modal (History) --- */}
             {/* --- History / Settings Modal --- */}
+            {/* --- History Modal --- */}
             {isHistoryOpen && (
                 <ChristmasHistoryModal
                     orders={resellerOrders}
@@ -777,10 +796,16 @@ const ChristmasOrder = () => {
                     onEdit={handleEditHistoryOrder}
                     onDelete={handleDeleteHistoryOrder}
                     isProcessing={false}
-                    menuConfig={menuConfig}
-                    onSaveMenu={setMenuConfig}
                 />
             )}
+
+            {/* --- Menu Settings Modal --- */}
+            <ChristmasMenuSettings
+                isOpen={isMenuOpen}
+                onClose={() => setIsMenuOpen(false)}
+                menuConfig={menuConfig}
+                onSaveMenu={setMenuConfig}
+            />
         </div>
     );
 };
