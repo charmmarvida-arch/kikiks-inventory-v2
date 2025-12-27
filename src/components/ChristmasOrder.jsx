@@ -485,7 +485,8 @@ const ChristmasOrder = () => {
         });
 
         setCart(newCart);
-        setIsModalOpen(false);
+        setIsModalOpen(false); // Legacy/Redundant
+        setActiveCategory(null); // Actually closes the modal
         alert('Changes saved successfully!');
     };
 
