@@ -1198,7 +1198,14 @@ const ChristmasOrder = () => {
 
                         <p className="text-[#510813]/80 mb-3 text-xs font-medium leading-tight">
                             ⚠️ Important: <br />
-                            <span className="font-bold text-[#E5562E]">Send proof of payment screenshot to Messenger.</span>
+                            <span className="font-bold text-[#E5562E]">Send proof of payment screenshot to Messenger.</span> <br />
+                            <br />
+                            <span className="font-bold text-[#510813]">Note: Store Ice Cream Cake in Freezer.</span>
+                            <br />
+                            <span className="block mt-2 font-normal text-[#510813]/70">
+                                • Don't forget to claim your order by December 31<br />
+                                • Payment must be made the day the order is placed
+                            </span>
                         </p>
 
                         <button onClick={() => { setIsSuccessOpen(false); navigate(0); }} className="w-full py-3 rounded-xl bg-[#E5562E] text-white font-bold shadow-lg hover:bg-[#c03e1b] text-sm">
