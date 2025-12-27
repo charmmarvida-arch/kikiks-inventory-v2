@@ -50,7 +50,7 @@ const ChristmasPattern = ({ className, opacity = 0.15, color = "text-[#E5562E]" 
 
 // Standard Categories with Tropical Palette
 const STANDARD_CATEGORIES = [
-    { id: 'FGCK', label: 'Cakes', icon: Gift, color: 'bg-[#EC4899] text-white', border: 'border-white/20', shadow: 'shadow-[#EC4899]/40', ring: 'ring-[#EC4899]' },
+    { id: 'Cake', label: 'Cake', icon: Sparkles, color: 'bg-[#510813] text-white', border: 'border-white/20', shadow: 'shadow-[#510813]/40', ring: 'ring-[#510813]' },
     { id: 'FGC', label: 'Cups', icon: Coffee, color: 'bg-[#F49306] text-white', border: 'border-white/20', shadow: 'shadow-[#F49306]/40', ring: 'ring-[#F49306]' },
     { id: 'FGP', label: 'Pints', icon: IceCream, color: 'bg-[#FF5A5F] text-white', border: 'border-white/20', shadow: 'shadow-[#FF5A5F]/40', ring: 'ring-[#FF5A5F]' },
     { id: 'FGL', label: 'Liters', icon: Droplet, color: 'bg-[#888625] text-white', border: 'border-white/20', shadow: 'shadow-[#888625]/40', ring: 'ring-[#888625]' },
@@ -158,7 +158,7 @@ const ChristmasOrder = () => {
 
     // Default Menu Config
     const DEFAULT_MENU = [
-        { sku: 'FGCK', description: 'Cakes', category: 'FGCK', priceLeg: 0, priceSor: 0 },
+        { sku: 'Cake', description: 'Cake', category: 'Cake', priceLeg: 0, priceSor: 0 },
         { sku: 'FGC', description: 'Cups', category: 'FGC', priceLeg: 29, priceSor: 30 },
         { sku: 'FGP', description: 'Pints', category: 'FGP', priceLeg: 99, priceSor: 105 },
         { sku: 'FGL', description: 'Liters', category: 'FGL', priceLeg: 200, priceSor: 210 },
