@@ -53,8 +53,7 @@ const STANDARD_CATEGORIES = [
     { id: 'FGC', label: 'Cups', icon: Coffee, color: 'bg-[#F49306] text-white', border: 'border-white/20', shadow: 'shadow-[#F49306]/40', ring: 'ring-[#F49306]' },
     { id: 'FGP', label: 'Pints', icon: IceCream, color: 'bg-[#FF5A5F] text-white', border: 'border-white/20', shadow: 'shadow-[#FF5A5F]/40', ring: 'ring-[#FF5A5F]' },
     { id: 'FGL', label: 'Liters', icon: Droplet, color: 'bg-[#888625] text-white', border: 'border-white/20', shadow: 'shadow-[#888625]/40', ring: 'ring-[#888625]' },
-    { id: 'FGG', label: 'Gallons', icon: Box, color: 'bg-[#E5562E] text-white', border: 'border-white/20', shadow: 'shadow-[#E5562E]/40', ring: 'ring-[#E5562E]' },
-    { id: 'FGT', label: 'Trays', icon: Grid, color: 'bg-[#510813] text-white', border: 'border-white/20', shadow: 'shadow-[#510813]/40', ring: 'ring-[#510813]' }
+    { id: 'FGG', label: 'Gallons', icon: Box, color: 'bg-[#E5562E] text-white', border: 'border-white/20', shadow: 'shadow-[#E5562E]/40', ring: 'ring-[#E5562E]' }
 ];
 
 // Special Pricing
@@ -123,7 +122,12 @@ const ChristmasOrder = () => {
             }
         });
 
-        return combined;
+        // 3. Filter out unwanted categories (Trays 'FGT', Others 'OTH') UNLESS they are locally added
+        return combined.filter(item => {
+            if (item.isLocal) return true; // Keep all local items
+            if (item.sku.startsWith('FGT-') || item.sku.startsWith('OTH-')) return false; // Hide DB items for Trays/Others
+            return true;
+        });
     }, [inventory, menuConfig]);
 
     // --- Fetch Data ---
