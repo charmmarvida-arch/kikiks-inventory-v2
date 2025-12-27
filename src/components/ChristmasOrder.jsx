@@ -116,11 +116,11 @@ const ChristmasOrder = () => {
                         const prefix = i.sku.split('-')[0];
                         const defaultPrice = CHRISTMAS_PRICES[prefix] || 0;
 
-                        // Extract prices from 'locations' JSONB column
-                        // Schema: { "Legazpi": { "price": 123 }, "Sorsogon": { "price": 456 } }
-                        const locData = i.locations || {};
-                        const cloudPriceLeg = locData['Legazpi']?.price;
-                        const cloudPriceSor = locData['Sorsogon']?.price;
+                        // Extract prices from 'locations' (Array of Objects)
+                        // Schema: [ { "name": "Legazpi", "price": 123 }, { "name": "Sorsogon", "price": 456 } ]
+                        const locData = Array.isArray(i.locations) ? i.locations : [];
+                        const cloudPriceLeg = locData.find(l => l.name === 'Legazpi' || l === 'Legazpi')?.price;
+                        const cloudPriceSor = locData.find(l => l.name === 'Sorsogon' || l === 'Sorsogon')?.price;
 
                         return {
                             sku: i.sku,
@@ -306,11 +306,12 @@ const ChristmasOrder = () => {
                 uom: 'Unit', // Default
                 quantity: 0, // Default
                 is_visible_in_reseller_order: true,
-                // Store prices in locations JSONB since specific columns might be missing
-                locations: {
-                    'Legazpi': { price: item.priceLeg || 0 },
-                    'Sorsogon': { price: item.priceSor || 0 }
-                }
+                // Store prices in locations JSONB as JSON Array of Objects
+                // This satisfies "expected JSON array" (or compat requirement) while storing metadata
+                locations: [
+                    { name: 'Legazpi', price: item.priceLeg || 0 },
+                    { name: 'Sorsogon', price: item.priceSor || 0 }
+                ]
             }));
 
             console.log('Sync Payload:', itemsToUpsert);
