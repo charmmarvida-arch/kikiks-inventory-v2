@@ -7,7 +7,7 @@ import {
     X, CheckCircle,
     Sparkles, Gift, Star, Clock, Calendar, ClipboardList,
     Leaf, Sun, Flower2, Utensils, // Tropical Icons
-    ArrowLeft, ArrowRight, Search, Plus, Minus, ShoppingBag
+    ArrowLeft, ArrowRight, Search, Plus, Minus, ShoppingBag, ChevronUp, ChevronDown
 } from 'lucide-react';
 import ChristmasHistoryModal from './ChristmasHistoryModal';
 import ChristmasMenuSettings from './ChristmasMenuSettings';
@@ -258,7 +258,8 @@ const ChristmasOrder = () => {
 
     // Settings Modal
     // const [isSettingsOpen, setIsSettingsOpen] = useState(false); // Removed unused
-    const [isMenuOpen, setIsMenuOpen] = useState(false); // For Menu Settings
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [isMobileCartExpanded, setIsMobileCartExpanded] = useState(false); // Mobile Cart Toggle // For Menu Settings
     const [isHistoryOpen, setIsHistoryOpen] = useState(false); // For History Modal
     const [editingOrderId, setEditingOrderId] = useState(null); // For Edit Mode
 
@@ -682,69 +683,80 @@ const ChristmasOrder = () => {
                     bg-[#FEFCE8] border-t-2 md:border-l-2 border-[#510813]/10
                     md:w-[400px] flex flex-col shadow-[-10px_0_30px_rgba(0,0,0,0.05)]
                     transition-transform duration-300 md:translate-y-0
+                    max-h-[85vh] rounded-t-2xl md:rounded-none
                 `}>
-                    <div className="p-6 md:p-8 flex-1 md:overflow-y-auto">
-                        <div className="flex items-center gap-3 mb-6 text-[#510813]">
+                    <div className="p-4 md:p-8 flex-1 md:overflow-y-auto">
+                        <div
+                            className="flex items-center gap-3 mb-6 text-[#510813] cursor-pointer md:cursor-default"
+                            onClick={() => setIsMobileCartExpanded(!isMobileCartExpanded)}
+                        >
                             <ShoppingCart size={28} className="text-[#E5562E]" />
                             <h2 className="text-2xl font-black tracking-tighter">Your Order</h2>
-                            <span className="bg-[#E5562E] text-white text-xs font-bold px-2 py-1 rounded-full ml-auto">
-                                {Object.values(cart).reduce((a, b) => a + b, 0)} Items
-                            </span>
+                            <div className="ml-auto flex items-center gap-2">
+                                <span className="bg-[#E5562E] text-white text-xs font-bold px-2 py-1 rounded-full">
+                                    {Object.values(cart).reduce((a, b) => a + b, 0)} Items
+                                </span>
+                                <div className="md:hidden text-[#510813]/50">
+                                    {isMobileCartExpanded ? <ChevronDown size={24} /> : <ChevronUp size={24} />}
+                                </div>
+                            </div>
                         </div>
 
-                        {Object.keys(cart).length === 0 ? (
-                            <div className="h-64 flex flex-col items-center justify-center text-[#510813]/40 border-2 border-dashed border-[#510813]/10 rounded-2xl bg-white/50">
-                                <ShoppingBag size={48} className="mb-4 opacity-50" />
-                                <p className="font-bold">Cart is empty</p>
-                                <p className="text-sm">Start adding some treats!</p>
-                            </div>
-                        ) : (
-                            <div className="space-y-4 pb-24 md:pb-0">
-                                {Object.entries(cart).map(([sku, qty]) => {
-                                    const item = mergedInventory.find(i => i.sku === sku);
-                                    if (!item) return null;
-                                    const price = location === 'Sorsogon' ? item.priceSor : item.priceLeg;
+                        <div className={`${isMobileCartExpanded ? 'block' : 'hidden md:block'}`}>
+                            {Object.keys(cart).length === 0 ? (
+                                <div className="h-64 flex flex-col items-center justify-center text-[#510813]/40 border-2 border-dashed border-[#510813]/10 rounded-2xl bg-white/50">
+                                    <ShoppingBag size={48} className="mb-4 opacity-50" />
+                                    <p className="font-bold">Cart is empty</p>
+                                    <p className="text-sm">Start adding some treats!</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-4 pb-24 md:pb-0">
+                                    {Object.entries(cart).map(([sku, qty]) => {
+                                        const item = mergedInventory.find(i => i.sku === sku);
+                                        if (!item) return null;
+                                        const price = location === 'Sorsogon' ? item.priceSor : item.priceLeg;
 
-                                    // Determine Category Color for border
-                                    const prefix = sku.split('-')[0];
-                                    const categoryColor = dynamicCategories.find(c => c.id === prefix)?.color.split(' ')[0] || 'bg-gray-500';
+                                        // Determine Category Color for border
+                                        const prefix = sku.split('-')[0];
+                                        const categoryColor = dynamicCategories.find(c => c.id === prefix)?.color.split(' ')[0] || 'bg-gray-500';
 
-                                    return (
-                                        <div key={sku} className="group bg-white rounded-2xl p-4 shadow-sm border border-[#510813]/5 flex gap-4 items-center">
-                                            <div className={`w-16 h-16 rounded-xl ${categoryColor} flex items-center justify-center shrink-0`}>
-                                                <span className="text-white font-bold text-xs">{sku.split('-')[1]}</span>
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <h4 className="font-bold text-[#510813] truncate">{item.description}</h4>
-                                                <p className="text-[#E5562E] font-mono font-medium">₱{price}</p>
-                                            </div>
-                                            <div className="flex flex-col items-end gap-1">
-                                                <div className="flex items-center gap-3 bg-[#FEFCE8] rounded-xl border border-[#510813]/10 p-1">
-                                                    <button
-                                                        onClick={() => updateCart(sku, -1)}
-                                                        className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-[#E5562E]/10 text-[#510813] transition-colors"
-                                                    >
-                                                        <Minus size={14} strokeWidth={3} />
-                                                    </button>
-                                                    <span className="font-bold text-lg w-4 text-center">{qty}</span>
-                                                    <button
-                                                        onClick={() => updateCart(sku, 1)}
-                                                        className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-[#E5562E]/10 text-[#510813] transition-colors"
-                                                    >
-                                                        <Plus size={14} strokeWidth={3} />
-                                                    </button>
+                                        return (
+                                            <div key={sku} className="group bg-white rounded-2xl p-4 shadow-sm border border-[#510813]/5 flex gap-4 items-center">
+                                                <div className={`w-16 h-16 rounded-xl ${categoryColor} flex items-center justify-center shrink-0`}>
+                                                    <span className="text-white font-bold text-xs">{sku.split('-')[1]}</span>
                                                 </div>
-                                                <p className="text-xs font-bold text-[#510813]/50">₱{(price * qty).toLocaleString()}</p>
+                                                <div className="flex-1 min-w-0">
+                                                    <h4 className="font-bold text-[#510813] truncate">{item.description}</h4>
+                                                    <p className="text-[#E5562E] font-mono font-medium">₱{price}</p>
+                                                </div>
+                                                <div className="flex flex-col items-end gap-1">
+                                                    <div className="flex items-center gap-3 bg-[#FEFCE8] rounded-xl border border-[#510813]/10 p-1">
+                                                        <button
+                                                            onClick={() => updateCart(sku, -1)}
+                                                            className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-[#E5562E]/10 text-[#510813] transition-colors"
+                                                        >
+                                                            <Minus size={14} strokeWidth={3} />
+                                                        </button>
+                                                        <span className="font-bold text-lg w-4 text-center">{qty}</span>
+                                                        <button
+                                                            onClick={() => updateCart(sku, 1)}
+                                                            className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-[#E5562E]/10 text-[#510813] transition-colors"
+                                                        >
+                                                            <Plus size={14} strokeWidth={3} />
+                                                        </button>
+                                                    </div>
+                                                    <p className="text-xs font-bold text-[#510813]/50">₱{(price * qty).toLocaleString()}</p>
+                                                </div>
                                             </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        )}
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
                     </div>
 
                     {/* Footer Totals */}
-                    <div className="p-6 md:p-8 bg-white border-t border-[#510813]/5">
+                    <div className="p-4 md:p-8 bg-white border-t border-[#510813]/5">
                         <div className="flex justify-between items-center mb-6">
                             <span className="text-[#510813]/60 font-bold uppercase tracking-wider text-sm">Total Amount</span>
                             <span className="text-4xl font-black text-[#510813] tracking-tighter">
