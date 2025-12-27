@@ -1204,7 +1204,7 @@ const ChristmasOrder = () => {
                             <br />
                             <span className="block mt-2 font-normal text-[#510813]/70">
                                 • Don't forget to claim your order by December 31<br />
-                                • Payment must be made the day the order is placed
+                                • Payment must be made the day the order is placed otherwise order is void
                             </span>
                         </p>
 
