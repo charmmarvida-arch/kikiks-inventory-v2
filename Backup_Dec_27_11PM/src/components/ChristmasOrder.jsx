@@ -247,56 +247,6 @@ const ChristmasOrder = () => {
 
     const [resellerOrders, setResellerOrders] = useState([]);
 
-    // --- Category Order State ---
-    const [categoryOrder, setCategoryOrder] = useState([]); // Array of Category IDs
-
-    useEffect(() => {
-        const fetchCategoryOrder = async () => {
-            const { data } = await supabase
-                .from('app_settings')
-                .select('value')
-                .eq('key', 'christmas_category_order')
-                .single();
-
-            if (data?.value) {
-                setCategoryOrder(data.value);
-            }
-        };
-
-        fetchCategoryOrder();
-
-        // Realtime Subscription for updates from other devices
-        const settingsSub = supabase
-            .channel('public:app_settings')
-            .on('postgres_changes', {
-                event: 'UPDATE',
-                schema: 'public',
-                table: 'app_settings',
-                filter: 'key=eq.christmas_category_order'
-            }, (payload) => {
-                if (payload.new?.value) {
-                    setCategoryOrder(payload.new.value);
-                }
-            })
-            .subscribe();
-
-        return () => supabase.removeChannel(settingsSub);
-    }, []);
-
-    // Save Category Order
-    const handleSaveCategoryOrder = async (newOrder) => {
-        setCategoryOrder(newOrder); // Optimistic
-
-        const { error } = await supabase
-            .from('app_settings')
-            .upsert({
-                key: 'christmas_category_order',
-                value: newOrder
-            }, { onConflict: 'key' });
-
-        if (error) console.error("Failed to save category order:", error);
-    };
-
     // --- Derived State: Merged Inventory ---
     // Combines Supabase inventory with local Menu Config items
     // Merged Inventory: STRICTLY based on menuConfig
@@ -364,22 +314,8 @@ const ChristmasOrder = () => {
             ring: 'ring-[#510813]'
         }));
 
-        return [...standardCats, ...customCats].sort((a, b) => {
-            if (categoryOrder.length === 0) return 0;
-            const indexA = categoryOrder.indexOf(a.id);
-            const indexB = categoryOrder.indexOf(b.id);
-
-            // If both are in the order list, sort by index
-            if (indexA !== -1 && indexB !== -1) return indexA - indexB;
-
-            // If distinct, prioritized ones (in list) go first
-            if (indexA !== -1) return -1;
-            if (indexB !== -1) return 1;
-
-            // Default fallback (preserve initial relative order)
-            return 0;
-        });
-    }, [mergedInventory, categoryOrder]);
+        return [...standardCats, ...customCats];
+    }, [mergedInventory]);
 
 
 
@@ -1346,8 +1282,6 @@ const ChristmasOrder = () => {
                     onSaveMenu={handleSaveMenu}
                     inventory={inventory}
                     onSync={syncMenuToCloud}
-                    categoryOrder={categoryOrder}
-                    onSaveCategoryOrder={handleSaveCategoryOrder}
                 />
             </ErrorBoundary>
         </div>
