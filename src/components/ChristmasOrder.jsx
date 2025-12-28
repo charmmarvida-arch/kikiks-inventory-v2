@@ -274,7 +274,7 @@ const ChristmasOrder = () => {
                 // 1. Fetch Inventory (Optimized columns)
                 supabase
                     .from('inventory')
-                    .select('sku, description, category, price_leg, price_sor, stock_leg, stock_sor, locations')
+                    .select('sku, description, locations')
                     .order('sku', { ascending: true }),
 
                 // 2. Fetch Orders (For History - Limited & Optimized)

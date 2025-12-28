@@ -61,7 +61,7 @@ export const InventoryProvider = ({ children }) => {
             // 1. Inventory
             const { data: invData, error: invError } = await supabase
                 .from('inventory')
-                .select('sku, description, quantity, is_visible_in_reseller_order, price_leg, price_sor, stock_leg, stock_sor, locations')
+                .select('sku, description, uom, quantity, locations, is_visible_in_reseller_order')
                 .order('sku', { ascending: true });
 
             if (invError) throw invError;
