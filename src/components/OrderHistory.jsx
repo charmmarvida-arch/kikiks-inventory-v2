@@ -15,16 +15,15 @@ const OrderHistory = () => {
 
     const [selectedReseller, setSelectedReseller] = useState('');
 
-    // Get unique resellers from completed orders (exclude Christmas)
+    // Get unique resellers from completed orders
     const uniqueResellers = [...new Set(resellerOrders
-        .filter(order => order.status === 'Completed' && order.location !== 'Christmas Order')
+        .filter(order => order.status === 'Completed')
         .map(order => order.resellerName))];
 
-    // Filter for COMPLETED orders only (exclude Christmas)
+    // Filter for COMPLETED orders only
     const historyOrders = resellerOrders
         .filter(order =>
             order.status === 'Completed' &&
-            order.location !== 'Christmas Order' &&
             (selectedReseller === '' || order.resellerName === selectedReseller) &&
             (order.resellerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 order.location.toLowerCase().includes(searchTerm.toLowerCase()))

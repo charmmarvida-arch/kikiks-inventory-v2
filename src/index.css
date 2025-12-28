@@ -50,7 +50,7 @@
   --warning-bg: #fffbeb;
 
   /* Layout */
-  --sidebar-width: 19rem;
+  --sidebar-width: 16.25rem;
   --header-height: 4rem;
 
   /* Effects */
@@ -120,9 +120,9 @@ button {
   flex: 1;
   overflow-y: auto;
   padding: 2rem;
-  max-width: 100%;
+  max-width: 1600px;
   /* Prevent ultra-wide stretching on large screens */
-  margin: 0;
+  margin: 0 auto;
   width: 100%;
 }
 
@@ -182,19 +182,10 @@ button {
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: #ffffff !important;
-  background: linear-gradient(135deg, #fb923c 0%, #ea580c 100%);
-  font-weight: 700;
-  margin: 1.5rem 0.75rem 0.5rem;
-  padding: 0.75rem 1rem;
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-sm);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  min-height: 3rem;
-  line-height: 1.1;
+  color: var(--text-muted);
+  font-weight: 600;
+  margin: 1rem 1rem 0.25rem;
+  /* Reduced margins */
 }
 
 .nav-link {
