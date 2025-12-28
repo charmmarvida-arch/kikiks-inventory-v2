@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useInventory } from '../context/InventoryContext';
 import { useAuth } from '../context/AuthContext';
-import { X, Calendar, Settings, ArrowUpDown, TrendingUp, TrendingDown, Users, Package, CheckCircle, Clock, Filter, FileText } from 'lucide-react';
+import { X, Calendar, Settings, ArrowUpDown, TrendingUp, TrendingDown, Users, Package, CheckCircle, Clock, Filter, FileText, AlertCircle } from 'lucide-react';
 import ResellerSettingsModal from './ResellerSettingsModal';
 import { generatePackingList } from '../utils/pdfGenerator';
 
 const ResellerDashboard = () => {
-    const { resellerOrders, updateResellerOrder, resellerSettings, inventory } = useInventory();
+    const { resellerOrders, updateResellerOrder, resellerSettings, inventory, resellers } = useInventory();
     const { userProfile } = useAuth();
 
     // PIN Protection State
@@ -74,14 +74,14 @@ const ResellerDashboard = () => {
         }
     };
 
-    // Filter orders by date range
+    // Filter orders by date range (exclude Christmas orders)
     const filteredOrders = useMemo(() => {
         return resellerOrders.filter(order => {
             const orderDate = new Date(order.date);
             const start = new Date(startDate);
             const end = new Date(endDate);
             end.setHours(23, 59, 59, 999);
-            return orderDate >= start && orderDate <= end && order.status === 'Completed';
+            return orderDate >= start && orderDate <= end && order.status === 'Completed' && order.location !== 'Christmas Order';
         });
     }, [resellerOrders, startDate, endDate]);
 
@@ -98,7 +98,7 @@ const ResellerDashboard = () => {
 
         return resellerOrders.filter(order => {
             const orderDate = new Date(order.date);
-            return orderDate >= prevStart && orderDate <= prevEnd && order.status === 'Completed';
+            return orderDate >= prevStart && orderDate <= prevEnd && order.status === 'Completed' && order.location !== 'Christmas Order';
         });
     }, [resellerOrders, startDate, endDate]);
 
@@ -141,12 +141,12 @@ const ResellerDashboard = () => {
             return { cycleStart, cycleEnd };
         };
 
-        // Get all unique resellers
-        const uniqueResellers = new Set(resellerOrders.map(o => o.resellerName));
+        // Get all unique resellers (exclude Christmas orders)
+        const uniqueResellers = new Set(resellerOrders.filter(o => o.location !== 'Christmas Order').map(o => o.resellerName));
 
-        // Group orders by reseller
+        // Group orders by reseller (exclude Christmas orders)
         const groupedOrders = {};
-        resellerOrders.forEach(o => {
+        resellerOrders.filter(o => o.location !== 'Christmas Order').forEach(o => {
             if (!groupedOrders[o.resellerName]) groupedOrders[o.resellerName] = [];
             groupedOrders[o.resellerName].push(o);
         });
@@ -330,44 +330,47 @@ const ResellerDashboard = () => {
             .slice(0, 3);
     }, [filteredOrders, inventory]);
 
-    // 2. Pending Collections (Unpaid/Active Orders)
-    // Assuming "Active" (not Completed) means unpaid/collectible
+    // 2. Pending Collections (Unpaid/Active Orders, exclude Christmas)
     const pendingCollections = useMemo(() => {
         return resellerOrders
-            .filter(o => o.status !== 'Completed' && o.status !== 'Cancelled')
+            .filter(o => o.status !== 'Completed' && o.status !== 'Cancelled' && o.location !== 'Christmas Order')
             .reduce((sum, o) => sum + (o.totalAmount || 0), 0);
     }, [resellerOrders]);
 
+    // Critical Alerts Logic - Tracks Pending Orders (exclude Christmas)
+    const criticalAlerts = useMemo(() => {
+        // Find all orders that are 'Pending'
+        const pendingOrders = resellerOrders.filter(o => o.status === 'Pending' && o.location !== 'Christmas Order');
+
+        // Sort by date ascending (oldest first)
+        const sortedPending = [...pendingOrders].sort((a, b) => new Date(a.date) - new Date(b.date));
+
+        return sortedPending.slice(0, 5).map(o => ({
+            message: `${o.resellerName} has pending order`,
+            type: 'pending_order',
+            id: o.id
+        }));
+    }, [resellerOrders]);
+
+    // 3. Global Progress (Revenue vs Target)
     // 3. Global Progress (Revenue vs Target)
     const globalProgress = useMemo(() => {
         const currentRevenue = metrics.totalRevenue; // From existing metrics
-        // Sum of all reseller targets
-        const totalTarget = resellerSettings.reduce((sum, s) => sum + (s.minimum_monthly_order || 10000), 0);
-        // Fallback if no settings?
+
+        // Sum targets for ALL resellers
+        // If a reseller has a setting, use it. Otherwise use default 10,000.
+        const totalTarget = resellers.reduce((sum, reseller) => {
+            const setting = resellerSettings.find(s => s.reseller_name === reseller.name);
+            const target = setting ? (setting.minimum_monthly_order || 10000) : 10000;
+            return sum + target;
+        }, 0);
+
+        // Fallback only if no resellers exist at all
         const finalTarget = totalTarget > 0 ? totalTarget : 200000;
         const percentage = Math.min((currentRevenue / finalTarget) * 100, 100);
         return { currentRevenue, finalTarget, percentage };
-    }, [metrics.totalRevenue, resellerSettings]);
+    }, [metrics.totalRevenue, resellers, resellerSettings]);
 
-    // 4. Critical Alerts (Logic moved from UI if needed, but we can reuse monthlyComplianceData)
-    const criticalAlerts = useMemo(() => {
-        const alerts = [];
-        // A. Compliance 'Not Met' (already calculated in monthlyComplianceData)
-        monthlyComplianceData.forEach(d => {
-            if (d.status === 'not_met') {
-                alerts.push({
-                    type: 'compliance',
-                    message: `${d.resellerName} missed target`,
-                    level: 'high'
-                });
-            }
-        });
-
-        // B. No Order > 7 Days? (Optional, maybe too noisy if 'not_met' covers it)
-        // Let's stick to Compliance Not Met for high level, and maybe "No Activity"
-
-        return alerts.slice(0, 5); // Limit to top 5
-    }, [monthlyComplianceData]);
 
     const handleViewResellerHistory = (resellerData) => {
         // ... functionality to open modal or navigate ...
@@ -478,7 +481,8 @@ const ResellerDashboard = () => {
                         <p className="page-subtitle">Executive overview of reseller performance</p>
                     </div>
                     <div style={{ display: 'flex', gap: '0.75rem' }}>
-                        <button
+                        {/* Settings Button Removed as per request (retained in Create Order only) */}
+                        {/* <button
                             onClick={() => setShowSettingsModal(true)}
                             style={{
                                 display: 'flex',
@@ -506,7 +510,7 @@ const ResellerDashboard = () => {
                         >
                             <Settings size={16} />
                             <span>Settings</span>
-                        </button>
+                        </button> */}
                         <button
                             onClick={() => setShowDateFilterModal(true)}
                             style={{
@@ -770,6 +774,17 @@ const ResellerDashboard = () => {
                             )}
                         </tbody>
                     </table>
+                </div>
+                {/* Explanatory Note */}
+                <div style={{ marginTop: '0.5rem', padding: '1rem', backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '0.875rem', color: '#64748b', display: 'flex', gap: '0.75rem' }}>
+                    <div style={{ flexShrink: 0, marginTop: '2px' }}><AlertCircle size={16} /></div>
+                    <div>
+                        <p style={{ margin: 0, fontWeight: '600', marginBottom: '4px' }}>Why are the amounts different?</p>
+                        <ul style={{ margin: 0, paddingLeft: '1.25rem', listStyleType: 'disc', lineHeight: '1.4' }}>
+                            <li><strong>Monthly Progress:</strong> Only counts sales within the store's specific contract cycle (e.g., Dec 12 - Jan 12).</li>
+                            <li><strong>Filter Range Sales:</strong> Counts all sales within the dates selected in the top-right filter (e.g., Dec 1 - Today).</li>
+                        </ul>
+                    </div>
                 </div>
             </div>
 

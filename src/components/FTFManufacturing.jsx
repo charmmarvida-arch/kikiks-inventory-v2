@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useInventory } from '../context/InventoryContext';
-import { Settings, Edit2, Save, X, Search, Download, Filter, TrendingUp } from 'lucide-react';
+import { Settings, Edit2, Save, X, Search, Download, Filter, TrendingUp, AlertTriangle, Layers } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 import { useAuth } from '../context/AuthContext';
 import FTFSettingsModal from './FTFSettingsModal';
@@ -42,6 +42,9 @@ const FTFManufacturing = () => {
     // Stock editing
     const [editingStock, setEditingStock] = useState(null); // { sku, newQty, reason, notes }
     const [adjustmentReasons, setAdjustmentReasons] = useState([]);
+
+    // Activity Log
+    const [recentActivity, setRecentActivity] = useState([]);
 
     // Export settings
     const [exportSettings, setExportSettings] = useState({
@@ -104,6 +107,18 @@ const FTFManufacturing = () => {
                 .eq('is_active', true)
                 .order('display_order');
             if (reasonsData) setAdjustmentReasons(reasonsData);
+
+            // Load recent activity
+            const { data: activityData } = await supabase
+                .from('ftf_stock_adjustments')
+                .select(`
+                    *,
+                    ftf_adjustment_reasons (reason_text)
+                `)
+                .order('created_at', { ascending: false })
+                .limit(20);
+
+            if (activityData) setRecentActivity(activityData);
         } catch (error) {
             console.error('Error loading data:', error);
         }
@@ -309,264 +324,277 @@ const FTFManufacturing = () => {
                 </div>
             </div>
 
-            {/* Summary Cards */}
-            <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                gap: '1rem',
-                marginBottom: '1.5rem'
-            }}>
-                <div className="form-card p-4">
-                    <div className="text-secondary text-sm mb-1">Total SKUs</div>
-                    <div className="text-2xl font-bold text-primary">{totals.totalItems}</div>
+
+
+            {/* Inventory Summary Top Row */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                {/* Total Value */}
+                <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 flex items-center justify-between">
+                    <div>
+                        <p className="text-sm font-medium text-gray-500 mb-1">Total Value</p>
+                        <h3 className="text-2xl font-bold text-green-600">₱{totals.totalValue.toLocaleString()}</h3>
+                    </div>
+                    <div className="bg-green-100 p-3 rounded-lg">
+                        <TrendingUp size={24} className="text-green-600" />
+                    </div>
                 </div>
-                <div className="form-card p-4">
-                    <div className="text-secondary text-sm mb-1">Total Stock</div>
-                    <div className="text-2xl font-bold">{totals.totalStock.toLocaleString()}</div>
+
+                {/* Total Stock */}
+                <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 flex items-center justify-between">
+                    <div>
+                        <p className="text-sm font-medium text-gray-500 mb-1">Total Stock</p>
+                        <h3 className="text-2xl font-bold text-gray-900">{totals.totalStock.toLocaleString()}</h3>
+                    </div>
+                    <div className="bg-blue-100 p-3 rounded-lg">
+                        <Layers size={24} className="text-blue-600" />
+                    </div>
                 </div>
-                {columnVisibility.showTotalValue && (
+
+                {/* Total SKUs */}
+                <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 flex items-center justify-between">
+                    <div>
+                        <p className="text-sm font-medium text-gray-500 mb-1">Total SKUs</p>
+                        <h3 className="text-2xl font-bold text-gray-900">{totals.totalItems}</h3>
+                    </div>
+                    <div className="bg-gray-100 p-3 rounded-lg">
+                        <Filter size={24} className="text-gray-600" />
+                    </div>
+                </div>
+            </div>
+
+            {/* Main Content Grid */}
+            <div className="w-full">
+
+                {/* Filters & Table */}
+                <div className="flex flex-col space-y-4">
+                    {/* Filter & Search Bar */}
                     <div className="form-card p-4">
-                        <div className="text-secondary text-sm mb-1">Total Value</div>
-                        <div className="text-2xl font-bold text-success">₱{totals.totalValue.toLocaleString()}</div>
-                    </div>
-                )}
-                {totals.lowStockCount > 0 && (
-                    <div className="form-card p-4" style={{ borderLeft: '4px solid #f59e0b' }}>
-                        <div className="text-secondary text-sm mb-1">Low Stock Alerts</div>
-                        <div className="text-2xl font-bold" style={{ color: '#f59e0b' }}>{totals.lowStockCount}</div>
-                    </div>
-                )}
-                {totals.outOfStockCount > 0 && (
-                    <div className="form-card p-4" style={{ borderLeft: '4px solid #ef4444' }}>
-                        <div className="text-secondary text-sm mb-1">Out of Stock</div>
-                        <div className="text-2xl font-bold text-danger">{totals.outOfStockCount}</div>
-                    </div>
-                )}
-            </div>
+                        <div style={{
+                            display: 'flex',
+                            gap: '1rem',
+                            alignItems: 'center',
+                            flexWrap: 'wrap'
+                        }}>
+                            {/* Search */}
+                            <div style={{ position: 'relative', flex: '1', minWidth: '200px' }}>
+                                <Search size={16} style={{
+                                    position: 'absolute',
+                                    left: '12px',
+                                    top: '50%',
+                                    transform: 'translateY(-50%)',
+                                    color: 'var(--text-secondary)'
+                                }} />
+                                <input
+                                    type="text"
+                                    placeholder="Search SKU or Description..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="premium-input"
+                                    style={{ paddingLeft: '2.5rem' }}
+                                />
+                            </div>
 
-            {/* Filter & Search Bar */}
-            <div className="form-card p-4 mb-4">
-                <div style={{
-                    display: 'flex',
-                    gap: '1rem',
-                    alignItems: 'center',
-                    flexWrap: 'wrap'
-                }}>
-                    {/* Search */}
-                    <div style={{ position: 'relative', flex: '1', minWidth: '200px' }}>
-                        <Search size={16} style={{
-                            position: 'absolute',
-                            left: '12px',
-                            top: '50%',
-                            transform: 'translateY(-50%)',
-                            color: 'var(--text-secondary)'
-                        }} />
-                        <input
-                            type="text"
-                            placeholder="Search SKU or Description..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="premium-input"
-                            style={{ paddingLeft: '2.5rem' }}
-                        />
-                    </div>
+                            {/* Filter Chips */}
+                            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                                {['all', 'instock', 'lowstock', 'outofstock'].map(filter => (
+                                    <button
+                                        key={filter}
+                                        onClick={() => setActiveFilter(filter)}
+                                        style={{
+                                            padding: '0.5rem 1rem',
+                                            border: activeFilter === filter ? '2px solid var(--primary)' : '1px solid var(--border-color)',
+                                            background: activeFilter === filter ? 'var(--primary-light)' : 'white',
+                                            color: activeFilter === filter ? 'var(--primary)' : 'var(--text-secondary)',
+                                            borderRadius: 'var(--radius-md)',
+                                            fontSize: '0.875rem',
+                                            fontWeight: activeFilter === filter ? '600' : '400',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s',
+                                            textTransform: 'capitalize'
+                                        }}
+                                    >
+                                        {filter.replace('stock', ' Stock')}
+                                    </button>
+                                ))}
+                            </div>
 
-                    {/* Filter Chips */}
-                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                        {['all', 'instock', 'lowstock', 'outofstock'].map(filter => (
-                            <button
-                                key={filter}
-                                onClick={() => setActiveFilter(filter)}
-                                style={{
-                                    padding: '0.5rem 1rem',
-                                    border: activeFilter === filter ? '2px solid var(--primary)' : '1px solid var(--border-color)',
-                                    background: activeFilter === filter ? 'var(--primary-light)' : 'white',
-                                    color: activeFilter === filter ? 'var(--primary)' : 'var(--text-secondary)',
-                                    borderRadius: 'var(--radius-md)',
-                                    fontSize: '0.875rem',
-                                    fontWeight: activeFilter === filter ? '600' : '400',
-                                    cursor: 'pointer',
-                                    transition: 'all 0.2s',
-                                    textTransform: 'capitalize'
-                                }}
+                            {/* Sort Dropdown */}
+                            <select
+                                value={sortBy}
+                                onChange={(e) => setSortBy(e.target.value)}
+                                className="premium-input"
+                                style={{ width: 'auto', minWidth: '150px' }}
                             >
-                                {filter.replace('stock', ' Stock')}
-                            </button>
-                        ))}
+                                <option value="sku">Sort by SKU</option>
+                                <option value="stock">Sort by Stock</option>
+                                <option value="value">Sort by Value</option>
+                            </select>
+                        </div>
                     </div>
 
-                    {/* Sort Dropdown */}
-                    <select
-                        value={sortBy}
-                        onChange={(e) => setSortBy(e.target.value)}
-                        className="premium-input"
-                        style={{ width: 'auto', minWidth: '150px' }}
-                    >
-                        <option value="sku">Sort by SKU</option>
-                        <option value="stock">Sort by Stock</option>
-                        <option value="value">Sort by Value</option>
-                    </select>
-                </div>
-            </div>
+                    {/* Inventory Table */}
+                    <div className="form-card p-0 overflow-hidden">
+                        <div className="table-container">
+                            <table className="inventory-table">
+                                <thead style={{ position: 'sticky', top: 0, zIndex: 10, backgroundColor: 'white' }}>
+                                    <tr>
+                                        <th style={{ width: '60px', textAlign: 'center' }}>Status</th>
+                                        <th style={{ width: '100px' }}>SKU</th>
+                                        <th style={{ width: 'auto' }}>Product Description</th>
+                                        <th style={{ width: '80px' }}>UOM</th>
+                                        <th style={{ width: '120px' }}>Current Stock</th>
+                                        {columnVisibility.showSRP && <th style={{ width: '100px' }}>SRP</th>}
+                                        {columnVisibility.showCOGS && <th style={{ width: '100px' }}>COGS</th>}
+                                        {columnVisibility.showProfitMargin && <th style={{ width: '100px' }}>Margin</th>}
+                                        {columnVisibility.showTotalValue && <th style={{ width: '120px' }}>Total Value</th>}
+                                        {columnVisibility.showProductionDate && <th style={{ width: '120px' }}>Production Date</th>}
+                                        <th style={{ width: '80px', textAlign: 'center' }}>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {filteredAndSortedInventory.map((item, index) => {
+                                        const currentPrefix = item.sku.split('-')[0];
+                                        const prevPrefix = index > 0 ? filteredAndSortedInventory[index - 1].sku.split('-')[0] : null;
+                                        const showSpacer = index > 0 && currentPrefix !== prevPrefix;
 
-            {/* Inventory Table - Added overflow-x-auto for mobile scrolling */}
-            <div className="form-card p-0" style={{ maxWidth: '1600px', margin: '0 0.2rem' }}>
-                <div className="table-container">
-                    <table className="inventory-table">
-                        <thead style={{ position: 'sticky', top: 0, zIndex: 10, backgroundColor: 'white' }}>
-                            <tr>
-                                <th style={{ width: '60px', textAlign: 'center' }}>Status</th>
-                                <th style={{ width: '100px' }}>SKU</th>
-                                <th style={{ width: 'auto' }}>Product Description</th>
-                                <th style={{ width: '80px' }}>UOM</th>
-                                <th style={{ width: '120px' }}>Current Stock</th>
-                                {columnVisibility.showSRP && <th style={{ width: '100px' }}>SRP</th>}
-                                {columnVisibility.showCOGS && <th style={{ width: '100px' }}>COGS</th>}
-                                {columnVisibility.showProfitMargin && <th style={{ width: '100px' }}>Margin</th>}
-                                {columnVisibility.showTotalValue && <th style={{ width: '120px' }}>Total Value</th>}
-                                {columnVisibility.showProductionDate && <th style={{ width: '120px' }}>Production Date</th>}
-                                <th style={{ width: '80px', textAlign: 'center' }}>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {filteredAndSortedInventory.map((item, index) => {
-                                const currentPrefix = item.sku.split('-')[0];
-                                const prevPrefix = index > 0 ? filteredAndSortedInventory[index - 1].sku.split('-')[0] : null;
-                                const showSpacer = index > 0 && currentPrefix !== prevPrefix;
-                                const isEditing = editingStock?.sku === item.sku;
-
-                                return (
-                                    <React.Fragment key={item.sku}>
-                                        {showSpacer && (
-                                            <tr className="spacer-row">
-                                                <td colSpan={20} style={{ height: '8px', background: 'var(--gray-50)' }}></td>
-                                            </tr>
-                                        )}
-                                        <tr style={{
-                                            borderLeft: `4px solid ${getStockStatusColor(item.stockStatus)}`,
-                                            transition: 'all 0.2s'
-                                        }}>
-                                            <td>
-                                                <div style={{
-                                                    width: '8px',
-                                                    height: '8px',
-                                                    borderRadius: '50%',
-                                                    backgroundColor: getStockStatusColor(item.stockStatus),
-                                                    margin: '0 auto'
-                                                }}></div>
-                                            </td>
-                                            <td className="font-medium">{item.sku}</td>
-                                            <td>{item.description}</td>
-                                            <td>{item.uom}</td>
-                                            <td className="font-bold text-lg" style={{ color: getStockStatusColor(item.stockStatus) }}>
-                                                {item.quantity.toLocaleString()}
-                                                {item.threshold > 0 && <span className="text-sm text-secondary"> / {item.threshold}</span>}
-                                            </td>
-                                            {columnVisibility.showSRP && (
-                                                <td className="font-medium">
-                                                    {item.srp > 0 ? `₱${item.srp.toLocaleString()}` : '-'}
-                                                </td>
-                                            )}
-                                            {columnVisibility.showCOGS && (
-                                                <td className="font-medium">
-                                                    {item.cogs > 0 ? `₱${item.cogs.toLocaleString()}` : '-'}
-                                                </td>
-                                            )}
-                                            {columnVisibility.showProfitMargin && (
-                                                <td className="font-medium" style={{ color: item.profitMargin > 0 ? '#10b981' : '#ef4444' }}>
-                                                    {item.profitMargin > 0 ? `₱${item.profitMargin.toLocaleString()}` : '-'}
-                                                </td>
-                                            )}
-                                            {columnVisibility.showTotalValue && (
-                                                <td className="font-bold text-success">
-                                                    {item.totalValue > 0 ? `₱${item.totalValue.toLocaleString()}` : '-'}
-                                                </td>
-                                            )}
-                                            {columnVisibility.showProductionDate && (
-                                                <td className="text-sm">
-                                                    {item.productionDate || 'N/A'}
-                                                </td>
-                                            )}
-                                            <td>
-                                                <button
-                                                    onClick={() => startEdit(item.sku, item.quantity)}
-                                                    className="icon-btn text-primary small-btn"
-                                                    title="Adjust Stock"
-                                                >
-                                                    <Edit2 size={16} />
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    </React.Fragment>
-                                );
-                            })}
-                        </tbody>
-                    </table>
+                                        return (
+                                            <React.Fragment key={item.sku}>
+                                                {showSpacer && (
+                                                    <tr className="spacer-row">
+                                                        <td colSpan={20} style={{ height: '8px', background: 'var(--gray-50)' }}></td>
+                                                    </tr>
+                                                )}
+                                                <tr style={{
+                                                    borderLeft: `4px solid ${getStockStatusColor(item.stockStatus)}`,
+                                                    transition: 'all 0.2s'
+                                                }}>
+                                                    <td>
+                                                        <div style={{
+                                                            width: '8px',
+                                                            height: '8px',
+                                                            borderRadius: '50%',
+                                                            backgroundColor: getStockStatusColor(item.stockStatus),
+                                                            margin: '0 auto'
+                                                        }}></div>
+                                                    </td>
+                                                    <td className="font-medium">{item.sku}</td>
+                                                    <td className="font-medium">{item.description}</td>
+                                                    <td className="text-secondary">{item.uom}</td>
+                                                    <td className="font-bold text-lg" style={{ color: getStockStatusColor(item.stockStatus) }}>
+                                                        {item.quantity.toLocaleString()}
+                                                        {item.threshold > 0 && <span className="text-xs text-secondary ml-1">/ {item.threshold}</span>}
+                                                    </td>
+                                                    {columnVisibility.showSRP && (
+                                                        <td className="font-medium">
+                                                            {item.srp > 0 ? `₱${item.srp.toLocaleString()}` : '-'}
+                                                        </td>
+                                                    )}
+                                                    {columnVisibility.showCOGS && (
+                                                        <td className="font-medium">
+                                                            {item.cogs > 0 ? `₱${item.cogs.toLocaleString()}` : '-'}
+                                                        </td>
+                                                    )}
+                                                    {columnVisibility.showProfitMargin && (
+                                                        <td className="font-medium" style={{ color: item.profitMargin > 0 ? '#10b981' : '#ef4444' }}>
+                                                            {item.profitMargin > 0 ? `₱${item.profitMargin.toLocaleString()}` : '-'}
+                                                        </td>
+                                                    )}
+                                                    {columnVisibility.showTotalValue && (
+                                                        <td className="font-bold text-success">
+                                                            {item.totalValue > 0 ? `₱${item.totalValue.toLocaleString()}` : '-'}
+                                                        </td>
+                                                    )}
+                                                    {columnVisibility.showProductionDate && (
+                                                        <td className="text-sm">
+                                                            {item.productionDate || 'N/A'}
+                                                        </td>
+                                                    )}
+                                                    <td className="text-center">
+                                                        <button
+                                                            onClick={() => startEdit(item.sku, item.quantity)}
+                                                            className="p-2 rounded hover:bg-gray-100 text-primary transition-colors"
+                                                            title="Adjust Stock"
+                                                        >
+                                                            <Edit2 size={16} />
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            </React.Fragment>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
+
+                {/* Closing Main Content Grid */}
             </div>
 
             {/* Stock Adjustment Modal */}
-            {editingStock && (
-                <div className="modal-overlay" onClick={cancelEdit}>
-                    <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px' }}>
-                        <div className="modal-header">
-                            <h2 className="modal-title">Adjust Stock - {editingStock.sku}</h2>
-                            <button className="close-btn" onClick={cancelEdit}>
-                                <X size={24} />
-                            </button>
-                        </div>
-                        <div className="modal-body">
-                            <div className="mb-4">
-                                <label className="text-sm text-secondary mb-1">New Quantity</label>
-                                <input
-                                    type="number"
-                                    value={editingStock.newQty}
-                                    onChange={(e) => setEditingStock({ ...editingStock, newQty: parseInt(e.target.value) || 0 })}
-                                    className="premium-input"
-                                    style={{ fontSize: '1.5rem', fontWeight: 'bold' }}
-                                    autoFocus
-                                />
-                                <div className="text-sm text-secondary mt-1">
-                                    Difference: {editingStock.newQty - editingStock.oldQty >= 0 ? '+' : ''}
-                                    {editingStock.newQty - editingStock.oldQty}
+            {
+                editingStock && (
+                    <div className="modal-overlay" onClick={cancelEdit}>
+                        <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px' }}>
+                            <div className="modal-header">
+                                <h2 className="modal-title">Adjust Stock - {editingStock.sku}</h2>
+                                <button className="close-btn" onClick={cancelEdit}>
+                                    <X size={24} />
+                                </button>
+                            </div>
+                            <div className="modal-body">
+                                <div className="mb-4">
+                                    <label className="text-sm text-secondary mb-1">New Quantity</label>
+                                    <input
+                                        type="number"
+                                        value={editingStock.newQty}
+                                        onChange={(e) => setEditingStock({ ...editingStock, newQty: parseInt(e.target.value) || 0 })}
+                                        className="premium-input"
+                                        style={{ fontSize: '1.5rem', fontWeight: 'bold' }}
+                                        autoFocus
+                                    />
+                                    <div className="text-sm text-secondary mt-1">
+                                        Difference: {editingStock.newQty - editingStock.oldQty >= 0 ? '+' : ''}
+                                        {editingStock.newQty - editingStock.oldQty}
+                                    </div>
                                 </div>
-                            </div>
-                            <div className="mb-4">
-                                <label className="text-sm text-secondary mb-1">Reason *</label>
-                                <select
-                                    value={editingStock.reasonId || ''}
-                                    onChange={(e) => setEditingStock({ ...editingStock, reasonId: parseInt(e.target.value) })}
-                                    className="premium-input"
-                                >
-                                    <option value="">Select reason...</option>
-                                    {adjustmentReasons.map(reason => (
-                                        <option key={reason.id} value={reason.id}>{reason.reason_text}</option>
-                                    ))}
-                                </select>
-                            </div>
-                            <div className="mb-4">
-                                <label className="text-sm text-secondary mb-1">Notes (Optional)</label>
-                                <textarea
-                                    value={editingStock.notes}
-                                    onChange={(e) => setEditingStock({ ...editingStock, notes: e.target.value })}
-                                    className="premium-input"
-                                    rows={3}
-                                    placeholder="Additional notes..."
-                                />
-                            </div>
-                            <div className="flex gap-3">
-                                <button onClick={saveStockAdjustment} className="submit-btn flex-1">
-                                    <Save size={18} className="mr-2" />
-                                    Save Adjustment
-                                </button>
-                                <button onClick={cancelEdit} className="icon-btn flex-1 border border-gray-300">
-                                    Cancel
-                                </button>
+                                <div className="mb-4">
+                                    <label className="text-sm text-secondary mb-1">Reason *</label>
+                                    <select
+                                        value={editingStock.reasonId || ''}
+                                        onChange={(e) => setEditingStock({ ...editingStock, reasonId: parseInt(e.target.value) })}
+                                        className="premium-input"
+                                    >
+                                        <option value="">Select reason...</option>
+                                        {adjustmentReasons.map(reason => (
+                                            <option key={reason.id} value={reason.id}>{reason.reason_text}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className="mb-4">
+                                    <label className="text-sm text-secondary mb-1">Notes (Optional)</label>
+                                    <textarea
+                                        value={editingStock.notes}
+                                        onChange={(e) => setEditingStock({ ...editingStock, notes: e.target.value })}
+                                        className="premium-input"
+                                        rows={3}
+                                        placeholder="Additional notes..."
+                                    />
+                                </div>
+                                <div className="flex gap-3">
+                                    <button onClick={saveStockAdjustment} className="submit-btn flex-1">
+                                        <Save size={18} className="mr-2" />
+                                        Save Adjustment
+                                    </button>
+                                    <button onClick={cancelEdit} className="icon-btn flex-1 border border-gray-300">
+                                        Cancel
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
             {/* Settings Modal */}
             <FTFSettingsModal
@@ -577,7 +605,7 @@ const FTFManufacturing = () => {
                 }}
                 inventory={inventory}
             />
-        </div>
+        </div >
     );
 };
 

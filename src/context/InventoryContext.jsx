@@ -45,6 +45,7 @@ export const InventoryProvider = ({ children }) => {
     const [resellers, setResellers] = useState([]);
     const [resellerOrders, setResellerOrders] = useState([]);
     const [transferOrders, setTransferOrders] = useState([]);
+    const [materials, setMaterials] = useState([]); // FTF Materials (Raw, Packaging, Stickers)
     const [kikiksLocations, setKikiksLocations] = useState(['SM Sorsogon', 'SM Legazpi', 'SM Daet']); // Removed Legazpi Storage
     const [locationSRPs, setLocationSRPs] = useState({});
     const [resellerPrices, setResellerPrices] = useState({});
@@ -99,6 +100,10 @@ export const InventoryProvider = ({ children }) => {
             const { data: resData } = await supabase.from('resellers').select('*');
             if (resData) setResellers(resData);
 
+            // 4. FTF Materials
+            const { data: matData } = await supabase.from('ftf_materials').select('*').order('item_name', { ascending: true });
+            if (matData) setMaterials(matData);
+
             // 4. Reseller Orders
             const { data: roData } = await supabase
                 .from('reseller_orders')
@@ -120,7 +125,13 @@ export const InventoryProvider = ({ children }) => {
                     isDeducted: order.is_deducted,
                     hasPackingList: order.has_packing_list, // Add this
                     hasCOA: order.has_coa,                  // Add this
-                    coaData: order.coa_data                 // Add this
+                    hasCOA: order.has_coa,                  // Add this
+                    coaData: order.coa_data,                // Add this
+
+                    // Encoding Status
+                    is_encoded: order.is_encoded,
+                    encoded_by: order.encoded_by,
+                    encoded_at: order.encoded_at
                 }));
                 setResellerOrders(mappedOrders);
             }
@@ -362,6 +373,18 @@ export const InventoryProvider = ({ children }) => {
         if (updates.hasCOA !== undefined) dbUpdates.has_coa = updates.hasCOA;
         if (updates.coaData !== undefined) dbUpdates.coa_data = updates.coaData;
         if (updates.status !== undefined) dbUpdates.status = updates.status;
+
+        // Critical: Allow updating Order Details (Items, Amount, etc.)
+        if (updates.items !== undefined) dbUpdates.items = updates.items;
+        if (updates.totalAmount !== undefined) dbUpdates.total_amount = updates.totalAmount;
+        if (updates.location !== undefined) dbUpdates.location = updates.location;
+        if (updates.address !== undefined) dbUpdates.address = updates.address;
+        if (updates.resellerName !== undefined) dbUpdates.reseller_name = updates.resellerName;
+
+        // Fix: Ensure encoded status is updated in DB
+        if (updates.is_encoded !== undefined) dbUpdates.is_encoded = updates.is_encoded;
+        if (updates.encoded_by !== undefined) dbUpdates.encoded_by = updates.encoded_by;
+        if (updates.encoded_at !== undefined) dbUpdates.encoded_at = updates.encoded_at;
 
         if (Object.keys(dbUpdates).length > 0) {
             const { error } = await supabase.from('reseller_orders').update(dbUpdates).eq('id', id);
@@ -820,6 +843,40 @@ export const InventoryProvider = ({ children }) => {
         }
     };
 
+    // FTF Materials Management
+    const addMaterial = async (item) => {
+        const { data, error } = await supabase.from('ftf_materials').insert(item).select().single();
+        if (error) {
+            console.error("Error adding material:", error);
+            alert("Failed to add material: " + error.message);
+            return;
+        }
+        setMaterials(prev => [...prev, data].sort((a, b) => a.item_name.localeCompare(b.item_name)));
+    };
+
+    const updateMaterial = async (id, updates) => {
+        // Optimistic UI
+        setMaterials(prev => prev.map(m => m.id === id ? { ...m, ...updates } : m));
+
+        const { error } = await supabase.from('ftf_materials').update(updates).eq('id', id);
+        if (error) {
+            console.error("Error updating material:", error);
+            alert("Failed to update material");
+            // Revert on error could be implemented here
+        }
+    };
+
+    const deleteMaterial = async (id) => {
+        if (!confirm('Are you sure you want to delete this material?')) return;
+
+        setMaterials(prev => prev.filter(m => m.id !== id));
+        const { error } = await supabase.from('ftf_materials').delete().eq('id', id);
+        if (error) {
+            console.error("Error deleting material:", error);
+            alert("Failed to delete material");
+        }
+    };
+
     return (
         <InventoryContext.Provider value={{
             inventory, addStock,
@@ -835,6 +892,7 @@ export const InventoryProvider = ({ children }) => {
             addSku, updateSku, deleteSku, toggleSkuVisibility,
             resellerZones, addResellerZone, updateResellerZone, deleteResellerZone,
             resellerSettings, fetchResellerSettings, updateResellerSetting,
+            materials, addMaterial, updateMaterial, deleteMaterial,
             loading
         }}>
             {children}
