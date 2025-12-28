@@ -1338,18 +1338,21 @@ const ChristmasOrder = () => {
             )}
 
             {/* --- Menu Settings Modal --- */}
-            <ErrorBoundary>
-                <ChristmasMenuSettings
-                    isOpen={isMenuOpen}
-                    onClose={() => setIsMenuOpen(false)}
-                    menuConfig={menuConfig || []}
-                    onSaveMenu={handleSaveMenu}
-                    inventory={inventory}
-                    onSync={syncMenuToCloud}
-                    categoryOrder={categoryOrder}
-                    onSaveCategoryOrder={handleSaveCategoryOrder}
-                />
-            </ErrorBoundary>
+            {/* --- Menu Settings Modal --- */}
+            {isMenuOpen && (
+                <ErrorBoundary>
+                    <ChristmasMenuSettings
+                        isOpen={isMenuOpen}
+                        onClose={() => setIsMenuOpen(false)}
+                        menuConfig={menuConfig || []}
+                        onSaveMenu={handleSaveMenu}
+                        inventory={inventory}
+                        onSync={syncMenuToCloud}
+                        categoryOrder={categoryOrder}
+                        onSaveCategoryOrder={handleSaveCategoryOrder}
+                    />
+                </ErrorBoundary>
+            )}
         </div>
     );
 };

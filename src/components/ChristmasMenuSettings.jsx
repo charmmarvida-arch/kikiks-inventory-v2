@@ -45,8 +45,6 @@ const ChristmasMenuSettings = ({ isOpen, onClose, menuConfig, onSaveMenu, onSync
         });
     }, [menuConfig, categoryOrder]);
 
-    if (!isOpen) return null;
-
     const handleEdit = (item, index) => {
         setEditingItem(index);
         setTempItem({ ...item });
