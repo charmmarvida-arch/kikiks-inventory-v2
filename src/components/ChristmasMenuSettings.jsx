@@ -17,8 +17,6 @@ const ChristmasMenuSettings = ({ isOpen, onClose, menuConfig, onSaveMenu, onSync
         'FGG': { label: 'Gallons 📦', color: 'bg-orange-100 border-orange-300' }
     };
 
-    if (!isOpen) return null;
-
     // --- Derived Categories ---
     const sortedCategories = useMemo(() => {
         // 1. Get all unique prefixes from menuConfig + Standard
@@ -47,6 +45,7 @@ const ChristmasMenuSettings = ({ isOpen, onClose, menuConfig, onSaveMenu, onSync
         });
     }, [menuConfig, categoryOrder]);
 
+    if (!isOpen) return null;
 
     const handleEdit = (item, index) => {
         setEditingItem(index);
