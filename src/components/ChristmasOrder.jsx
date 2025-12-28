@@ -728,7 +728,7 @@ const ChristmasOrder = () => {
             const WEBHOOK_URL = "https://discord.com/api/webhooks/1451752534820519969/m0cBK-p_JiXIUzIXn0ym2Sx-y6_jmj0O7K5TMhSLC7Q2gP8AaGGC6sScmA52V29X3bTH";
 
             const itemsList = Object.entries(cart).map(([sku, qty]) => {
-                const item = inventory.find(i => i.sku === sku);
+                const item = mergedInventory.find(i => i.sku === sku);
                 const desc = item ? item.description : sku;
                 return `- **${desc}**: x${qty}`;
             }).join('\n');
