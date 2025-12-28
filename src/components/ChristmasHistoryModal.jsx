@@ -28,11 +28,16 @@ const ChristmasHistoryModal = ({
     // Helper to get status color
     const getStatusColor = (status) => {
         switch (status?.toLowerCase()) {
+            case 'ordered': return 'bg-yellow-100 text-yellow-800';
+            case 'paid': return 'bg-purple-100 text-purple-800';
+            case 'delivered': return 'bg-green-100 text-green-800';
+            case 'picked up': return 'bg-blue-100 text-blue-800';
+            case 'cancelled': return 'bg-red-100 text-red-800';
+            // Fallbacks for old data
             case 'pending': return 'bg-yellow-100 text-yellow-800';
-            case 'active': return 'bg-blue-100 text-blue-800';
             case 'processing': return 'bg-purple-100 text-purple-800';
             case 'completed': return 'bg-green-100 text-green-800';
-            case 'cancelled': return 'bg-red-100 text-red-800';
+            case 'active': return 'bg-blue-100 text-blue-800';
             default: return 'bg-gray-100 text-gray-800';
         }
     };
@@ -134,10 +139,10 @@ const ChristmasHistoryModal = ({
                                                 className={`px-3 py-1 rounded-full text-xs font-bold border-none outline-none cursor-pointer appearance-none text-center ${getStatusColor(order.status)}`}
                                                 style={{ textAlignLast: 'center' }}
                                             >
-                                                <option value="Pending">Pending</option>
-                                                <option value="Active">Active</option>
-                                                <option value="Processing">Processing</option>
-                                                <option value="Completed">Completed</option>
+                                                <option value="Ordered">Ordered</option>
+                                                <option value="Paid">Paid</option>
+                                                <option value="Delivered">Delivered</option>
+                                                <option value="Picked Up">Picked Up</option>
                                                 <option value="Cancelled">Cancelled</option>
                                             </select>
                                         </td>
