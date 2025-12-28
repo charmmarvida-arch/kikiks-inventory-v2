@@ -346,7 +346,12 @@ const ChristmasOrder = () => {
     // --- Dynamic Category Generation ---
     // Generate categories based on what items exist in mergedInventory
     const dynamicCategories = useMemo(() => {
-        const uniquePrefixes = new Set(mergedInventory.map(i => i.sku.split('-')[0])); // Get content before first hyphen
+        const uniquePrefixes = new Set();
+        mergedInventory.forEach(i => {
+            let prefix = i.sku.split('-')[0];
+            if (prefix === 'CAKE' || prefix === 'Cake') prefix = 'FGCK';
+            if (prefix) uniquePrefixes.add(prefix);
+        });
 
         // Filter standard categories that exist
         const standardCats = STANDARD_CATEGORIES.filter(cat => uniquePrefixes.has(cat.id));
@@ -913,7 +918,7 @@ const ChristmasOrder = () => {
 
                     <div className="text-left md:text-right hidden md:block">
                         <h2 className="text-xl md:text-3xl font-black text-[#E5562E] tracking-tight flex items-center gap-2 px-4 py-2 bg-white/50 rounded-xl border border-[#E5562E]/10">
-                            Happy New Year! 🎆 <span className="text-xs text-[#510813]/20 font-mono">v2.3.4</span>
+                            Happy New Year! 🎆 <span className="text-xs text-[#510813]/20 font-mono">v2.3.7</span>
                         </h2>
                     </div>
 
