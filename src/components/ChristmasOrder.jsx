@@ -395,7 +395,7 @@ const ChristmasOrder = () => {
             items: orderData.items, // JSONB
             total_amount: orderData.totalAmount,
             date: orderData.date,
-            status: 'Pending'
+            status: 'Ordered'
         };
 
         const { data, error } = await supabase
@@ -764,7 +764,7 @@ const ChristmasOrder = () => {
                 items: orderItems,
                 totalAmount: cartTotal,
                 date: new Date().toISOString(),
-                status: 'Pending'
+                status: 'Ordered'
             };
 
             let res;
@@ -792,7 +792,7 @@ const ChristmasOrder = () => {
             const WEBHOOK_URL = "https://discord.com/api/webhooks/1451752534820519969/m0cBK-p_JiXIUzIXn0ym2Sx-y6_jmj0O7K5TMhSLC7Q2gP8AaGGC6sScmA52V29X3bTH";
 
             const itemsList = Object.entries(cart).map(([sku, qty]) => {
-                const item = inventory.find(i => i.sku === sku);
+                const item = mergedInventory.find(i => i.sku === sku) || inventory.find(i => i.sku === sku);
                 const desc = item ? item.description : sku;
                 return `- **${desc}**: x${qty}`;
             }).join('\n');
@@ -902,8 +902,13 @@ const ChristmasOrder = () => {
 
                     {/* Admin Buttons */}
                     <div className="flex gap-2">
-                        <button onClick={() => { setPinTarget('history'); setIsPinModalOpen(true); }} className="p-2 bg-[#510813]/5 text-[#510813] rounded-full hover:bg-[#510813]/10 transition-colors" title="History">
-                            <ClipboardList size={20} />
+                        <button
+                            onClick={() => { setPinTarget('history'); setIsPinModalOpen(true); }}
+                            className="flex items-center gap-2 px-4 py-2 bg-[#510813]/10 text-[#510813] rounded-xl hover:bg-[#510813]/20 transition-colors font-bold text-sm"
+                            title="View Order History"
+                        >
+                            <ClipboardList size={18} />
+                            <span>History</span>
                         </button>
                         <button onClick={() => { setPinTarget('menu'); setIsPinModalOpen(true); }} className="p-2 bg-[#510813]/5 text-[#510813] rounded-full hover:bg-[#510813]/10 transition-colors" title="Settings">
                             <Settings size={20} />

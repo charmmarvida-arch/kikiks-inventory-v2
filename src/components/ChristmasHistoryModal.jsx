@@ -179,9 +179,6 @@ const ChristmasHistoryModal = ({
                 </div>
             </div>
 
-            {/* Add/Edit Item Modal */}
-
-
             {/* View Details Modal Overlay */}
             {selectedOrder && (
                 <div
