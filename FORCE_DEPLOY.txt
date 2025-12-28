@@ -3,8 +3,8 @@
 This file triggers a new deployment.
 
 Changes:
-- Updated Christmas Order status options to: Ordered, Paid, Delivered, Picked Up.
-- Updated status color mapping in History Modal.
+- Re-triggering deployment for Order Status Options (Ordered, Paid, Delivered, Picked Up).
+- Forced update to clear cache.
 
-Version: 2.2.4
+Version: 2.2.5
 Date: 2025-12-28
