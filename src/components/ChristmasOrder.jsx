@@ -792,7 +792,9 @@ const ChristmasOrder = () => {
             const WEBHOOK_URL = "https://discord.com/api/webhooks/1451752534820519969/m0cBK-p_JiXIUzIXn0ym2Sx-y6_jmj0O7K5TMhSLC7Q2gP8AaGGC6sScmA52V29X3bTH";
 
             const itemsList = Object.entries(cart).map(([sku, qty]) => {
-                const item = mergedInventory.find(i => i.sku === sku) || inventory.find(i => i.sku === sku);
+                const item = mergedInventory.find(i => i.sku === sku)
+                    || inventory.find(i => i.sku === sku)
+                    || menuConfig.find(i => i.sku === sku);
                 const desc = item ? item.description : sku;
                 return `- **${desc}**: x${qty}`;
             }).join('\n');
@@ -802,7 +804,7 @@ const ChristmasOrder = () => {
                 username: "New Year Order Bot",
                 avatar_url: "https://cdn-icons-png.flaticon.com/512/3600/3600938.png", // Generic festive icon
                 embeds: [{
-                    title: isUpdate ? "🎆 New Year Order Updated! 📝" : "🎆 New Year Order Received! 🎁",
+                    title: isUpdate ? "🎆 New Year Order Updated! 📝 [v2.3.2]" : "🎆 New Year Order Received! 🎁 [v2.3.2]",
                     color: isUpdate ? 3447003 : 16752384, // Blue for Update, Orange/Gold for New
                     fields: [
                         { name: "Reseller Name", value: resellerName, inline: true },
