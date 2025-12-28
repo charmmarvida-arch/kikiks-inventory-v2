@@ -50,7 +50,7 @@ const ChristmasPattern = ({ className, opacity = 0.15, color = "text-[#E5562E]" 
 
 // Standard Categories with Tropical Palette
 const STANDARD_CATEGORIES = [
-    { id: 'Cake', label: 'Cake', icon: Sparkles, color: 'bg-[#EC4899] text-white', border: 'border-white/20', shadow: 'shadow-[#EC4899]/40', ring: 'ring-[#EC4899]' },
+    { id: 'FGCK', label: 'Cakes', icon: Sparkles, color: 'bg-[#EC4899] text-white', border: 'border-white/20', shadow: 'shadow-[#EC4899]/40', ring: 'ring-[#EC4899]' },
     { id: 'FGC', label: 'Cups', icon: Coffee, color: 'bg-[#F49306] text-white', border: 'border-white/20', shadow: 'shadow-[#F49306]/40', ring: 'ring-[#F49306]' },
     { id: 'FGP', label: 'Pints', icon: IceCream, color: 'bg-[#FF5A5F] text-white', border: 'border-white/20', shadow: 'shadow-[#FF5A5F]/40', ring: 'ring-[#FF5A5F]' },
     { id: 'FGL', label: 'Liters', icon: Droplet, color: 'bg-[#888625] text-white', border: 'border-white/20', shadow: 'shadow-[#888625]/40', ring: 'ring-[#888625]' },
@@ -210,7 +210,7 @@ const ChristmasOrder = () => {
                         // But if 0, we should update.
                         const newLeg = leg !== undefined ? leg : localItem.priceLeg;
                         const newSor = sor !== undefined ? sor : localItem.priceSor;
-                        return { ...localItem, priceLeg: newLeg, priceSor: newSor, description: localItem.description || cloudItem.description };
+                        return { ...localItem, priceLeg: newLeg, priceSor: newSor, description: cloudItem.description || localItem.description };
                     }
                     return localItem;
                 });
@@ -247,6 +247,56 @@ const ChristmasOrder = () => {
 
     const [resellerOrders, setResellerOrders] = useState([]);
 
+    // --- Category Order State ---
+    const [categoryOrder, setCategoryOrder] = useState([]); // Array of Category IDs
+
+    useEffect(() => {
+        const fetchCategoryOrder = async () => {
+            const { data } = await supabase
+                .from('app_settings')
+                .select('value')
+                .eq('key', 'christmas_category_order')
+                .single();
+
+            if (data?.value) {
+                setCategoryOrder(data.value);
+            }
+        };
+
+        fetchCategoryOrder();
+
+        // Realtime Subscription for updates from other devices
+        const settingsSub = supabase
+            .channel('public:app_settings')
+            .on('postgres_changes', {
+                event: 'UPDATE',
+                schema: 'public',
+                table: 'app_settings',
+                filter: 'key=eq.christmas_category_order'
+            }, (payload) => {
+                if (payload.new?.value) {
+                    setCategoryOrder(payload.new.value);
+                }
+            })
+            .subscribe();
+
+        return () => supabase.removeChannel(settingsSub);
+    }, []);
+
+    // Save Category Order
+    const handleSaveCategoryOrder = async (newOrder) => {
+        setCategoryOrder(newOrder); // Optimistic
+
+        const { error } = await supabase
+            .from('app_settings')
+            .upsert({
+                key: 'christmas_category_order',
+                value: newOrder
+            }, { onConflict: 'key' });
+
+        if (error) console.error("Failed to save category order:", error);
+    };
+
     // --- Derived State: Merged Inventory ---
     // Combines Supabase inventory with local Menu Config items
     // Merged Inventory: STRICTLY based on menuConfig
@@ -274,7 +324,7 @@ const ChristmasOrder = () => {
                 // 1. Fetch Inventory (Optimized columns)
                 supabase
                     .from('inventory')
-                    .select('id, sku, description, category, price_leg, price_sor, stock_leg, stock_sor, locations')
+                    .select('sku, description, category, price_leg, price_sor, stock_leg, stock_sor, locations')
                     .order('sku', { ascending: true }),
 
                 // 2. Fetch Orders (For History - Limited & Optimized)
@@ -296,7 +346,12 @@ const ChristmasOrder = () => {
     // --- Dynamic Category Generation ---
     // Generate categories based on what items exist in mergedInventory
     const dynamicCategories = useMemo(() => {
-        const uniquePrefixes = new Set(mergedInventory.map(i => i.sku.split('-')[0])); // Get content before first hyphen
+        const uniquePrefixes = new Set();
+        mergedInventory.forEach(i => {
+            let prefix = i.sku.split('-')[0];
+            if (prefix === 'CAKE' || prefix === 'Cake') prefix = 'FGCK';
+            if (prefix) uniquePrefixes.add(prefix);
+        });
 
         // Filter standard categories that exist
         const standardCats = STANDARD_CATEGORIES.filter(cat => uniquePrefixes.has(cat.id));
@@ -314,8 +369,22 @@ const ChristmasOrder = () => {
             ring: 'ring-[#510813]'
         }));
 
-        return [...standardCats, ...customCats];
-    }, [mergedInventory]);
+        return [...standardCats, ...customCats].sort((a, b) => {
+            if (categoryOrder.length === 0) return 0;
+            const indexA = categoryOrder.indexOf(a.id);
+            const indexB = categoryOrder.indexOf(b.id);
+
+            // If both are in the order list, sort by index
+            if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+
+            // If distinct, prioritized ones (in list) go first
+            if (indexA !== -1) return -1;
+            if (indexB !== -1) return 1;
+
+            // Default fallback (preserve initial relative order)
+            return 0;
+        });
+    }, [mergedInventory, categoryOrder]);
 
 
 
@@ -331,7 +400,7 @@ const ChristmasOrder = () => {
             items: orderData.items, // JSONB
             total_amount: orderData.totalAmount,
             date: orderData.date,
-            status: 'Pending'
+            status: 'Ordered'
         };
 
         const { data, error } = await supabase
@@ -700,7 +769,7 @@ const ChristmasOrder = () => {
                 items: orderItems,
                 totalAmount: cartTotal,
                 date: new Date().toISOString(),
-                status: 'Pending'
+                status: 'Ordered'
             };
 
             let res;
@@ -728,7 +797,9 @@ const ChristmasOrder = () => {
             const WEBHOOK_URL = "https://discord.com/api/webhooks/1451752534820519969/m0cBK-p_JiXIUzIXn0ym2Sx-y6_jmj0O7K5TMhSLC7Q2gP8AaGGC6sScmA52V29X3bTH";
 
             const itemsList = Object.entries(cart).map(([sku, qty]) => {
-                const item = mergedInventory.find(i => i.sku === sku);
+                const item = mergedInventory.find(i => i.sku === sku)
+                    || inventory.find(i => i.sku === sku)
+                    || menuConfig.find(i => i.sku === sku);
                 const desc = item ? item.description : sku;
                 return `- **${desc}**: x${qty}`;
             }).join('\n');
@@ -738,7 +809,7 @@ const ChristmasOrder = () => {
                 username: "New Year Order Bot",
                 avatar_url: "https://cdn-icons-png.flaticon.com/512/3600/3600938.png", // Generic festive icon
                 embeds: [{
-                    title: isUpdate ? "🎆 New Year Order Updated! 📝" : "🎆 New Year Order Received! 🎁",
+                    title: isUpdate ? "🎆 New Year Order Updated! 📝 [v2.3.4]" : "🎆 New Year Order Received! 🎁 [v2.3.4]",
                     color: isUpdate ? 3447003 : 16752384, // Blue for Update, Orange/Gold for New
                     fields: [
                         { name: "Reseller Name", value: resellerName, inline: true },
@@ -783,6 +854,21 @@ const ChristmasOrder = () => {
     // Save Menu Config
     const handleSaveMenu = (newMenu) => {
         setMenuConfig(newMenu);
+    };
+
+    // Direct Delete for Menu Items (Fixes Zombie Items)
+    const handleDeleteMenuItem = async (sku) => {
+        const { error } = await supabase.from('inventory').delete().eq('sku', sku);
+        if (error) {
+            console.error("Failed to delete item from cloud:", error);
+            showToast("Failed to delete item: " + error.message, 'error');
+            return false;
+        } else {
+            setMenuConfig(prev => prev.filter(i => i.sku !== sku));
+            setInventory(prev => prev.filter(i => i.sku !== sku)); // Update local inventory cache too
+            showToast(`${sku} deleted successfully`, 'success');
+            return true;
+        }
     };
 
     // Filter items for Modal
@@ -832,14 +918,19 @@ const ChristmasOrder = () => {
 
                     <div className="text-left md:text-right hidden md:block">
                         <h2 className="text-xl md:text-3xl font-black text-[#E5562E] tracking-tight flex items-center gap-2 px-4 py-2 bg-white/50 rounded-xl border border-[#E5562E]/10">
-                            Happy New Year! 🎆
+                            Happy New Year! 🎆 <span className="text-xs text-[#510813]/20 font-mono">v2.3.7</span>
                         </h2>
                     </div>
 
                     {/* Admin Buttons */}
                     <div className="flex gap-2">
-                        <button onClick={() => { setPinTarget('history'); setIsPinModalOpen(true); }} className="p-2 bg-[#510813]/5 text-[#510813] rounded-full hover:bg-[#510813]/10 transition-colors" title="History">
-                            <ClipboardList size={20} />
+                        <button
+                            onClick={() => { setPinTarget('history'); setIsPinModalOpen(true); }}
+                            className="flex items-center gap-2 px-4 py-2 bg-[#510813]/10 text-[#510813] rounded-xl hover:bg-[#510813]/20 transition-colors font-bold text-sm"
+                            title="View Order History"
+                        >
+                            <ClipboardList size={18} />
+                            <span>History</span>
                         </button>
                         <button onClick={() => { setPinTarget('menu'); setIsPinModalOpen(true); }} className="p-2 bg-[#510813]/5 text-[#510813] rounded-full hover:bg-[#510813]/10 transition-colors" title="Settings">
                             <Settings size={20} />
@@ -1274,16 +1365,21 @@ const ChristmasOrder = () => {
             )}
 
             {/* --- Menu Settings Modal --- */}
-            <ErrorBoundary>
-                <ChristmasMenuSettings
-                    isOpen={isMenuOpen}
-                    onClose={() => setIsMenuOpen(false)}
-                    menuConfig={menuConfig || []}
-                    onSaveMenu={handleSaveMenu}
-                    inventory={inventory}
-                    onSync={syncMenuToCloud}
-                />
-            </ErrorBoundary>
+            {/* --- Menu Settings Modal --- */}
+            {isMenuOpen && (
+                <ErrorBoundary>
+                    <ChristmasMenuSettings
+                        isOpen={isMenuOpen}
+                        onClose={() => setIsMenuOpen(false)}
+                        menuConfig={menuConfig}
+                        onSaveMenu={handleSaveMenu}
+                        onSync={syncMenuToCloud}
+                        onDeleteItem={handleDeleteMenuItem}
+                        categoryOrder={categoryOrder}
+                        onSaveCategoryOrder={handleSaveCategoryOrder}
+                    />
+                </ErrorBoundary>
+            )}
         </div>
     );
 };
