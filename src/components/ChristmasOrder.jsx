@@ -210,7 +210,7 @@ const ChristmasOrder = () => {
                         // But if 0, we should update.
                         const newLeg = leg !== undefined ? leg : localItem.priceLeg;
                         const newSor = sor !== undefined ? sor : localItem.priceSor;
-                        return { ...localItem, priceLeg: newLeg, priceSor: newSor, description: cloudItem.description || localItem.description };
+                        return { ...localItem, priceLeg: newLeg, priceSor: newSor, description: localItem.description || cloudItem.description };
                     }
                     return localItem;
                 });

@@ -13,16 +13,21 @@ if (!supabaseUrl || !supabaseKey) {
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function check() {
-    console.log("Checking for Cake items...");
+    console.log("Checking for Cake items in Supabase...");
     const { data, error } = await supabase
         .from('inventory')
         .select('sku, description')
-        .ilike('sku', 'Cake%'); // Search for SKUs starting with Cake (case insensitive)
+        .ilike('sku', 'Cake%');
 
-    if (error) console.error("Error fetching inventory:", error);
-    else {
-        console.log(`Found ${data.length} Cake items:`);
-        console.table(data);
+    if (error) {
+        console.error("Error fetching inventory:", error);
+    } else {
+        if (data.length === 0) {
+            console.log("NO Cake items found in Cloud Database.");
+        } else {
+            console.log(`Found ${data.length} Cake items in Cloud Database:`);
+            console.table(data);
+        }
     }
 }
 
