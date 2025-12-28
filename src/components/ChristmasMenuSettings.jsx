@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { X, Save, Edit2, Plus, CloudUpload, GripVertical } from 'lucide-react';
 
-const ChristmasMenuSettings = ({ isOpen, onClose, menuConfig, onSaveMenu, onSync, categoryOrder = [], onSaveCategoryOrder }) => {
+const ChristmasMenuSettings = ({ isOpen, onClose, menuConfig, onSaveMenu, onSync, onDeleteItem, categoryOrder = [], onSaveCategoryOrder }) => {
     const [editingItem, setEditingItem] = useState(null); // null = list view, index = editing
     const [tempItem, setTempItem] = useState({ sku: '', description: '', category: 'FGC', priceLeg: 0, priceSor: 0 });
 
@@ -11,6 +11,8 @@ const ChristmasMenuSettings = ({ isOpen, onClose, menuConfig, onSaveMenu, onSync
     // Default Categories Config (for Metadata)
     const STANDARD_CAT_META = {
         'FGCK': { label: 'Cakes 🎂', color: 'bg-pink-50 border-pink-200' },
+        'CAKE': { label: 'Cakes 🎂', color: 'bg-pink-50 border-pink-200' }, // Alias for typical SKU
+        'Cake': { label: 'Cakes 🎂', color: 'bg-pink-50 border-pink-200' }, // Case sensitive alias
         'FGC': { label: 'Cups 🍦', color: 'bg-orange-50 border-orange-200' },
         'FGP': { label: 'Pints 🍨', color: 'bg-red-50 border-red-200' },
         'FGL': { label: 'Liters 🥛', color: 'bg-yellow-50 border-yellow-200' },
@@ -72,10 +74,20 @@ const ChristmasMenuSettings = ({ isOpen, onClose, menuConfig, onSaveMenu, onSync
         setEditingItem(null);
     };
 
-    const handleDelete = (index) => {
-        if (confirm("Delete this item?")) {
-            const newMenu = menuConfig.filter((_, i) => i !== index);
-            onSaveMenu(newMenu);
+    const handleDelete = async (index) => {
+        const item = menuConfig[index];
+        if (confirm(`Permanently delete "${item.description}" (${item.sku})? This cannot be undone.`)) {
+            if (onDeleteItem) {
+                // Direct Cloud Deletion
+                const success = await onDeleteItem(item.sku);
+                if (success) {
+                    // Local state is updated by parent, but we can optimistically redundant update too
+                }
+            } else {
+                // Fallback (Local Only)
+                const newMenu = menuConfig.filter((_, i) => i !== index);
+                onSaveMenu(newMenu);
+            }
         }
     };
 

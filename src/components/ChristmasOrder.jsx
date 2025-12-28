@@ -804,7 +804,7 @@ const ChristmasOrder = () => {
                 username: "New Year Order Bot",
                 avatar_url: "https://cdn-icons-png.flaticon.com/512/3600/3600938.png", // Generic festive icon
                 embeds: [{
-                    title: isUpdate ? "🎆 New Year Order Updated! 📝 [v2.3.2]" : "🎆 New Year Order Received! 🎁 [v2.3.2]",
+                    title: isUpdate ? "🎆 New Year Order Updated! 📝 [v2.3.4]" : "🎆 New Year Order Received! 🎁 [v2.3.4]",
                     color: isUpdate ? 3447003 : 16752384, // Blue for Update, Orange/Gold for New
                     fields: [
                         { name: "Reseller Name", value: resellerName, inline: true },
@@ -849,6 +849,21 @@ const ChristmasOrder = () => {
     // Save Menu Config
     const handleSaveMenu = (newMenu) => {
         setMenuConfig(newMenu);
+    };
+
+    // Direct Delete for Menu Items (Fixes Zombie Items)
+    const handleDeleteMenuItem = async (sku) => {
+        const { error } = await supabase.from('inventory').delete().eq('sku', sku);
+        if (error) {
+            console.error("Failed to delete item from cloud:", error);
+            showToast("Failed to delete item: " + error.message, 'error');
+            return false;
+        } else {
+            setMenuConfig(prev => prev.filter(i => i.sku !== sku));
+            setInventory(prev => prev.filter(i => i.sku !== sku)); // Update local inventory cache too
+            showToast(`${sku} deleted successfully`, 'success');
+            return true;
+        }
     };
 
     // Filter items for Modal
@@ -898,7 +913,7 @@ const ChristmasOrder = () => {
 
                     <div className="text-left md:text-right hidden md:block">
                         <h2 className="text-xl md:text-3xl font-black text-[#E5562E] tracking-tight flex items-center gap-2 px-4 py-2 bg-white/50 rounded-xl border border-[#E5562E]/10">
-                            Happy New Year! 🎆
+                            Happy New Year! 🎆 <span className="text-xs text-[#510813]/20 font-mono">v2.3.4</span>
                         </h2>
                     </div>
 
@@ -1351,10 +1366,10 @@ const ChristmasOrder = () => {
                     <ChristmasMenuSettings
                         isOpen={isMenuOpen}
                         onClose={() => setIsMenuOpen(false)}
-                        menuConfig={menuConfig || []}
+                        menuConfig={menuConfig}
                         onSaveMenu={handleSaveMenu}
-                        inventory={inventory}
                         onSync={syncMenuToCloud}
+                        onDeleteItem={handleDeleteMenuItem}
                         categoryOrder={categoryOrder}
                         onSaveCategoryOrder={handleSaveCategoryOrder}
                     />
