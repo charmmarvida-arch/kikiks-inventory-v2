@@ -218,8 +218,8 @@ const LocationDashboard = () => {
     };
 
     const handleEditOrder = (order) => {
-        setEditingOrder(order);
-        setShowEditModal(true);
+        // Navigate to Transfer Location page with edit mode
+        navigate(`/transfer?edit=${order.id}`);
     };
 
     const handleSaveEdit = async () => {
@@ -353,8 +353,9 @@ const LocationDashboard = () => {
                                             <div className="std-action-wrapper">
                                                 <button
                                                     onClick={() => handleEditOrder(order)}
-                                                    className="std-icon-btn"
-                                                    title="Edit Order"
+                                                    disabled={order.status === 'Completed'}
+                                                    className={`std-icon-btn ${order.status === 'Completed' ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                    title={order.status === 'Completed' ? 'Cannot edit completed orders' : 'Edit Order'}
                                                 >
                                                     <Edit2 size={18} />
                                                 </button>

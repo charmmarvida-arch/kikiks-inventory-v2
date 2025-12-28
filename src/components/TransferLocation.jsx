@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useInventory } from '../context/InventoryContext';
 import {
     Settings, X, Save, Package, Coffee, Droplet, Box as BoxIcon,
@@ -69,6 +70,7 @@ const OTHERS_CATEGORY = { id: 'OTHERS', name: 'Others', icon: Package, color: '#
 const WAREHOUSE_LOCATIONS = ['FTF Manufacturing', 'Legazpi Storage'];
 
 const TransferLocation = ({ isPublic = false }) => {
+    const location = useLocation();
     const {
         inventory,
         legazpiInventory,
@@ -76,6 +78,8 @@ const TransferLocation = ({ isPublic = false }) => {
         locationSRPs,
         updateLocationCategoryPrices,
         addTransferOrder,
+        updateTransferOrder,
+        transferOrders,
         addStock,
         addLegazpiStock,
         addLegazpiProduct,
@@ -90,6 +94,11 @@ const TransferLocation = ({ isPublic = false }) => {
         deleteKikiksLocation,
         updateLocationSRP
     } = useInventory();
+
+    // Edit Mode Detection
+    const searchParams = new URLSearchParams(location.search);
+    const editOrderId = searchParams.get('edit');
+    const isEditMode = !!editOrderId;
 
     // State declarations
     const [fromLocation, setFromLocation] = useState('FTF Manufacturing');
@@ -118,6 +127,18 @@ const TransferLocation = ({ isPublic = false }) => {
     const [activeTab, setActiveTab] = useState('add'); // 'add' | 'manage'
     const [managementSearchTerm, setManagementSearchTerm] = useState('');
     const [editingItem, setEditingItem] = useState(null);
+
+    // Pre-fill form when editing
+    useEffect(() => {
+        if (isEditMode && editOrderId && transferOrders) {
+            const orderToEdit = transferOrders.find(o => o.id === editOrderId);
+            if (orderToEdit) {
+                setFromLocation(orderToEdit.from_location || 'FTF Manufacturing');
+                setToLocation(orderToEdit.destination);
+                setQuantities(orderToEdit.items || {});
+            }
+        }
+    }, [isEditMode, editOrderId, transferOrders]);
 
     // --- LOGIC: Item Management ---
     const handleAddItem = async () => {
@@ -375,20 +396,36 @@ const TransferLocation = ({ isPublic = false }) => {
 
         try {
             setIsSubmitting(true);
-            const newOrder = {
-                from_location: fromLocation,
-                destination: toLocation,
-                items: transferItems,
-                total_amount: grandTotals.totalValue,
-                status: 'Unread',
-                type: 'Transfer'
-            };
 
-            await addTransferOrder(newOrder);
-            sendDiscordNotification(newOrder).catch(console.error);
-            setShowToast(true);
-            setQuantities({});
-            setToLocation('');
+            if (isEditMode && editOrderId) {
+                // UPDATE existing order
+                await updateTransferOrder(editOrderId, {
+                    items: transferItems,
+                    total_amount: grandTotals.totalValue
+                });
+                alert('Transfer order updated successfully!');
+                setShowToast(true);
+                setQuantities({});
+                setToLocation('');
+                // Navigate back or stay, depending on UX preference
+                // window.history.back(); // Optional: go back to branch dashboard
+            } else {
+                // CREATE new order
+                const newOrder = {
+                    from_location: fromLocation,
+                    destination: toLocation,
+                    items: transferItems,
+                    total_amount: grandTotals.totalValue,
+                    status: 'Unread',
+                    type: 'Transfer'
+                };
+
+                await addTransferOrder(newOrder);
+                sendDiscordNotification(newOrder).catch(console.error);
+                setShowToast(true);
+                setQuantities({});
+                setToLocation('');
+            }
         } catch (error) {
             console.error('Transfer error:', error);
             alert('Failed to submit transfer: ' + error.message);
@@ -619,7 +656,7 @@ const TransferLocation = ({ isPublic = false }) => {
                                             ) : (
                                                 <>
                                                     <FileText size={20} strokeWidth={3} />
-                                                    <span>CONFIRM TRANSFER</span>
+                                                    <span>{isEditMode ? 'UPDATE ORDER' : 'CONFIRM TRANSFER'}</span>
                                                 </>
                                             )}
                                         </button>
