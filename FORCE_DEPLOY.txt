@@ -3,8 +3,9 @@
 This file triggers a new deployment.
 
 Changes:
-- Fixed Category Mapping: 'CAKE' and 'Cake' SKUs now correctly appear under "Cakes 🎂".
-- Addressed empty subcategories issue in fresh sessions.
+- Normalized Category ID: Merged 'CAKE' and 'FGCK' to fix split categories.
+- 'Status Bar' (Dropdown) options confirmed in History Modal.
+- Mobile sorting alignment fixed.
 
-Version: 2.3.5
+Version: 2.3.6
 Date: 2025-12-28

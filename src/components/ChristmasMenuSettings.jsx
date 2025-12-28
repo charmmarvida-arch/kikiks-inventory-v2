@@ -24,7 +24,9 @@ const ChristmasMenuSettings = ({ isOpen, onClose, menuConfig, onSaveMenu, onSync
         // 1. Get all unique prefixes from menuConfig + Standard
         const prefixes = new Set(Object.keys(STANDARD_CAT_META));
         menuConfig.forEach(item => {
-            const prefix = item.sku.split('-')[0];
+            let prefix = item.sku.split('-')[0];
+            // Normalize Cake aliases to FGCK
+            if (prefix === 'CAKE' || prefix === 'Cake') prefix = 'FGCK';
             if (prefix) prefixes.add(prefix);
         });
 
@@ -262,7 +264,12 @@ const ChristmasMenuSettings = ({ isOpen, onClose, menuConfig, onSaveMenu, onSync
                                     </div>
                                     <div className="divide-y divide-gray-200/50">
                                         {menuConfig
-                                            .filter(item => item.sku === cat.id || item.sku.startsWith(cat.id + '-'))
+                                            .filter(item => {
+                                                const p = item.sku.split('-')[0];
+                                                // Check exact match OR alias match for Cakes
+                                                if (cat.id === 'FGCK') return p === 'FGCK' || p === 'CAKE' || p === 'Cake';
+                                                return p === cat.id;
+                                            })
                                             .map((item, idx) => {
                                                 const originalIndex = menuConfig.indexOf(item);
                                                 return (
