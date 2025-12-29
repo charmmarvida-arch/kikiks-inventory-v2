@@ -365,9 +365,9 @@ const ChristmasOrder = () => {
 
     // --- State ---
     const [resellerName, setResellerName] = useState('');
+    const [contactNumber, setContactNumber] = useState(''); // Optional field
     // const [deliveryMethod, setDeliveryMethod] = useState('pickup'); // REMOVED: Always pickup
     // const [address, setAddress] = useState(''); // REMOVED: No delivery
-    // const [contactNumber, setContactNumber] = useState(''); // REMOVED
     const [scheduleDate, setScheduleDate] = useState('2025-12-31');
     const [scheduleTime, setScheduleTime] = useState('');
 
@@ -388,7 +388,7 @@ const ChristmasOrder = () => {
                 if (draft.cart && Object.keys(draft.cart).length > 0) {
                     setCart(draft.cart);
                     setResellerName(draft.resellerName || '');
-                    // setAddress(draft.address || ''); // Removed
+                    setContactNumber(draft.contactNumber || ''); // Restore contact number
                 }
             } catch (error) {
                 console.error('Error restoring draft:', error);
@@ -509,16 +509,16 @@ const ChristmasOrder = () => {
 
     // Auto-Save to localStorage
     useEffect(() => {
-        if (Object.keys(cart).length > 0 || resellerName) {
+        if (Object.keys(cart).length > 0 || resellerName || contactNumber) {
             const draft = {
                 cart,
                 resellerName,
-                // address, // Removed
+                contactNumber, // Include contact number in draft
                 timestamp: new Date().toISOString()
             };
             localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
         }
-    }, [cart, resellerName]);
+    }, [cart, resellerName, contactNumber]);
 
     // Browser Navigation Warning
     useEffect(() => {
@@ -745,6 +745,7 @@ const ChristmasOrder = () => {
                         { name: "Location", value: location, inline: true },
                         { name: "Schedule", value: `${scheduleDate} @ ${scheduleTime}`, inline: true },
                         { name: "Total Amount", value: `₱${cartTotal.toLocaleString()}`, inline: true },
+                        ...(contactNumber ? [{ name: "Contact Number", value: contactNumber, inline: true }] : []),
                         { name: "Details", value: "Customer will pick up at store." },
                         { name: "Order Items", value: itemsList || "No items?" }
                     ],
@@ -807,14 +808,22 @@ const ChristmasOrder = () => {
 
             {/* --- Top Bar --- */}
             <div className="bg-[#FEFCE8]/80 backdrop-blur-md px-4 md:px-8 py-4 md:py-6 z-10 flex flex-col-reverse md:flex-row justify-between items-center gap-4 md:gap-0 border-b border-[#510813]/10 shadow-sm">
-                <div className="flex gap-4 items-center w-full md:w-auto">
+                <div className="flex flex-col md:flex-row gap-3 md:gap-4 items-stretch md:items-center w-full md:w-auto">
                     {/* Reseller Name Input */}
                     <input
                         type="text"
                         placeholder="Enter Your Name..."
                         value={resellerName}
                         onChange={e => setResellerName(e.target.value)}
-                        className="w-full md:min-w-[300px] bg-white border-2 border-[#E5562E] text-[#510813] placeholder-[#510813]/40 px-6 py-3 rounded-full font-bold shadow-sm hover:shadow-md transition-all outline-none focus:ring-4 ring-[#E5562E]/20 text-lg"
+                        className="w-full md:min-w-[250px] bg-white border-2 border-[#E5562E] text-[#510813] placeholder-[#510813]/40 px-6 py-3 rounded-full font-bold shadow-sm hover:shadow-md transition-all outline-none focus:ring-4 ring-[#E5562E]/20 text-lg"
+                    />
+                    {/* Contact Number Input (Optional) */}
+                    <input
+                        type="tel"
+                        placeholder="Contact Number (Optional)"
+                        value={contactNumber}
+                        onChange={e => setContactNumber(e.target.value)}
+                        className="w-full md:min-w-[200px] bg-white border-2 border-[#510813]/20 text-[#510813] placeholder-[#510813]/40 px-6 py-3 rounded-full font-medium shadow-sm hover:shadow-md transition-all outline-none focus:ring-4 ring-[#510813]/10 text-lg"
                     />
                 </div>
 
