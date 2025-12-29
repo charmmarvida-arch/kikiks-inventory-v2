@@ -728,7 +728,7 @@ const ChristmasOrder = () => {
             const WEBHOOK_URL = "https://discord.com/api/webhooks/1451752534820519969/m0cBK-p_JiXIUzIXn0ym2Sx-y6_jmj0O7K5TMhSLC7Q2gP8AaGGC6sScmA52V29X3bTH";
 
             const itemsList = Object.entries(cart).map(([sku, qty]) => {
-                const item = mergedInventory.find(i => i.sku === sku);
+                const item = inventory.find(i => i.sku === sku);
                 const desc = item ? item.description : sku;
                 return `- **${desc}**: x${qty}`;
             }).join('\n');
@@ -870,20 +870,12 @@ const ChristmasOrder = () => {
                             </div>
                             <div className="flex-1">
                                 <label className="text-[#510813]/70 text-sm block mb-1 font-medium">Pick Up Time</label>
-                                <select
+                                <input
+                                    type="time"
                                     value={scheduleTime}
                                     onChange={e => setScheduleTime(e.target.value)}
-                                    className="w-full bg-white border-2 border-[#510813]/10 h-14 px-3 rounded-xl text-lg font-bold text-[#510813] focus:border-[#E5562E] focus:outline-none transition-colors appearance-none cursor-pointer"
-                                >
-                                    <option value="">Select time...</option>
-                                    <option value="ANYTIME">ANYTIME (Flexible)</option>
-                                    <option value="09:00">9:00 AM</option>
-                                    <option value="10:00">10:00 AM</option>
-                                    <option value="12:00">12:00 PM</option>
-                                    <option value="14:00">2:00 PM</option>
-                                    <option value="16:00">4:00 PM</option>
-                                    <option value="18:00">6:00 PM</option>
-                                </select>
+                                    className="w-full bg-white border-2 border-[#510813]/10 h-14 px-3 rounded-xl text-lg font-bold text-[#510813] focus:border-[#E5562E] focus:outline-none transition-colors"
+                                />
                             </div>
                         </div>
                     </div>
