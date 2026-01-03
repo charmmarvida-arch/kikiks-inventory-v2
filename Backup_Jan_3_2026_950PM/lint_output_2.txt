@@ -1,0 +1,8 @@
+
+C:\Users\LENOVO\OneDrive\Desktop\Kikiks Inventory\src\components\ChristmasOrder.jsx
+  188:12  error  'isFinalConfirmOpen' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+  190:12  error  'createdOrderId' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u      no-unused-vars
+  757:34  error  'isOpen' is defined but never used                                                                  no-unused-vars
+
+✖ 3 problems (3 errors, 0 warnings)
+

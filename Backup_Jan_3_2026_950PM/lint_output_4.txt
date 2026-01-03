@@ -1,0 +1,6 @@
+
+C:\Users\LENOVO\OneDrive\Desktop\Kikiks Inventory\src\components\ChristmasOrder.jsx
+  189:12  error  'createdOrderId' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+✖ 1 problem (1 error, 0 warnings)
+
