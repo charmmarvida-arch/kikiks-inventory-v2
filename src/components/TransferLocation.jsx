@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useInventory } from '../context/InventoryContext';
+import { useBranchInventory } from '../context/BranchInventoryContext';
 import {
     Settings, X, Save, Package, Coffee, Droplet, Box as BoxIcon,
     ChevronRight, ShoppingCart, Search, AlertCircle, FileText, CheckCircle,
     Sun, Flower2, Leaf, Utensils, IceCream, Box, Grid,
-    ShoppingBag, MapPin, DollarSign, Trash2, Plus, Edit2, Check
+    ShoppingBag, MapPin, DollarSign, Trash2, Plus, Edit2, Check, Store
 } from 'lucide-react';
 import Toast from './Toast';
 
@@ -94,6 +95,9 @@ const TransferLocation = ({ isPublic = false }) => {
         deleteKikiksLocation,
         updateLocationSRP
     } = useInventory();
+
+    // Branch inventory context for showing branch stock
+    const { getBranchStock, getCapacitySetting, getTotalStockBySize } = useBranchInventory();
 
     // Edit Mode Detection
     const searchParams = new URLSearchParams(location.search);
@@ -699,8 +703,16 @@ const TransferLocation = ({ isPublic = false }) => {
                                     <thead className="bg-gray-50 sticky top-0 z-10">
                                         <tr>
                                             <th className="p-4 text-xs font-bold text-gray-500 uppercase">Item Description</th>
-                                            {isBranch && <th className="p-4 text-xs font-bold text-gray-500 uppercase text-right">Price (SRP)</th>}
-                                            <th className="p-4 text-xs font-bold text-gray-500 uppercase text-center">In Stock</th>
+                                            <th className="p-4 text-xs font-bold text-gray-500 uppercase text-center">Warehouse Stock</th>
+                                            {toLocation && !WAREHOUSE_LOCATIONS.includes(toLocation) && (
+                                                <>
+                                                    <th className="p-4 text-xs font-bold text-gray-500 uppercase text-center">
+                                                        <Store size={14} className="inline mr-1" />
+                                                        Branch Stock
+                                                    </th>
+                                                    <th className="p-4 text-xs font-bold text-gray-500 uppercase text-center">Capacity</th>
+                                                </>
+                                            )}
                                             <th className="p-4 text-xs font-bold text-gray-500 uppercase text-center w-32">Transfer Qty</th>
                                         </tr>
                                     </thead>
@@ -710,22 +722,84 @@ const TransferLocation = ({ isPublic = false }) => {
                                             const qty = quantities[item.sku] || 0;
                                             const isSelected = qty > 0;
 
+                                            // Get branch stock and capacity if transferring to a branch
+                                            const branchStock = toLocation && !WAREHOUSE_LOCATIONS.includes(toLocation)
+                                                ? getBranchStock(toLocation, item.sku)
+                                                : null;
+                                            const capacityInfo = toLocation && !WAREHOUSE_LOCATIONS.includes(toLocation)
+                                                ? getCapacitySetting(toLocation, item.sku)
+                                                : null;
+
+                                            const stockAfterTransfer = branchStock !== null && qty > 0
+                                                ? branchStock + qty
+                                                : branchStock;
+                                            const isOverCapacity = capacityInfo && stockAfterTransfer > capacityInfo.max_capacity;
+                                            const isLowStock = capacityInfo && branchStock < capacityInfo.min_stock_level;
+
+                                            // Calculate total stock for this size category (all flavors combined)
+                                            // Correctly sum up ALL transfers for this category in the current cart
+                                            const fullCategoryList = productsByCategory[activeCategory] || [];
+                                            const totalTransferQtyForCategory = fullCategoryList.reduce((sum, i) => sum + (quantities[i.sku] || 0), 0);
+
+                                            const totalSizeStock = toLocation && !WAREHOUSE_LOCATIONS.includes(toLocation) && capacityInfo
+                                                ? getTotalStockBySize(toLocation, item.sku)
+                                                : 0;
+
+                                            // The projected total is (Current Branch Stock) + (Total Qty being transferred for this category)
+                                            const totalAfterTransfer = totalSizeStock + totalTransferQtyForCategory;
+
                                             return (
                                                 <tr key={item.sku} className={`hover:bg-[#F3EBD8]/30 transition-colors ${isSelected ? 'bg-[#F3EBD8]/50' : ''}`}>
                                                     <td className="p-4 align-middle">
                                                         <div className="font-bold text-[#510813] text-lg">{item.description}</div>
                                                         <div className="text-xs text-gray-400 font-mono">{item.sku}</div>
                                                     </td>
-                                                    {isBranch && (
-                                                        <td className="p-4 text-right align-middle text-sm font-bold text-gray-600">
-                                                            ₱{price.toLocaleString()}
-                                                        </td>
-                                                    )}
                                                     <td className="p-4 text-center align-middle">
                                                         <span className={`px-2 py-1 rounded text-xs font-bold ${item.quantity > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                                                             {item.quantity} {item.uom}
                                                         </span>
                                                     </td>
+                                                    {toLocation && !WAREHOUSE_LOCATIONS.includes(toLocation) && (
+                                                        <>
+                                                            <td className="p-4 text-center align-middle">
+                                                                {branchStock !== null ? (
+                                                                    <div className="space-y-1">
+                                                                        <div className={`px-2 py-1 rounded text-xs font-bold ${isLowStock ? 'bg-red-100 text-red-700' :
+                                                                            branchStock > 50 ? 'bg-green-100 text-green-700' :
+                                                                                'bg-yellow-100 text-yellow-700'
+                                                                            }`}>
+                                                                            {branchStock}
+                                                                        </div>
+                                                                        {qty > 0 && (
+                                                                            <div className="text-xs text-gray-500">
+                                                                                → {stockAfterTransfer}
+                                                                                {isOverCapacity && <span className="text-red-600 ml-1">⚠️</span>}
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                ) : (
+                                                                    <span className="text-xs text-gray-400">No data</span>
+                                                                )}
+                                                            </td>
+                                                            <td className="p-4 text-center align-middle">
+                                                                {capacityInfo ? (
+                                                                    <div className="text-xs space-y-1">
+                                                                        <div className="font-bold text-gray-700">
+                                                                            Total: {totalSizeStock} / {capacityInfo.max_capacity}
+                                                                        </div>
+                                                                        {qty > 0 && (
+                                                                            <div className={`text-xs ${isOverCapacity ? 'text-red-600 font-bold' : 'text-gray-500'}`}>
+                                                                                After: {totalAfterTransfer}
+                                                                                {isOverCapacity && <span className="ml-1">⚠️ Over!</span>}
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                ) : (
+                                                                    <span className="text-xs text-gray-400">-</span>
+                                                                )}
+                                                            </td>
+                                                        </>
+                                                    )}
                                                     <td className="p-4 align-middle">
                                                         <div className="flex justify-center">
                                                             <input
@@ -855,11 +929,14 @@ function LocationSettingsModal({ onClose }) {
         updateLegazpiProduct, deleteLegazpiProduct, updateSku, deleteSku
     } = useInventory();
 
+    const { branchCapacitySettings, setCapacity } = useBranchInventory();
+
     const [activeTab, setActiveTab] = useState('locations'); // locations, pricing, inventory
 
     const TABS = [
         { id: 'locations', label: 'Locations', icon: MapPin },
         { id: 'pricing', label: 'Price List', icon: DollarSign },
+        { id: 'capacities', label: 'Capacities', icon: Store },
         { id: 'inventory', label: 'Inventory (Warehouses)', icon: BoxIcon },
     ];
 
@@ -902,14 +979,21 @@ function LocationSettingsModal({ onClose }) {
 
                 {/* Content Area */}
                 <div className="modal-body p-0 flex-1 overflow-y-auto bg-gray-50/50">
-                    {activeTab === 'locations' && <LocationsTab locations={kikiksLocations} addLocation={addKikiksLocation} updateLocation={updateKikiksLocation} deleteLocation={deleteKikiksLocation} />}
-                    {activeTab === 'pricing' && <PricingTab locations={kikiksLocations} locationSRPs={locationSRPs} updatePrices={updateLocationCategoryPrices} />}
-                    {activeTab === 'inventory' && <InventoryTab
-                        warehouses={WAREHOUSE_LOCATIONS}
-                        legazpiInventory={legazpiInventory}
-                        inventory={inventory}
-                        actions={{ addLegazpiProduct, updateLegazpiProduct, deleteLegazpiProduct, addSku, updateSku, deleteSku, addStock }}
-                    />}
+                    <ErrorBoundary>
+                        {activeTab === 'locations' && <LocationsTab locations={kikiksLocations} addLocation={addKikiksLocation} updateLocation={updateKikiksLocation} deleteLocation={deleteKikiksLocation} />}
+                        {activeTab === 'pricing' && <PricingTab locations={kikiksLocations} locationSRPs={locationSRPs} updatePrices={updateLocationCategoryPrices} />}
+                        {activeTab === 'inventory' && <InventoryTab
+                            warehouses={WAREHOUSE_LOCATIONS}
+                            legazpiInventory={legazpiInventory}
+                            inventory={inventory}
+                            actions={{ addLegazpiProduct, updateLegazpiProduct, deleteLegazpiProduct, addSku, updateSku, deleteSku, addStock }}
+                        />}
+                        {activeTab === 'capacities' && <CapacitiesTab
+                            locations={kikiksLocations}
+                            capacitySettings={branchCapacitySettings}
+                            setCapacity={setCapacity}
+                        />}
+                    </ErrorBoundary>
                 </div>
             </div>
         </div>
@@ -1273,5 +1357,136 @@ const InventoryTab = ({ warehouses, legazpiInventory, inventory, actions }) => {
         </div>
     );
 };
+
+
+const CapacitiesTab = ({ locations = [], capacitySettings = [], setCapacity }) => {
+    // We want to manage capacity per Branch per Size Category
+    const SIZES = ['Cups', 'Pints', 'Liters', 'Gallons', 'Trays'];
+
+    // Debug log to trace potential issues
+    console.log('CapacitiesTab Render:', { locationsVar: locations, type: typeof locations, settings: capacitySettings });
+
+    // Safeguard if locations is not an array (e.g. null/undefined passed despite default)
+    const safeLocations = Array.isArray(locations) ? locations : [];
+
+    const getCapacity = (branch, size) => {
+        const setting = capacitySettings?.find(c => c.branch_location === branch && c.size_category === size);
+        return setting || { max_capacity: 0, min_stock_level: 0 };
+    };
+
+    const handleUpdate = async (branch, size, field, value) => {
+        const current = getCapacity(branch, size);
+        const update = { ...current, [field]: parseInt(value) || 0 };
+        // If it was a new entry, current might be a dummy object, but setCapacity handles upsert
+        await setCapacity(branch, size, {
+            max_capacity: update.max_capacity,
+            min_stock_level: update.min_stock_level
+        });
+    };
+
+    if (safeLocations.length === 0) {
+        return <div className="p-6 text-center text-gray-500">No branch locations found. Please add branches in the Locations tab.</div>;
+    }
+
+    return (
+        <div className="p-6">
+            <div className="mb-6">
+                <h4 className="font-bold text-lg text-gray-800">Branch Capacities</h4>
+                <p className="text-sm text-gray-500">Set maximum storage capacity and reorder points for each branch.</p>
+            </div>
+
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-x-auto">
+                <table className="w-full text-left">
+                    <thead className="bg-[#510813] text-white text-xs font-semibold uppercase">
+                        <tr>
+                            <th className="p-4 rounded-tl-xl w-48 sticky left-0 bg-[#510813] z-10">Branch</th>
+                            {SIZES.map((size, idx) => (
+                                <th key={size} className={`p-4 text-center min-w-[140px] ${idx === SIZES.length - 1 ? 'rounded-tr-xl' : ''}`}>
+                                    {size}
+                                </th>
+                            ))}
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                        {safeLocations.map((loc, idx) => (
+                            <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
+                                <td className="p-4 font-bold text-gray-800 border-r border-gray-100 sticky left-0 bg-white z-10 shadow-sm">{loc}</td>
+                                {SIZES.map(size => {
+                                    const cap = getCapacity(loc, size);
+                                    return (
+                                        <td key={size} className="p-3">
+                                            <div className="flex flex-col gap-2">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-[10px] text-gray-400 font-bold w-8">MAX</span>
+                                                    <input
+                                                        type="number"
+                                                        defaultValue={cap.max_capacity || ''}
+                                                        onBlur={(e) => handleUpdate(loc, size, 'max_capacity', e.target.value)}
+                                                        className="w-full p-1 text-center border rounded bg-gray-50 focus:bg-white focus:ring-1 focus:ring-[#E5562E] text-sm font-bold"
+                                                        placeholder="-"
+                                                    />
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-[10px] text-gray-400 font-bold w-8">MIN</span>
+                                                    <input
+                                                        type="number"
+                                                        defaultValue={cap.min_stock_level || ''}
+                                                        onBlur={(e) => handleUpdate(loc, size, 'min_stock_level', e.target.value)}
+                                                        className="w-full p-1 text-center border rounded bg-gray-50 focus:bg-white focus:ring-1 focus:ring-blue-500 text-sm"
+                                                        placeholder="-"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </td>
+                                    );
+                                })}
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+            <p className="mt-4 text-xs text-center text-gray-400">
+                Values are saved automatically when you click outside the field.
+            </p>
+        </div>
+    );
+};
+
+// Simple Error Boundary for Debugging
+class ErrorBoundary extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = { hasError: false, error: null };
+    }
+
+    static getDerivedStateFromError(error) {
+        return { hasError: true, error };
+    }
+
+    componentDidCatch(error, errorInfo) {
+        console.error("Uncaught error:", error, errorInfo);
+    }
+
+    render() {
+        if (this.state.hasError) {
+            return (
+                <div className="p-6 bg-red-50 text-red-900 rounded-lg">
+                    <h3 className="font-bold text-lg mb-2">Something went wrong.</h3>
+                    <pre className="text-xs bg-red-100 p-2 overflow-auto whitespace-pre-wrap">
+                        {this.state.error && this.state.error.toString()}
+                    </pre>
+                    <button
+                        onClick={() => this.setState({ hasError: false })}
+                        className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                    >
+                        Try Again
+                    </button>
+                </div>
+            );
+        }
+
+        return this.props.children;
+    }
+}
 
 export default TransferLocation;

@@ -12,7 +12,8 @@ import {
   Box,
   Store,
   Layers,
-  Gift
+  Gift,
+  BarChart3
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useInventory } from '../context/InventoryContext';
@@ -125,6 +126,9 @@ const Sidebar = ({ isOpen, onClose }) => {
                 </NavLink>
                 <NavLink to="/transfer" className={({ isActive }) => `submenu-item ${isActive ? 'active' : ''}`} onClick={onClose}>
                   <span>Transfer Location</span>
+                </NavLink>
+                <NavLink to="/branch-inventory" className={({ isActive }) => `submenu-item ${isActive ? 'active' : ''}`} onClick={onClose}>
+                  <span>Branch Inventory</span>
                 </NavLink>
               </div>
             </div>

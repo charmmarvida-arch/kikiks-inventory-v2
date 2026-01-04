@@ -123,10 +123,9 @@ export const InventoryProvider = ({ children }) => {
                     date: order.date,
                     status: order.status,
                     isDeducted: order.is_deducted,
-                    hasPackingList: order.has_packing_list, // Add this
-                    hasCOA: order.has_coa,                  // Add this
-                    hasCOA: order.has_coa,                  // Add this
-                    coaData: order.coa_data,                // Add this
+                    hasPackingList: order.has_packing_list,
+                    hasCOA: order.has_coa,
+                    coaData: order.coa_data,
 
                     // Encoding Status
                     is_encoded: order.is_encoded,

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useInventory } from '../context/InventoryContext';
-import { Settings, Edit2, Save, X, Search, Download, Plus, Trash2, History, Eye } from 'lucide-react';
+import { Settings, Edit2, Save, X, Search, Download, Plus, Trash2, History, Eye, Printer } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 import { useAuth } from '../context/AuthContext';
 import { generateTransferPackingList } from '../utils/pdfGenerator';
@@ -330,6 +330,14 @@ const LegazpiStorage = () => {
                     >
                         <History size={18} className="mr-2" />
                         Legazpi Storage History
+                    </button>
+                    <button
+                        onClick={() => window.open('/print-stocks/Legazpi Storage', '_blank')}
+                        className="submit-btn"
+                        style={{ backgroundColor: '#6b7280' }}
+                    >
+                        <Printer size={18} className="mr-2" />
+                        Print stocks
                     </button>
                     <button
                         onClick={() => setAddingProduct(true)}

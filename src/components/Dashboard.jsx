@@ -1,12 +1,76 @@
 import React, { useState } from 'react';
 import { useInventory } from '../context/InventoryContext';
+import { useBranchInventory } from '../context/BranchInventoryContext';
 import { useNavigate } from 'react-router-dom';
 import { Package, ShoppingCart, ArrowRightLeft, AlertTriangle, Search } from 'lucide-react';
 
 const Dashboard = () => {
     const { inventory, resellerOrders, transferOrders } = useInventory();
+    const { getBranchInventory, capacitySettings } = useBranchInventory();
     const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState('');
+
+    const branches = ['SM Sorsogon', 'SM Legazpi', 'Ayala Legazpi'];
+    const sizeCategories = ['Cups', 'Pints', 'Liters', 'Gallons'];
+
+    // Helper to extract size category from SKU (replicated from Context to avoid extra function calls or dependency)
+    const getSizeCategoryFromSku = (sku) => {
+        if (!sku) return null;
+        const prefix = sku.split('-')[0];
+        const sizeMap = {
+            'FGC': 'Cups',
+            'FGP': 'Pints',
+            'FGL': 'Liters',
+            'FGG': 'Gallons',
+            'FGT': 'Trays'
+        };
+        return sizeMap[prefix] || null;
+    };
+
+    // Helper to calculate capacity usage
+    const getCapacityStats = (branch) => {
+        const branchItems = getBranchInventory(branch);
+
+        // Find latest data timestamp
+        const timestamps = branchItems
+            .map(item => item.last_sync_date ? new Date(item.last_sync_date).getTime() : 0)
+            .filter(Boolean);
+
+        const latestDate = timestamps.length > 0
+            ? new Date(Math.max(...timestamps)).toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                hour: 'numeric',
+                minute: 'numeric'
+            })
+            : null;
+
+        const stats = sizeCategories.map(size => {
+            const settings = capacitySettings?.find(s =>
+                s.branch_location === branch && s.size_category === size
+            );
+
+            if (!settings || !settings.max_capacity) return null;
+
+            // Calculate current stock using SKU prefix matching
+            const currentStock = branchItems
+                .filter(item => getSizeCategoryFromSku(item.sku) === size)
+                .reduce((sum, item) => sum + (parseInt(item.current_stock) || 0), 0);
+
+            const percentage = Math.min(100, (currentStock / settings.max_capacity) * 100);
+
+            return {
+                size,
+                current: currentStock,
+                max: settings.max_capacity,
+                percentage,
+                isLow: currentStock < settings.min_stock_level,
+                isCritical: currentStock >= settings.max_capacity
+            };
+        }).filter(Boolean);
+
+        return { stats, latestDate };
+    };
 
     const lowStockCount = inventory.filter(i => i.quantity < 20).length;
     const pendingOrdersCount = resellerOrders.filter(o => o.status === 'Pending').length;
@@ -65,6 +129,64 @@ const Dashboard = () => {
                         <p className="text-secondary text-xs font-medium uppercase tracking-wide">Pending Transfers</p>
                         <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', margin: 0 }}>{pendingTransfersCount}</h3>
                     </div>
+                </div>
+            </div>
+
+            {/* Branch Capacity Overview */}
+            <div style={{ marginBottom: '1.5rem' }}>
+                <h3 className="card-heading" style={{ marginBottom: '1rem', fontSize: '1rem' }}>Branch Capacity Status</h3>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem' }}>
+                    {branches.map(branch => {
+                        const { stats, latestDate } = getCapacityStats(branch);
+                        // Only render card if there are stats or to encourage setting it up
+                        return (
+                            <div key={branch} className="card" style={{ padding: '1rem', marginBottom: 0 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+                                    <div style={{ padding: '0.4rem', borderRadius: '50%', backgroundColor: '#F3EBD8', color: '#510813' }}>
+                                        <Package size={16} />
+                                    </div>
+                                    <div style={{ flex: 1 }}>
+                                        <h4 style={{ margin: 0, fontSize: '0.9375rem', fontWeight: '600' }}>{branch}</h4>
+                                        {latestDate && (
+                                            <p style={{ margin: 0, fontSize: '0.7rem', color: '#6b7280' }}>
+                                                Data: {latestDate}
+                                            </p>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {stats.length > 0 ? (
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                        {stats.map(stat => (
+                                            <div key={stat.size}>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', marginBottom: '0.25rem' }}>
+                                                    <span className="text-secondary font-medium">{stat.size}</span>
+                                                    <span className={stat.isCritical ? 'text-red-600 font-bold' : stat.percentage > 80 ? 'text-amber-600 font-bold' : 'text-secondary'}>
+                                                        {stat.current} / {stat.max} ({Math.round(stat.percentage)}%)
+                                                        {stat.current > stat.max && ' ⚠️'}
+                                                    </span>
+                                                </div>
+                                                <div style={{ height: '6px', backgroundColor: 'var(--gray-100)', borderRadius: '3px', overflow: 'hidden' }}>
+                                                    <div
+                                                        style={{
+                                                            height: '100%',
+                                                            width: `${stat.percentage}%`,
+                                                            backgroundColor: stat.percentage > 90 ? '#dc2626' : stat.percentage > 70 ? '#f59e0b' : '#166534',
+                                                            transition: 'width 0.5s ease-in-out'
+                                                        }}
+                                                    />
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="text-secondary text-sm italic py-2 text-center bg-gray-50 rounded">
+                                        No capacity settings
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })}
                 </div>
             </div>
 
