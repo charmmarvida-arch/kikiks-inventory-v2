@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { useBranchInventory } from '../context/BranchInventoryContext';
-import { Upload, Search, BarChart3, X, AlertCircle, CheckCircle, FileText, AlertTriangle, Printer } from 'lucide-react';
+import { Upload, Search, BarChart3, X, AlertCircle, CheckCircle, FileText, AlertTriangle, Printer, DollarSign } from 'lucide-react';
 import { parseCSV, processUtakImport, getAvailableSKUs, validateImportData, detectBranchFromFilename, detectDateFromFilename } from '../utils/utakImport';
 import { Settings } from 'lucide-react';
 import Toast from './Toast';
+import BranchCapacitySettings from './BranchCapacitySettings';
+import BranchPriceSettings from './BranchPriceSettings';
 
 const BranchInventory = () => {
     const {
@@ -33,6 +35,7 @@ const BranchInventory = () => {
     const [detectedDate, setDetectedDate] = useState(null);
     const [branchMismatch, setBranchMismatch] = useState(false);
     const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+    const [isPriceSettingsModalOpen, setIsPriceSettingsModalOpen] = useState(false);
     const [capacityEdits, setCapacityEdits] = useState({});
     const [showToast, setShowToast] = useState(false);
 
@@ -169,6 +172,13 @@ const BranchInventory = () => {
                         </p>
                     </div>
                     <div className="flex gap-3">
+                        <button
+                            onClick={() => setIsPriceSettingsModalOpen(true)}
+                            className="flex items-center gap-2 bg-white text-[#510813] hover:bg-gray-100 border-2 border-[#510813]/20 px-4 py-3 rounded-full font-bold shadow-md transition-all"
+                        >
+                            <DollarSign size={20} className="text-[#E5562E]" />
+                            <span>Price Settings</span>
+                        </button>
                         <button
                             onClick={() => setIsSettingsModalOpen(true)}
                             className="flex items-center gap-2 bg-[#510813] hover:bg-[#3d0610] text-white px-6 py-3 rounded-full font-bold shadow-lg transition-all"
@@ -541,115 +551,18 @@ const BranchInventory = () => {
             {/* Capacity Settings Modal */}
             {isSettingsModalOpen && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl">
-                        <div className="flex justify-between items-center p-6 border-b border-gray-200 bg-[#510813]">
-                            <h2 className="text-2xl font-black text-white">
-                                Capacity Settings - {selectedBranch}
-                            </h2>
-                            <button
-                                onClick={() => setIsSettingsModalOpen(false)}
-                                className="p-2 hover:bg-white/10 rounded-full transition-colors text-white"
-                            >
-                                <X size={24} />
-                            </button>
-                        </div>
-
-                        <div className="p-6">
-                            <p className="text-sm text-gray-600 mb-6">
-                                Set maximum capacity for each size category (total for all flavors combined)
-                            </p>
-
-                            <div className="space-y-4">
-                                {['Cups', 'Pints', 'Liters', 'Gallons', 'Trays'].map(sizeCategory => {
-                                    // Safeguard: capacitySettings might be undefined initially
-                                    const settingsSafe = capacitySettings || [];
-                                    const existing = settingsSafe.find(
-                                        s => s.branch_location === selectedBranch && s.size_category === sizeCategory
-                                    );
-                                    const currentMax = capacityEdits[sizeCategory]?.max_capacity ?? existing?.max_capacity ?? 0;
-                                    const currentMin = capacityEdits[sizeCategory]?.min_stock_level ?? existing?.min_stock_level ?? 0;
-
-                                    return (
-                                        <div key={sizeCategory} className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl">
-                                            <div className="flex-1">
-                                                <div className="font-bold text-[#510813]">{sizeCategory}</div>
-                                                <div className="text-xs text-gray-500">All {sizeCategory.toLowerCase()} flavors combined</div>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <label className="text-sm font-bold text-gray-700">Max:</label>
-                                                <input
-                                                    type="number"
-                                                    min="0"
-                                                    value={currentMax}
-                                                    onChange={(e) => setCapacityEdits(prev => ({
-                                                        ...prev,
-                                                        [sizeCategory]: {
-                                                            ...prev[sizeCategory],
-                                                            max_capacity: parseInt(e.target.value) || 0
-                                                        }
-                                                    }))}
-                                                    className="w-24 px-3 py-2 rounded-lg border-2 border-gray-200 focus:border-[#E5562E] focus:ring-4 focus:ring-[#E5562E]/20 outline-none font-bold text-center"
-                                                />
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <label className="text-sm font-bold text-gray-700">Min:</label>
-                                                <input
-                                                    type="number"
-                                                    min="0"
-                                                    value={currentMin}
-                                                    onChange={(e) => setCapacityEdits(prev => ({
-                                                        ...prev,
-                                                        [sizeCategory]: {
-                                                            ...prev[sizeCategory],
-                                                            min_stock_level: parseInt(e.target.value) || 0
-                                                        }
-                                                    }))}
-                                                    className="w-24 px-3 py-2 rounded-lg border-2 border-gray-200 focus:border-[#E5562E] focus:ring-4 focus:ring-[#E5562E]/20 outline-none font-bold text-center"
-                                                />
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </div>
-
-                        <div className="p-6 border-t border-gray-200 flex justify-between bg-gray-50">
-                            <button
-                                onClick={() => {
-                                    setCapacityEdits({});
-                                    setIsSettingsModalOpen(false);
-                                }}
-                                className="px-6 py-3 rounded-xl bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold transition-all"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={async () => {
-                                    try {
-                                        for (const [sizeCategory, values] of Object.entries(capacityEdits)) {
-                                            // Updated signature: setCapacity(branchLocation, sizeCategory, capacityData)
-                                            await setCapacity(selectedBranch, sizeCategory, {
-                                                max_capacity: values.max_capacity,
-                                                min_stock_level: values.min_stock_level
-                                            });
-                                        }
-                                        await fetchBranchData();
-                                        setCapacityEdits({});
-                                        setIsSettingsModalOpen(false);
-                                        setShowToast(true);
-                                    } catch (error) {
-                                        alert('Failed to save settings: ' + error.message);
-                                    }
-                                }}
-                                disabled={Object.keys(capacityEdits).length === 0}
-                                className="px-8 py-3 rounded-xl bg-[#E5562E] hover:bg-[#c94925] text-white font-bold shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                Save Changes
-                            </button>
-                        </div>
-                    </div>
+                    <BranchCapacitySettings
+                        isOpen={isSettingsModalOpen}
+                        onClose={() => setIsSettingsModalOpen(false)}
+                    />
                 </div>
             )}
+
+            <BranchPriceSettings
+                isOpen={isPriceSettingsModalOpen}
+                onClose={() => setIsPriceSettingsModalOpen(false)}
+                branchLocation={selectedBranch}
+            />
 
             {showToast && <Toast message="Capacity settings saved!" onClose={() => setShowToast(false)} />}
         </div>

@@ -1,0 +1,126 @@
+import React, { useState } from 'react';
+import { X } from 'lucide-react';
+import { useBranchInventory } from '../context/BranchInventoryContext';
+import Toast from './Toast';
+
+const BranchCapacitySettings = ({ isOpen, onClose }) => {
+    const { selectedBranch, capacitySettings, setCapacity, fetchBranchData } = useBranchInventory();
+    const [capacityEdits, setCapacityEdits] = useState({});
+    const [showToast, setShowToast] = useState(false);
+
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl">
+                <div className="flex justify-between items-center p-6 border-b border-gray-200 bg-[#510813]">
+                    <h2 className="text-2xl font-black text-white">
+                        Capacity Settings - {selectedBranch}
+                    </h2>
+                    <button
+                        onClick={onClose}
+                        className="p-2 hover:bg-white/10 rounded-full transition-colors text-white"
+                    >
+                        <X size={24} />
+                    </button>
+                </div>
+
+                <div className="p-6">
+                    <p className="text-sm text-gray-600 mb-6">
+                        Set maximum capacity for each size category (total for all flavors combined)
+                    </p>
+
+                    <div className="space-y-4">
+                        {['Cups', 'Pints', 'Liters', 'Gallons', 'Trays'].map(sizeCategory => {
+                            // Safeguard: capacitySettings might be undefined initially
+                            const settingsSafe = capacitySettings || [];
+                            const existing = settingsSafe.find(
+                                s => s.branch_location === selectedBranch && s.size_category === sizeCategory
+                            );
+                            const currentMax = capacityEdits[sizeCategory]?.max_capacity ?? existing?.max_capacity ?? 0;
+                            const currentMin = capacityEdits[sizeCategory]?.min_stock_level ?? existing?.min_stock_level ?? 0;
+
+                            return (
+                                <div key={sizeCategory} className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl">
+                                    <div className="flex-1">
+                                        <div className="font-bold text-[#510813]">{sizeCategory}</div>
+                                        <div className="text-xs text-gray-500">All {sizeCategory.toLowerCase()} flavors combined</div>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <label className="text-sm font-bold text-gray-700">Max:</label>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            value={currentMax}
+                                            onChange={(e) => setCapacityEdits(prev => ({
+                                                ...prev,
+                                                [sizeCategory]: {
+                                                    ...prev[sizeCategory],
+                                                    max_capacity: parseInt(e.target.value) || 0
+                                                }
+                                            }))}
+                                            className="w-24 px-3 py-2 rounded-lg border-2 border-gray-200 focus:border-[#E5562E] focus:ring-4 focus:ring-[#E5562E]/20 outline-none font-bold text-center"
+                                        />
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <label className="text-sm font-bold text-gray-700">Min:</label>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            value={currentMin}
+                                            onChange={(e) => setCapacityEdits(prev => ({
+                                                ...prev,
+                                                [sizeCategory]: {
+                                                    ...prev[sizeCategory],
+                                                    min_stock_level: parseInt(e.target.value) || 0
+                                                }
+                                            }))}
+                                            className="w-24 px-3 py-2 rounded-lg border-2 border-gray-200 focus:border-[#E5562E] focus:ring-4 focus:ring-[#E5562E]/20 outline-none font-bold text-center"
+                                        />
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                <div className="p-6 border-t border-gray-200 flex justify-between bg-gray-50">
+                    <button
+                        onClick={() => {
+                            setCapacityEdits({});
+                            onClose();
+                        }}
+                        className="px-6 py-3 rounded-xl bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold transition-all"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        onClick={async () => {
+                            try {
+                                for (const [sizeCategory, values] of Object.entries(capacityEdits)) {
+                                    await setCapacity(selectedBranch, sizeCategory, {
+                                        max_capacity: values.max_capacity,
+                                        min_stock_level: values.min_stock_level
+                                    });
+                                }
+                                await fetchBranchData();
+                                setCapacityEdits({});
+                                onClose();
+                                setShowToast(true);
+                            } catch (error) {
+                                alert('Failed to save settings: ' + error.message);
+                            }
+                        }}
+                        disabled={Object.keys(capacityEdits).length === 0}
+                        className="px-8 py-3 rounded-xl bg-[#E5562E] hover:bg-[#c94925] text-white font-bold shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        Save Changes
+                    </button>
+                </div>
+            </div>
+            {showToast && <Toast message="Capacity settings saved!" onClose={() => setShowToast(false)} />}
+        </div>
+    );
+};
+
+export default BranchCapacitySettings;

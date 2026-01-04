@@ -5,15 +5,14 @@ import { useNavigate } from 'react-router-dom';
 import { Package, ShoppingCart, ArrowRightLeft, AlertTriangle, Search } from 'lucide-react';
 
 const Dashboard = () => {
-    const { inventory, resellerOrders, transferOrders } = useInventory();
-    const { getBranchInventory, capacitySettings } = useBranchInventory();
+    const { inventory = [], resellerOrders = [], transferOrders = [], locationSRPs = {} } = useInventory();
+    const { getBranchInventory, capacitySettings = [] } = useBranchInventory();
     const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState('');
 
-    const branches = ['SM Sorsogon', 'SM Legazpi', 'Ayala Legazpi'];
+    const branches = ['SM Sorsogon', 'SM Legazpi', 'Ayala Legazpi', 'SM Daet'];
     const sizeCategories = ['Cups', 'Pints', 'Liters', 'Gallons'];
 
-    // Helper to extract size category from SKU (replicated from Context to avoid extra function calls or dependency)
     const getSizeCategoryFromSku = (sku) => {
         if (!sku) return null;
         const prefix = sku.split('-')[0];
@@ -27,15 +26,24 @@ const Dashboard = () => {
         return sizeMap[prefix] || null;
     };
 
-    // Helper to calculate capacity usage
     const getCapacityStats = (branch) => {
-        const branchItems = getBranchInventory(branch);
+        // ... (existing helper code) ...
+        const branchItems = getBranchInventory ? getBranchInventory(branch) : [];
+        if (!Array.isArray(branchItems)) return { stats: [], latestDate: null, totalValue: 0 };
 
-        // Find latest data timestamp
+        // Calculate Total Stock Value
+        const totalValue = branchItems.reduce((sum, item) => {
+            if (!locationSRPs || !locationSRPs[branch]) return sum;
+            const price = locationSRPs[branch][item.sku] || 0;
+            return sum + ((item.current_stock || 0) * price);
+        }, 0);
+
+        // Find latest data timestamp (existing logic)
         const timestamps = branchItems
             .map(item => item.last_sync_date ? new Date(item.last_sync_date).getTime() : 0)
             .filter(Boolean);
 
+        // ... (existing logic for timestamps) ...
         const latestDate = timestamps.length > 0
             ? new Date(Math.max(...timestamps)).toLocaleDateString('en-US', {
                 month: 'short',
@@ -46,6 +54,7 @@ const Dashboard = () => {
             : null;
 
         const stats = sizeCategories.map(size => {
+            // ... (existing logic) ...
             const settings = capacitySettings?.find(s =>
                 s.branch_location === branch && s.size_category === size
             );
@@ -69,8 +78,10 @@ const Dashboard = () => {
             };
         }).filter(Boolean);
 
-        return { stats, latestDate };
+        return { stats, latestDate, totalValue };
     };
+
+    // ... (rest of logic) ...
 
     const lowStockCount = inventory.filter(i => i.quantity < 20).length;
     const pendingOrdersCount = resellerOrders.filter(o => o.status === 'Pending').length;
@@ -137,21 +148,29 @@ const Dashboard = () => {
                 <h3 className="card-heading" style={{ marginBottom: '1rem', fontSize: '1rem' }}>Branch Capacity Status</h3>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem' }}>
                     {branches.map(branch => {
-                        const { stats, latestDate } = getCapacityStats(branch);
+                        const { stats, latestDate, totalValue } = getCapacityStats(branch);
                         // Only render card if there are stats or to encourage setting it up
                         return (
                             <div key={branch} className="card" style={{ padding: '1rem', marginBottom: 0 }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-                                    <div style={{ padding: '0.4rem', borderRadius: '50%', backgroundColor: '#F3EBD8', color: '#510813' }}>
-                                        <Package size={16} />
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                        <div style={{ padding: '0.4rem', borderRadius: '50%', backgroundColor: '#F3EBD8', color: '#510813' }}>
+                                            <Package size={16} />
+                                        </div>
+                                        <div>
+                                            <h4 style={{ margin: 0, fontSize: '0.9375rem', fontWeight: '600' }}>{branch}</h4>
+                                            {latestDate && (
+                                                <p style={{ margin: 0, fontSize: '0.7rem', color: '#6b7280' }}>
+                                                    Data: {latestDate}
+                                                </p>
+                                            )}
+                                        </div>
                                     </div>
-                                    <div style={{ flex: 1 }}>
-                                        <h4 style={{ margin: 0, fontSize: '0.9375rem', fontWeight: '600' }}>{branch}</h4>
-                                        {latestDate && (
-                                            <p style={{ margin: 0, fontSize: '0.7rem', color: '#6b7280' }}>
-                                                Data: {latestDate}
-                                            </p>
-                                        )}
+                                    <div className="text-right">
+                                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none mb-1">VALUE</p>
+                                        <p className="text-lg font-black text-[#E5562E] leading-none">
+                                            ₱{(totalValue || 0).toLocaleString()}
+                                        </p>
                                     </div>
                                 </div>
 
