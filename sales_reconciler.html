@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kikiks Sales Reconciler v2</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap');
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: #f3f4f6;
+        }
+
+        .drop-zone {
+            border: 2px dashed #cbd5e1;
+            transition: all 0.3s ease;
+        }
+
+        .drop-zone:hover,
+        .drop-zone.active {
+            border-color: #f97316;
+            background-color: #fff7ed;
+        }
+
+        .kikiks-gradient {
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+        }
+    </style>
+</head>
+
+<body class="p-8 min-h-screen">
+
+    <div class="max-w-6xl mx-auto">
+        <!-- Header -->
+        <header class="mb-8 text-center">
+            <h1 class="text-4xl font-bold text-gray-800 mb-2">Sales Reconciliation Tool</h1>
+            <p class="text-gray-500">Auto-match Utak Sales vs. GCash Deposits (PDF/CSV)</p>
+        </header>
+
+        <!-- Controls -->
+        <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Utak Upload -->
+                <div class="drop-zone rounded-xl p-8 text-center cursor-pointer relative" id="utakZone">
+                    <input type="file" id="utakInput" accept=".csv"
+                        class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                    <div class="pointer-events-none">
+                        <svg class="w-12 h-12 text-gray-400 mx-auto mb-3" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                            </path>
+                        </svg>
+                        <h3 class="font-bold text-gray-700">Utak Sales CSV</h3>
+                        <p class="text-sm text-gray-400 mt-1" id="utakStatus">Drag & drop or click to upload</p>
+                    </div>
+                </div>
+
+                <!-- GCash Upload -->
+                <div class="drop-zone rounded-xl p-8 text-center cursor-pointer relative" id="gcashZone">
+                    <input type="file" id="gcashInput" accept=".csv,.pdf"
+                        class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                    <div class="pointer-events-none">
+                        <svg class="w-12 h-12 text-blue-400 mx-auto mb-3" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0-2.08-.402-2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
+                            </path>
+                        </svg>
+                        <h3 class="font-bold text-gray-700">GCash History (PDF/CSV)</h3>
+                        <p class="text-sm text-gray-400 mt-1" id="gcashStatus">Drag & drop or click to upload</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PDF Password Input -->
+            <div id="passwordSection" class="hidden mb-6 flex justify-center">
+                <div class="flex items-center gap-4 bg-blue-50 p-4 rounded-xl border border-blue-200">
+                    <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z">
+                        </path>
+                    </svg>
+                    <input type="password" id="pdfPassword" placeholder="Enter PDF Password"
+                        class="bg-white border border-blue-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500 w-48">
+                    <button onclick="retryPdf()"
+                        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm font-bold">Unlock
+                        PDF</button>
+                    <p class="text-xs text-blue-400 ml-2">Usually your email or birthdate</p>
+                </div>
+            </div>
+
+            <!-- Settings & Action -->
+            <div class="mt-8 flex flex-col md:flex-row items-center justify-between border-t pt-6 gap-4">
+                <div class="flex items-center gap-4 w-full md:w-auto">
+                    <label class="font-semibold text-gray-700 whitespace-nowrap">Time Tolerance:</label>
+                    <input type="range" id="toleranceRange" min="1" max="60" value="5"
+                        class="w-full md:w-48 accent-orange-500">
+                    <span class="font-bold text-orange-600 w-16" id="toleranceValue">5 min</span>
+                </div>
+                <button onclick="reconcile()"
+                    class="w-full md:w-auto px-8 py-3 bg-gray-900 hover:bg-black text-white rounded-xl font-bold transition-colors shadow-lg shadow-gray-200">
+                    Run Reconciliation Algorithm
+                </button>
+            </div>
+
+            <!-- Debug Info -->
+            <div id="debugLog"
+                class="mt-4 p-4 bg-gray-100 rounded text-xs font-mono hidden text-gray-600 h-32 overflow-y-auto"></div>
+        </div>
+
+        <!-- Results Dashboard (Hidden by default) -->
+        <div id="results" class="hidden space-y-8">
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-orange-100">
+                    <h4 class="text-sm font-semibold text-gray-500 uppercase">Matches Found</h4>
+                    <p class="text-3xl font-bold text-green-600 mt-2" id="statMatches">0</p>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-red-100">
+                    <h4 class="text-sm font-semibold text-gray-500 uppercase">Missing in GCash (Utak Only)</h4>
+                    <p class="text-3xl font-bold text-red-600 mt-2" id="statMissing">0</p>
+                    <p class="text-xs text-red-400 mt-1">Possible unpaid orders</p>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-yellow-100">
+                    <h4 class="text-sm font-semibold text-gray-500 uppercase">Extra in GCash (GCash Only)</h4>
+                    <p class="text-3xl font-bold text-yellow-600 mt-2" id="statExtra">0</p>
+                    <p class="text-xs text-yellow-500 mt-1">Expenses or unlogged sales</p>
+                </div>
+            </div>
+
+            <!-- Detailed Tables -->
+            <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+                <div class="flex border-b">
+                    <button class="flex-1 py-4 font-bold text-center border-b-2 border-red-500 text-red-600 bg-red-50"
+                        onclick="showTab('missing')">Missing Payments (Risk)</button>
+                    <button
+                        class="flex-1 py-4 font-bold text-center border-b-2 border-transparent text-gray-500 hover:bg-gray-50"
+                        onclick="showTab('extra')">Unmatched GCash</button>
+                    <button
+                        class="flex-1 py-4 font-bold text-center border-b-2 border-transparent text-gray-500 hover:bg-gray-50"
+                        onclick="showTab('matched')">Matched (Safe)</button>
+                </div>
+
+                <div class="p-0 overflow-x-auto max-h-[500px] overflow-y-auto">
+                    <table class="w-full text-left border-collapse" id="resultsTable">
+                        <thead class="bg-gray-50 text-gray-600 sticky top-0">
+                            <tr>
+                                <th class="p-4 border-b">Date & Time</th>
+                                <th class="p-4 border-b">Description / Ref</th>
+                                <th class="p-4 border-b text-right">Amount</th>
+                                <th class="p-4 border-b">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody" class="text-sm text-gray-700">
+                            <!-- Rows injected by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State
+        let utakData = [];
+        let gcashData = [];
+        let pendingPdfFile = null;
+
+        // UI Helpers
+        const utakInput = document.getElementById('utakInput');
+        const gcashInput = document.getElementById('gcashInput');
+        const toleranceInput = document.getElementById('toleranceRange');
+        const toleranceDisplay = document.getElementById('toleranceValue');
+        const debugLog = document.getElementById('debugLog');
+        const passwordSection = document.getElementById('passwordSection');
+        const pdfPasswordInput = document.getElementById('pdfPassword');
+
+        function log(msg) {
+            console.log(msg);
+            debugLog.classList.remove('hidden');
+            const p = document.createElement('div');
+            p.innerText = `> ${msg}`;
+            debugLog.prepend(p);
+        }
+
+        toleranceInput.addEventListener('input', (e) => toleranceDisplay.innerText = `${e.target.value} min`);
+
+        // File Handler
+        async function handleFile(file, type) {
+            if (!file) return;
+
+            if (file.name.toLowerCase().endsWith('.pdf')) {
+                if (type === 'utak') {
+                    alert('Utak report must be a CSV file.');
+                    return;
+                }
+                // Reset password UI
+                passwordSection.classList.add('hidden');
+                pdfPasswordInput.value = '';
+
+                pendingPdfFile = file; // Store for retry
+                processPdf(file, '');
+            } else {
+                // CSV Parsing
+                Papa.parse(file, {
+                    header: true,
+                    skipEmptyLines: true,
+                    complete: function (results) {
+                        log(`Parsed ${type} CSV: ${results.data.length} rows`);
+                        if (type === 'utak') {
+                            utakData = results.data;
+                            document.getElementById('utakStatus').innerText = `Loaded ${utakData.length} rows`;
+                            document.getElementById('utakZone').classList.add('bg-orange-50', 'border-orange-300');
+                        } else {
+                            gcashData = results.data;
+                            document.getElementById('gcashStatus').innerText = `Loaded ${gcashData.length} rows`;
+                            document.getElementById('gcashZone').classList.add('bg-blue-50', 'border-blue-300');
+                        }
+                    }
+                });
+            }
+        }
+
+        async function processPdf(file, password) {
+            log(`Parsing PDF: ${file.name}...`);
+            try {
+                const data = await parseGCashPDF(file, password);
+                gcashData = data;
+
+                // Success!
+                document.getElementById('gcashStatus').innerText = `Loaded ${gcashData.length} transactions from PDF`;
+                document.getElementById('gcashZone').classList.add('bg-blue-50', 'border-blue-300');
+                passwordSection.classList.add('hidden');
+                alert(`Success! Found ${gcashData.length} transactions in PDF.`);
+            } catch (e) {
+                log(`PDF Error: ${e.name} - ${e.message}`);
+
+                // Detect Password Error
+                if (e.name === 'PasswordException' || e.message.toLowerCase().includes('password') || e.code === 1) {
+                    passwordSection.classList.remove('hidden');
+                    // Focus input
+                    pdfPasswordInput.focus();
+                    alert("🔒 This PDF is password protected.\n\nPlease enter the password in the box below the upload area.");
+                } else {
+                    alert("❌ Failed to parse PDF: " + e.message + "\nCheck the debug log for details.");
+                }
+            }
+        }
+
+        // Triggered by "Unlock PDF" button
+        function retryPdf() {
+            if (pendingPdfFile) {
+                log('Retrying with password...');
+                processPdf(pendingPdfFile, pdfPasswordInput.value);
+            }
+        }
+
+        utakInput.addEventListener('change', (e) => handleFile(e.target.files[0], 'utak'));
+        gcashInput.addEventListener('change', (e) => handleFile(e.target.files[0], 'gcash'));
+
+        // PDF Logic (Updated for better parsing)
+        async function parseGCashPDF(file, password) {
+            const buffer = await file.arrayBuffer();
+
+            // Allow password to be empty string if not needed
+            const loadingTask = pdfjsLib.getDocument({
+                data: buffer,
+                password: password || ''
+            });
+
+            const pdf = await loadingTask.promise;
+            let transactions = [];
+
+            log(`PDF Opened. Pages: ${pdf.numPages}`);
+
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const content = await page.getTextContent();
+
+                const rows = {};
+                content.items.forEach(item => {
+                    const str = item.str.trim();
+                    if (!str) return;
+                    const y = Math.round(item.transform[5]);
+                    if (!rows[y]) rows[y] = [];
+                    rows[y].push({ str: str, x: item.transform[4] });
+                });
+
+                const sortedY = Object.keys(rows).sort((a, b) => b - a);
+
+                sortedY.forEach(y => {
+                    const rowItems = rows[y].sort((a, b) => a.x - b.x);
+
+                    // Regex for Date: "2025-12-28 07:29" or "2025-12-28"
+                    const dateMatch = rowItems[0].str.match(/^\d{4}-\d{2}-\d{2}/);
+
+                    if (dateMatch) {
+                        try {
+                            const numbers = rowItems.filter(r => r.str.match(/^-?[\d,]+\.\d{2}$/));
+
+                            if (numbers.length >= 2) {
+                                // Last is Balance. 
+                                // 2nd Last is Amount (Debit or Credit).
+                                const amountItem = numbers[numbers.length - 2];
+                                const balanceItem = numbers[numbers.length - 1];
+
+                                const desc = rowItems.slice(1).map(r => r.str).join(' ').toLowerCase();
+                                let isCredit = false;
+
+                                // 1. Negative Keyword check (Overrules position)
+                                if (desc.includes('payment') || desc.includes('buy load') || desc.includes('express send') || desc.includes('transfer to') || desc.includes('sent to')) {
+                                    isCredit = false;
+                                }
+                                // 2. Positive Keyword check
+                                else if (desc.includes('received') || desc.includes('transfer from') || desc.includes('cash in') || desc.includes('refund')) {
+                                    isCredit = true;
+                                }
+                                // 3. Positional Fallback (Tighter Threshold)
+                                else {
+                                    // Credit is closer to Balance. Debit is further.
+                                    // Threshold ~100 units depending on font size/scaling.
+                                    // Previous was loose, now tightened to 100.
+                                    const distToBalance = balanceItem.x - amountItem.x;
+
+                                    if (distToBalance < 100) isCredit = true;
+                                    else isCredit = false;
+                                }
+
+                                if (isCredit) {
+                                    const amountVal = parseAmount(amountItem.str);
+                                    transactions.push({
+                                        Date: rowItems[0].str,
+                                        Description: desc,
+                                        Ref: rowItems.find(r => r.str.match(/^\d{9,}$/))?.str || '',
+                                        Amount: amountVal
+                                    });
+                                }
+                            }
+                        } catch (err) {
+                            log(`Row Warning: ${err.message}`);
+                        }
+                    }
+                });
+            }
+            return transactions;
+        }
+
+        // Logic Helpers
+        function parseAmount(str) {
+            if (!str) return 0;
+            return parseFloat(str.toString().replace(/[P, PHP\s]/g, '')) || 0;
+        }
+
+        function parseDate(dateStr, timeStr) {
+            let combined = dateStr;
+            if (timeStr && !dateStr.includes(':')) combined += ' ' + timeStr;
+            const d = new Date(combined);
+            return isNaN(d.getTime()) ? null : d;
+        }
+
+        function reconcile() {
+            log('Starting reconciliation...');
+            if (utakData.length === 0 || gcashData.length === 0) {
+                alert("Please upload both Utak (CSV) and GCash (PDF/CSV) files.");
+                return;
+            }
+
+            const toleranceMinutes = parseInt(toleranceInput.value);
+            const toleranceMs = toleranceMinutes * 60 * 1000;
+
+            const uItems = utakData.map((row, i) => ({
+                id: `u-${i}`,
+                raw: row,
+                date: parseDate(row['Date'] || row['date'], row['Time'] || row['time']),
+                amount: parseAmount(row['Total'] || row['Amount'] || row['Gross Sales'] || row['amount']),
+                matched: false
+            })).filter(i => i.date && i.amount > 0);
+
+            const gItems = gcashData.map((row, i) => ({
+                id: `g-${i}`,
+                raw: row,
+                date: parseDate(row['Date'] || row['Posted Date'] || row['date']),
+                amount: parseAmount(row['Amount'] || row['Credit'] || row['amount']),
+                matched: false
+            })).filter(i => i.date && i.amount > 0);
+
+            log(`Active Utak Items: ${uItems.length}`);
+            log(`Active GCash Items: ${gItems.length}`);
+
+            let matchCount = 0;
+
+            uItems.forEach(u => {
+                const candidates = gItems.filter(g =>
+                    !g.matched &&
+                    Math.abs(g.amount - u.amount) < 0.01 &&
+                    Math.abs(g.date - u.date) <= toleranceMs
+                );
+
+                if (candidates.length > 0) {
+                    candidates.sort((a, b) => Math.abs(a.date - u.date) - Math.abs(b.date - u.date));
+                    const bestMatch = candidates[0];
+                    u.matched = true;
+                    u.matchId = bestMatch.id;
+                    bestMatch.matched = true;
+                    bestMatch.matchId = u.id;
+                    matchCount++;
+                }
+            });
+
+            document.getElementById('results').classList.remove('hidden');
+            document.getElementById('statMatches').innerText = matchCount;
+            document.getElementById('statMissing').innerText = uItems.length - matchCount;
+            document.getElementById('statExtra').innerText = gItems.length - matchCount;
+
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+
+            // Render Missing
+            uItems.filter(u => !u.matched).forEach(u => {
+                const tr = document.createElement('tr');
+                tr.className = "bg-red-50 hover:bg-red-100 transition-colors";
+                tr.innerHTML = `
+                    <td class="p-4 border-b font-mono text-sm">${u.date.toLocaleString()}</td>
+                    <td class="p-4 border-b text-gray-600">Utak Sale</td>
+                    <td class="p-4 border-b text-right font-bold text-red-600">${u.amount.toFixed(2)}</td>
+                    <td class="p-4 border-b"><span class="px-2 py-1 bg-red-200 text-red-800 rounded text-xs font-bold">MISSING</span></td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // Render Extra
+            gItems.filter(g => !g.matched).forEach(g => {
+                const tr = document.createElement('tr');
+                tr.className = "bg-yellow-50 hover:bg-yellow-100 transition-colors";
+                tr.innerHTML = `
+                    <td class="p-4 border-b font-mono text-sm">${g.date.toLocaleString()}</td>
+                    <td class="p-4 border-b text-gray-600">GCash Ref (Unmatched)</td>
+                    <td class="p-4 border-b text-right font-bold text-yellow-600">${g.amount.toFixed(2)}</td>
+                    <td class="p-4 border-b"><span class="px-2 py-1 bg-yellow-200 text-yellow-800 rounded text-xs font-bold">UNLOGGED</span></td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // Render Matched
+            uItems.filter(u => u.matched).forEach(u => {
+                const tr = document.createElement('tr');
+                tr.className = "bg-green-50 hover:bg-green-100 transition-colors hidden match-row";
+                tr.innerHTML = `
+                    <td class="p-4 border-b font-mono text-sm">${u.date.toLocaleString()}</td>
+                    <td class="p-4 border-b text-gray-600">Matched Sale</td>
+                    <td class="p-4 border-b text-right font-bold text-green-600">${u.amount.toFixed(2)}</td>
+                    <td class="p-4 border-b"><span class="px-2 py-1 bg-green-200 text-green-800 rounded text-xs font-bold">MATCHED</span></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function showTab(type) {
+            const rows = document.querySelectorAll('tbody tr');
+            rows.forEach(r => {
+                r.classList.add('hidden');
+                if (type === 'missing' && r.classList.contains('bg-red-50')) r.classList.remove('hidden');
+                if (type === 'extra' && r.classList.contains('bg-yellow-50')) r.classList.remove('hidden');
+                if (type === 'matched' && r.classList.contains('bg-green-50')) r.classList.remove('hidden');
+            });
+        }
+
+        window.setTimeout(() => showTab('missing'), 500); 
+    </script>
+</body>
+
+</html>
+```

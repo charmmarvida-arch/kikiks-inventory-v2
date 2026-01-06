@@ -81,7 +81,7 @@ const ResellerDashboard = () => {
             const start = new Date(startDate);
             const end = new Date(endDate);
             end.setHours(23, 59, 59, 999);
-            return orderDate >= start && orderDate <= end && order.status === 'Completed' && order.location !== 'Christmas Order';
+            return orderDate >= start && orderDate <= end && ['Completed', 'Pending'].includes(order.status) && order.location !== 'Christmas Order';
         });
     }, [resellerOrders, startDate, endDate]);
 
@@ -98,7 +98,7 @@ const ResellerDashboard = () => {
 
         return resellerOrders.filter(order => {
             const orderDate = new Date(order.date);
-            return orderDate >= prevStart && orderDate <= prevEnd && order.status === 'Completed' && order.location !== 'Christmas Order';
+            return orderDate >= prevStart && orderDate <= prevEnd && ['Completed', 'Pending'].includes(order.status) && order.location !== 'Christmas Order';
         });
     }, [resellerOrders, startDate, endDate]);
 
@@ -162,7 +162,7 @@ const ResellerDashboard = () => {
             const ordersInCycle = (groupedOrders[resellerName] || []).filter(order => {
                 const orderDate = new Date(order.date);
                 // Use >= start AND < end logic for 1 month exactly
-                return orderDate >= cycleStart && orderDate < cycleEnd && order.status === 'Completed';
+                return orderDate >= cycleStart && orderDate < cycleEnd && ['Completed', 'Pending'].includes(order.status);
             });
 
             const ordersThisMonth = ordersInCycle.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
@@ -219,7 +219,7 @@ const ResellerDashboard = () => {
         const startOfYear = new Date(today.getFullYear(), 0, 1);
         const ytdOrders = resellerOrders.filter(order => {
             const orderDate = new Date(order.date);
-            return orderDate >= startOfYear && orderDate <= today && order.status === 'Completed';
+            return orderDate >= startOfYear && orderDate <= today && ['Completed', 'Pending'].includes(order.status);
         });
         const ytdRevenue = ytdOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
 
@@ -228,7 +228,7 @@ const ResellerDashboard = () => {
         const endOfPrevYearSamePeriod = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
         const prevYtdOrders = resellerOrders.filter(order => {
             const orderDate = new Date(order.date);
-            return orderDate >= startOfPrevYear && orderDate <= endOfPrevYearSamePeriod && order.status === 'Completed';
+            return orderDate >= startOfPrevYear && orderDate <= endOfPrevYearSamePeriod && ['Completed', 'Pending'].includes(order.status);
         });
         const prevYtdRevenue = prevYtdOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
 
@@ -283,7 +283,7 @@ const ResellerDashboard = () => {
                 const orderDate = new Date(order.date);
                 return order.resellerName === reseller.resellerName &&
                     orderDate.getFullYear() === currentYear &&
-                    order.status === 'Completed';
+                    ['Completed', 'Pending'].includes(order.status);
             });
             reseller.ytdAmount = resellerYtdOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
         });
