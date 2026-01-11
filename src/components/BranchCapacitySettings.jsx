@@ -3,8 +3,8 @@ import { X } from 'lucide-react';
 import { useBranchInventory } from '../context/BranchInventoryContext';
 import Toast from './Toast';
 
-const BranchCapacitySettings = ({ isOpen, onClose }) => {
-    const { selectedBranch, capacitySettings, setCapacity, fetchBranchData } = useBranchInventory();
+const BranchCapacitySettings = ({ isOpen, onClose, branchLocation }) => {
+    const { capacitySettings, setCapacity, fetchBranchData } = useBranchInventory();
     const [capacityEdits, setCapacityEdits] = useState({});
     const [showToast, setShowToast] = useState(false);
 
@@ -15,7 +15,7 @@ const BranchCapacitySettings = ({ isOpen, onClose }) => {
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl">
                 <div className="flex justify-between items-center p-6 border-b border-gray-200 bg-[#510813]">
                     <h2 className="text-2xl font-black text-white">
-                        Capacity Settings - {selectedBranch}
+                        Capacity Settings - {branchLocation}
                     </h2>
                     <button
                         onClick={onClose}
@@ -35,7 +35,7 @@ const BranchCapacitySettings = ({ isOpen, onClose }) => {
                             // Safeguard: capacitySettings might be undefined initially
                             const settingsSafe = capacitySettings || [];
                             const existing = settingsSafe.find(
-                                s => s.branch_location === selectedBranch && s.size_category === sizeCategory
+                                s => s.branch_location === branchLocation && s.size_category === sizeCategory
                             );
                             const currentMax = capacityEdits[sizeCategory]?.max_capacity ?? existing?.max_capacity ?? 0;
                             const currentMin = capacityEdits[sizeCategory]?.min_stock_level ?? existing?.min_stock_level ?? 0;
@@ -98,7 +98,7 @@ const BranchCapacitySettings = ({ isOpen, onClose }) => {
                         onClick={async () => {
                             try {
                                 for (const [sizeCategory, values] of Object.entries(capacityEdits)) {
-                                    await setCapacity(selectedBranch, sizeCategory, {
+                                    await setCapacity(branchLocation, sizeCategory, {
                                         max_capacity: values.max_capacity,
                                         min_stock_level: values.min_stock_level
                                     });

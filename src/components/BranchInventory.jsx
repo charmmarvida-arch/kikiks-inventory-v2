@@ -554,6 +554,7 @@ const BranchInventory = () => {
                     <BranchCapacitySettings
                         isOpen={isSettingsModalOpen}
                         onClose={() => setIsSettingsModalOpen(false)}
+                        branchLocation={selectedBranch}
                     />
                 </div>
             )}
