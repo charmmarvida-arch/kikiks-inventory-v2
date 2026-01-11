@@ -4,7 +4,8 @@ import { Settings, Edit2, Save, X, Search, Download, Plus, Trash2, History, Eye,
 import { supabase } from '../supabaseClient';
 import { useAuth } from '../context/AuthContext';
 import { generateTransferPackingList } from '../utils/pdfGenerator';
-import Toast from './Toast'; // Added import
+import Toast from './Toast';
+import BranchCapacitySettings from './BranchCapacitySettings';
 
 const LegazpiStorage = () => {
     const {
@@ -39,6 +40,7 @@ const LegazpiStorage = () => {
     const [processingOrderId, setProcessingOrderId] = useState(null); // Prevent double-clicks
     const [showToast, setShowToast] = useState(false);
     const [toastMessage, setToastMessage] = useState('');
+    const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
 
     // Filter transfers for Legazpi Storage
     const legazpiTransfers = transferOrders
@@ -323,6 +325,14 @@ const LegazpiStorage = () => {
                     <p className="page-subtitle">Warehouse Inventory</p>
                 </div>
                 <div className="flex gap-2">
+                    <button
+                        onClick={() => setIsSettingsModalOpen(true)}
+                        className="submit-btn"
+                        style={{ backgroundColor: '#510813' }}
+                    >
+                        <Settings size={18} className="mr-2" />
+                        Settings
+                    </button>
                     <button
                         onClick={() => setShowTransferHistory(true)}
                         className="submit-btn"
@@ -737,6 +747,13 @@ const LegazpiStorage = () => {
                     </div>
                 </div>
             )}
+
+            {/* Capacity Settings Modal */}
+            <BranchCapacitySettings
+                isOpen={isSettingsModalOpen}
+                onClose={() => setIsSettingsModalOpen(false)}
+                branchLocation="Legazpi Storage"
+            />
 
             {/* Order Details Modal */}
             {selectedOrder && (

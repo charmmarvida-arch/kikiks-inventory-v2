@@ -704,11 +704,11 @@ const TransferLocation = ({ isPublic = false }) => {
                                         <tr>
                                             <th className="p-4 text-xs font-bold text-gray-500 uppercase">Item Description</th>
                                             <th className="p-4 text-xs font-bold text-gray-500 uppercase text-center">Warehouse Stock</th>
-                                            {toLocation && !WAREHOUSE_LOCATIONS.includes(toLocation) && (
+                                            {(toLocation && (!WAREHOUSE_LOCATIONS.includes(toLocation) || toLocation === 'Legazpi Storage')) && (
                                                 <>
                                                     <th className="p-4 text-xs font-bold text-gray-500 uppercase text-center">
                                                         <Store size={14} className="inline mr-1" />
-                                                        Branch Stock
+                                                        {toLocation === 'Legazpi Storage' ? 'Storage Stock' : 'Branch Stock'}
                                                     </th>
                                                     <th className="p-4 text-xs font-bold text-gray-500 uppercase text-center">Capacity</th>
                                                 </>
@@ -722,13 +722,24 @@ const TransferLocation = ({ isPublic = false }) => {
                                             const qty = quantities[item.sku] || 0;
                                             const isSelected = qty > 0;
 
-                                            // Get branch stock and capacity if transferring to a branch
-                                            const branchStock = toLocation && !WAREHOUSE_LOCATIONS.includes(toLocation)
-                                                ? getBranchStock(toLocation, item.sku)
-                                                : null;
-                                            const capacityInfo = toLocation && !WAREHOUSE_LOCATIONS.includes(toLocation)
-                                                ? getCapacitySetting(toLocation, item.sku)
-                                                : null;
+                                            // Determine if we need to show capacity (Branch OR Legazpi Storage)
+                                            const showCapacity = toLocation && (!WAREHOUSE_LOCATIONS.includes(toLocation) || toLocation === 'Legazpi Storage');
+
+                                            // Get branch stock and capacity
+                                            let branchStock = null;
+                                            let capacityInfo = null;
+
+                                            if (showCapacity) {
+                                                capacityInfo = getCapacitySetting(toLocation, item.sku);
+
+                                                if (toLocation === 'Legazpi Storage') {
+                                                    // Find in Legazpi Inventory
+                                                    const legItem = legazpiInventory.find(Li => Li.sku === item.sku || `${Li.product_name}-${Li.flavor || 'Default'}` === item.sku);
+                                                    branchStock = legItem ? legItem.quantity : 0;
+                                                } else {
+                                                    branchStock = getBranchStock(toLocation, item.sku);
+                                                }
+                                            }
 
                                             const stockAfterTransfer = branchStock !== null && qty > 0
                                                 ? branchStock + qty
@@ -741,9 +752,18 @@ const TransferLocation = ({ isPublic = false }) => {
                                             const fullCategoryList = productsByCategory[activeCategory] || [];
                                             const totalTransferQtyForCategory = fullCategoryList.reduce((sum, i) => sum + (quantities[i.sku] || 0), 0);
 
-                                            const totalSizeStock = toLocation && !WAREHOUSE_LOCATIONS.includes(toLocation) && capacityInfo
-                                                ? getTotalStockBySize(toLocation, item.sku)
-                                                : 0;
+                                            let totalSizeStock = 0;
+                                            if (showCapacity && capacityInfo) {
+                                                if (toLocation === 'Legazpi Storage') {
+                                                    const prefix = item.sku?.split('-')[0];
+                                                    if (prefix) {
+                                                        const sameSize = legazpiInventory.filter(Li => (Li.sku || '').startsWith(prefix));
+                                                        totalSizeStock = sameSize.reduce((total, Li) => total + (Li.quantity || 0), 0);
+                                                    }
+                                                } else {
+                                                    totalSizeStock = getTotalStockBySize(toLocation, item.sku);
+                                                }
+                                            }
 
                                             // The projected total is (Current Branch Stock) + (Total Qty being transferred for this category)
                                             const totalAfterTransfer = totalSizeStock + totalTransferQtyForCategory;
@@ -759,7 +779,7 @@ const TransferLocation = ({ isPublic = false }) => {
                                                             {item.quantity} {item.uom}
                                                         </span>
                                                     </td>
-                                                    {toLocation && !WAREHOUSE_LOCATIONS.includes(toLocation) && (
+                                                    {showCapacity && (
                                                         <>
                                                             <td className="p-4 text-center align-middle">
                                                                 {branchStock !== null ? (
