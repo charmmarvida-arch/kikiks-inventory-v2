@@ -156,6 +156,23 @@ export const generatePackingList = async (order, inventory, resellerPrices = {})
         }
     });
 
+    // --- AUTOMATIC WOODEN SPOON ROW ---
+    // Added as per user request: 1 Wooden Spoon per Cup, Free of charge
+    const totalCups = Object.entries(order.items)
+        .filter(([sku, qty]) => sku.startsWith('FGC') && qty > 0)
+        .reduce((sum, [, qty]) => sum + qty, 0);
+
+    if (totalCups > 0) {
+        tableBody.push([
+            "Wooden Spoon",       // Description
+            "",                   // Number of Packs
+            "",                   // Pcs/Pack
+            totalCups,            // Total Quantity
+            "FREE",               // Price
+            "P 0"                 // Total Cost
+        ]);
+    }
+
     // Add Grand Total Row
     tableBody.push([
         {
