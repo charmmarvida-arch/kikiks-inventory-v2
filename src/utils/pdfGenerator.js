@@ -164,12 +164,24 @@ export const generatePackingList = async (order, inventory, resellerPrices = {})
 
     if (totalCups > 0) {
         tableBody.push([
-            "Wooden Spoon",       // Description
-            "",                   // Number of Packs
-            "",                   // Pcs/Pack
-            totalCups,            // Total Quantity
-            "FREE",               // Price
-            "P 0"                 // Total Cost
+            {
+                content: "WOODEN SPOON",
+                styles: { textColor: [220, 38, 38], fontStyle: 'bold' } // Red & Bold
+            },
+            "",
+            "",
+            {
+                content: totalCups,
+                styles: { textColor: [220, 38, 38], fontStyle: 'bold' }
+            },
+            {
+                content: "FREE",
+                styles: { textColor: [220, 38, 38], fontStyle: 'bold' }
+            },
+            {
+                content: "P 0",
+                styles: { textColor: [220, 38, 38], fontStyle: 'bold' }
+            }
         ]);
     }
 
