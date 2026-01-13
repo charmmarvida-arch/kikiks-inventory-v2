@@ -1,3 +1,3 @@
-Feature: Christmas Order History & Isolation v3.0
-Timestamp: 2025-12-22 11:30
-Changes: Added ChristmasHistoryModal, Edit Order capability, and full Isolation filters.
+Feature: Hide '1' in Pcs/Pack Column for Packing List
+Timestamp: 2026-01-12 17:25
+Changes: Modified pdfGenerator.js to hide '1' in the Pcs/Pack column for single items (Pints, Liters, etc.) to prevent human error.

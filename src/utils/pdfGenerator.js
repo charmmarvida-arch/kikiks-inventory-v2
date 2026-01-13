@@ -122,7 +122,7 @@ export const generatePackingList = async (order, inventory, resellerPrices = {})
                 tableBody.push([
                     item.description,
                     numPacks, // Number of Packs
-                    item.packSize, // Pcs/Pack
+                    item.packSize === 1 ? '' : item.packSize, // Pcs/Pack (Hide if 1)
                     item.qty, // Total Quantity
                     `P ${item.price.toLocaleString()}`, // Price
                     `P ${item.totalCost.toLocaleString()}` // Total Cost
@@ -415,7 +415,7 @@ export const generateTransferPackingList = async (order, inventory = [], locatio
                 tableBody.push([
                     item.name,
                     numPacks,
-                    config.packSize,
+                    config.packSize === 1 ? '' : config.packSize,
                     item.qty,
                     `P ${itemPrice.toLocaleString()}`,
                     `P ${totalCost.toLocaleString()}`
