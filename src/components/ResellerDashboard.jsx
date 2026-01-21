@@ -373,19 +373,29 @@ const ResellerDashboard = () => {
 
 
     const handleViewResellerHistory = (resellerData) => {
-        // ... functionality to open modal or navigate ...
-        // Since the current code uses setSelectedReseller + setShowModal in the table row click,
-        // we can reuse that logic or creating a handler here if appropriate.
-        // For now, I'll just rely on the existing inline handlers or ensure this function exists if I use it.
-        // The previous code had inline onClick. I'll define this helper to keep it clean.
-        const salesData = aggregatedData.find(d => d.resellerName === resellerData.resellerName);
-        const safeReseller = salesData || {
+        // Find ALL orders for this reseller from the main list (ignoring date filters)
+        const allResellerOrders = resellerOrders.filter(o =>
+            o.resellerName === resellerData.resellerName &&
+            ['Completed', 'Pending'].includes(o.status)
+        ).sort((a, b) => new Date(b.date) - new Date(a.date)); // Sort newest first
+
+        // Calculate YTD (Current Year)
+        const currentYear = new Date().getFullYear();
+        const ytdAmount = allResellerOrders.reduce((sum, o) => {
+            const orderDate = new Date(o.date);
+            return orderDate.getFullYear() === currentYear ? sum + (o.totalAmount || 0) : sum;
+        }, 0);
+
+        // Calculate Total displayed in modal (can be All Time or Filtered - let's show All Time for context, or just override)
+        // Let's stick to the aggregated structure but populate 'orders' with EVERYTHING.
+        const fullHistoryReseller = {
             resellerName: resellerData.resellerName,
-            totalAmount: 0,
-            ytdAmount: 0,
-            orders: []
+            totalAmount: allResellerOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0), // All time total
+            ytdAmount: ytdAmount,
+            orders: allResellerOrders
         };
-        setSelectedReseller(safeReseller);
+
+        setSelectedReseller(fullHistoryReseller);
         setShowModal(true);
     };
 
@@ -754,16 +764,7 @@ const ResellerDashboard = () => {
                                             <td style={{ textAlign: 'center', verticalAlign: 'middle' }}>
                                                 <button
                                                     className="std-btn std-btn-primary"
-                                                    onClick={() => {
-                                                        const safeReseller = salesData || {
-                                                            resellerName: data.resellerName,
-                                                            totalAmount: 0,
-                                                            ytdAmount: 0,
-                                                            orders: []
-                                                        };
-                                                        setSelectedReseller(safeReseller);
-                                                        setShowModal(true);
-                                                    }}
+                                                    onClick={() => handleViewResellerHistory(data)}
                                                 >
                                                     View
                                                 </button>
