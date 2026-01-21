@@ -1,19 +1,38 @@
 import React, { useState } from 'react';
 import { useInventory } from '../context/InventoryContext';
+import { useAuth } from '../context/AuthContext';
 import { Eye, X, Search } from 'lucide-react';
 import { generatePackingList, generateCOA } from '../utils/pdfGenerator';
 
 const OrderHistory = () => {
-    const { resellerOrders, inventory, resellerPrices } = useInventory();
+    const {
+        resellerOrders,
+        inventory,
+        resellerPrices,
+        updateResellerOrder,
+        resellers,
+        resellerZones,
+        zonePrices
+    } = useInventory();
+    const { userProfile } = useAuth();
+
+    // View State
     const [selectedOrder, setSelectedOrder] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
+    const [selectedReseller, setSelectedReseller] = useState('');
+
+    // Document Generation State
+    const [showCOAModal, setShowCOAModal] = useState(false);
+    const [selectedCOAOrder, setSelectedCOAOrder] = useState(null);
+    const [showConfirmCOA, setShowConfirmCOA] = useState(false);
+    const [bestBeforeDates, setBestBeforeDates] = useState({});
+    const [preparedBy, setPreparedBy] = useState('');
+    const [preparedDate, setPreparedDate] = useState('');
 
     // Preview Modal State
     const [previewUrl, setPreviewUrl] = useState(null);
     const [showPreviewModal, setShowPreviewModal] = useState(false);
     const [previewTitle, setPreviewTitle] = useState('');
-
-    const [selectedReseller, setSelectedReseller] = useState('');
 
     // Get unique resellers from completed orders (exclude Christmas)
     const uniqueResellers = [...new Set(resellerOrders
@@ -31,15 +50,172 @@ const OrderHistory = () => {
         )
         .sort((a, b) => new Date(b.date) - new Date(a.date)); // Sort by date descending (Newest first)
 
+    // Helper: Get Product Description
+    const getProductDescription = (sku) => {
+        const item = inventory.find(i => i.sku === sku);
+        return item ? item.description : sku;
+    };
+
+    // Helper: Resolve prices for PDF
+    const getEffectivePdfPrices = (order) => {
+        const itemPrices = {};
+        const prefixes = ['FGC', 'FGP', 'FGL', 'FGG', 'FGT', 'OTH'];
+
+        // Find zone info
+        const reseller = resellers.find(r => r.id === order.resellerId);
+        const zone = reseller ? resellerZones.find(z => z.id === reseller.zone_id) : null;
+
+        // Key must match order.location for PDF generator
+        const locationKey = order.location || 'Unknown';
+        itemPrices[locationKey] = {};
+
+        prefixes.forEach(prefix => {
+            let price = 0;
+            // 1. Zone Specific
+            if (zone && zonePrices[zone.id] && zonePrices[zone.id][prefix]) {
+                price = Number(zonePrices[zone.id][prefix]);
+            }
+            // 2. Global Reseller Setting
+            else if (resellerPrices[prefix]) {
+                price = Number(resellerPrices[prefix]);
+            }
+            // 3. Fallback
+            else {
+                const BASE_PRICES = { 'FGC': 23, 'FGP': 85, 'FGL': 170, 'FGG': 680, 'FGT': 1000, 'OTH': 0 };
+                price = BASE_PRICES[prefix] || 0;
+            }
+            itemPrices[locationKey][prefix] = price;
+        });
+
+        return itemPrices;
+    };
+
+    // --- Packing List Handlers ---
+    const handleCreatePackingList = async (order) => {
+        try {
+            const effectivePrices = getEffectivePdfPrices(order);
+            await generatePackingList(order, inventory, effectivePrices);
+            // Update DB
+            await updateResellerOrder(order.id, { hasPackingList: true });
+        } catch (error) {
+            console.error("Error creating packing list:", error);
+            alert("Failed to create packing list.");
+        }
+    };
+
     const handleViewPackingList = async (order) => {
         try {
-            const url = await generatePackingList({ ...order, returnBlob: true }, inventory, resellerPrices);
+            const effectivePrices = getEffectivePdfPrices(order);
+            const url = await generatePackingList({ ...order, returnBlob: true }, inventory, effectivePrices);
             setPreviewUrl(url);
             setPreviewTitle(`Packing List - ${order.resellerName}`);
             setShowPreviewModal(true);
         } catch (error) {
             console.error("Error viewing packing list:", error);
             alert("Failed to view packing list.");
+        }
+    };
+
+    // --- COA Handlers ---
+    const handleOpenCOAModal = (order) => {
+        setSelectedCOAOrder(order);
+
+        // Use existing data if available, otherwise initialize
+        if (order.coaData && Object.keys(order.coaData).length > 0) {
+            setBestBeforeDates(order.coaData);
+        } else {
+            const initialDates = {};
+            Object.keys(order.items).forEach(sku => {
+                if (order.items[sku] > 0) {
+                    initialDates[sku] = ['']; // Initialize as array
+                }
+            });
+            setBestBeforeDates(initialDates);
+        }
+
+        // Initialize Prepared By and Date
+        if (order.coaData && order.coaData.preparedBy) {
+            setPreparedBy(order.coaData.preparedBy);
+        } else {
+            setPreparedBy('');
+        }
+
+        if (order.coaData && order.coaData.preparedDate) {
+            setPreparedDate(order.coaData.preparedDate);
+        } else {
+            const today = new Date().toISOString().split('T')[0];
+            setPreparedDate(today);
+        }
+
+        setShowCOAModal(true);
+    };
+
+    const handleDateChange = (sku, date) => {
+        setBestBeforeDates(prev => ({
+            ...prev,
+            [sku]: date
+        }));
+    };
+
+    const handleGenerateCOA = async () => {
+        // Validate that all items have dates filled
+        let missingDates = false;
+        if (selectedCOAOrder && selectedCOAOrder.items) {
+            Object.entries(selectedCOAOrder.items).forEach(([sku, qty]) => {
+                if (qty > 0) {
+                    const dates = bestBeforeDates[sku];
+                    if (!dates || dates.length === 0 || dates.some(d => !d || d.trim() === '')) {
+                        missingDates = true;
+                    }
+                }
+            });
+        }
+
+        if (missingDates) {
+            alert("Please fill in ALL Best Before Dates before generating the COA.");
+            return;
+        }
+
+        if (!preparedBy.trim()) {
+            alert("Please enter 'Prepared by' name.");
+            return;
+        }
+        setShowConfirmCOA(true);
+    };
+
+    const handleConfirmGenerateCOA = async () => {
+        if (selectedCOAOrder) {
+            try {
+                const coaData = {
+                    ...bestBeforeDates,
+                    preparedBy,
+                    preparedDate
+                };
+                await generateCOA(selectedCOAOrder, coaData, inventory);
+
+                const createdBy = userProfile?.email || 'Unknown User';
+                const encodedBy = userProfile?.email || 'Unknown User';
+
+                await updateResellerOrder(selectedCOAOrder.id, {
+                    hasCOA: true,
+                    coaData: {
+                        ...bestBeforeDates,
+                        preparedBy,
+                        preparedDate
+                    },
+                    created_by: createdBy,
+                    encoded_by: encodedBy
+                });
+
+                setShowConfirmCOA(false);
+                setShowCOAModal(false);
+                alert("COA Generated Successfully!");
+
+            } catch (error) {
+                console.error('Error generating COA:', error);
+                alert('Error generating COA: ' + error.message);
+                setShowConfirmCOA(false);
+            }
         }
     };
 
@@ -109,7 +285,7 @@ const OrderHistory = () => {
 
                 <div className="table-container" style={{ flex: 1, overflowY: 'auto', overflowX: 'auto', margin: 0, borderRadius: 0, border: 'none', boxShadow: 'none' }}>
                     <table className="inventory-table">
-                        <thead style={{ position: 'sticky', top: 0, zIndex: 10, backgroundColor: 'var(--base-white)' }}>
+                        <thead style={{ position: 'sticky', top: 0, zIndex: 20, backgroundColor: 'white', borderBottom: '1px solid var(--border-color)' }}>
                             <tr>
                                 <th>Date</th>
                                 <th>Reseller Name</th>
@@ -136,16 +312,14 @@ const OrderHistory = () => {
                                         <td className="font-bold">₱{order.totalAmount.toLocaleString()}</td>
                                         <td className="text-center">
                                             <button
-                                                onClick={() => {
-                                                    setSelectedOrder(order);
-                                                    setShowDetailsModal(true);
-                                                }}
+                                                onClick={() => setSelectedOrder(order)}
                                                 className="std-btn std-btn-primary"
                                                 title="View Details"
                                             >
                                                 Details
                                             </button>
                                         </td>
+                                        {/* Packing List Column */}
                                         <td className="text-center">
                                             {order.hasPackingList ? (
                                                 <button
@@ -155,26 +329,16 @@ const OrderHistory = () => {
                                                     View PDF
                                                 </button>
                                             ) : (
-                                                <div
-                                                    style={{
-                                                        width: '85px',
-                                                        height: '28px',
-                                                        backgroundColor: 'var(--gray-100)',
-                                                        color: 'var(--text-muted)',
-                                                        padding: '0',
-                                                        borderRadius: '50px',
-                                                        fontSize: '0.65rem',
-                                                        fontWeight: '600',
-                                                        border: '1px solid var(--border-color)',
-                                                        display: 'inline-flex',
-                                                        alignItems: 'center',
-                                                        justifyContent: 'center'
-                                                    }}
+                                                <button
+                                                    onClick={() => handleCreatePackingList(order)}
+                                                    className="std-btn std-btn-primary"
+                                                    style={{ backgroundColor: '#fff', color: 'var(--primary)', border: '1px solid var(--primary)' }}
                                                 >
-                                                    Not Created
-                                                </div>
+                                                    Create List
+                                                </button>
                                             )}
                                         </td>
+                                        {/* COA Column */}
                                         <td className="text-center">
                                             {order.hasCOA ? (
                                                 <button
@@ -184,24 +348,13 @@ const OrderHistory = () => {
                                                     View COA
                                                 </button>
                                             ) : (
-                                                <div
-                                                    style={{
-                                                        width: '85px',
-                                                        height: '28px',
-                                                        backgroundColor: 'var(--gray-100)',
-                                                        color: 'var(--text-muted)',
-                                                        padding: '0',
-                                                        borderRadius: '50px',
-                                                        fontSize: '0.65rem',
-                                                        fontWeight: '600',
-                                                        border: '1px solid var(--border-color)',
-                                                        display: 'inline-flex',
-                                                        alignItems: 'center',
-                                                        justifyContent: 'center'
-                                                    }}
+                                                <button
+                                                    onClick={() => handleOpenCOAModal(order)}
+                                                    className="std-btn std-btn-primary"
+                                                    style={{ backgroundColor: '#fff', color: 'var(--primary)', border: '1px solid var(--primary)' }}
                                                 >
-                                                    Not Created
-                                                </div>
+                                                    Create COA
+                                                </button>
                                             )}
                                         </td>
                                     </tr>
@@ -269,6 +422,135 @@ const OrderHistory = () => {
                 </div>
             )}
 
+            {/* COA Input Modal */}
+            {showCOAModal && selectedCOAOrder && (
+                <div className="modal-overlay" onClick={() => setShowCOAModal(false)}>
+                    <div className="modal-content medium-modal" onClick={e => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <h3 className="modal-title">Generate COA</h3>
+                            <button className="close-btn" onClick={() => setShowCOAModal(false)}>
+                                <X size={24} />
+                            </button>
+                        </div>
+                        <div className="modal-body">
+                            <p className="text-secondary text-sm mb-4">
+                                Please enter the Best Before Date for each item. <strong>All fields are required.</strong> The Production Date will be automatically calculated (3 months prior).
+                            </p>
+                            <div className="scrollable-table-container mb-6" style={{ maxHeight: '400px' }}>
+                                <table className="w-full">
+                                    <thead>
+                                        <tr className="text-left text-sm text-secondary">
+                                            <th className="pb-2 w-1/2">Product</th>
+                                            <th className="pb-2 text-center w-1/6">Qty</th>
+                                            <th className="pb-2 w-1/3">Best Before Date</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {Object.entries(selectedCOAOrder.items)
+                                            .sort(([skuA], [skuB]) => {
+                                                const order = ['FGC', 'FGP', 'FGL', 'FGG', 'FGT'];
+                                                const prefixA = skuA.split('-')[0];
+                                                const prefixB = skuB.split('-')[0];
+                                                return order.indexOf(prefixA) - order.indexOf(prefixB);
+                                            })
+                                            .map(([sku, qty]) => {
+                                                if (qty > 0) {
+                                                    const dates = Array.isArray(bestBeforeDates[sku]) ? bestBeforeDates[sku] : [''];
+
+                                                    return (
+                                                        <tr key={sku} className="border-b border-gray-50 last:border-0">
+                                                            <td className="py-2 align-top pt-3">{getProductDescription(sku)}</td>
+                                                            <td className="py-2 align-top pt-3 text-center font-bold text-lg">{qty}</td>
+                                                            <td className="py-2">
+                                                                <div className="flex flex-col gap-2">
+                                                                    {dates.map((date, index) => (
+                                                                        <div key={index} className="flex gap-2 items-center">
+                                                                            <input
+                                                                                type="date"
+                                                                                className="premium-input w-full"
+                                                                                value={date}
+                                                                                onChange={(e) => {
+                                                                                    const newDates = [...dates];
+                                                                                    newDates[index] = e.target.value;
+                                                                                    handleDateChange(sku, newDates);
+                                                                                }}
+                                                                            />
+                                                                            {dates.length > 1 && (
+                                                                                <button
+                                                                                    onClick={() => {
+                                                                                        const newDates = dates.filter((_, i) => i !== index);
+                                                                                        handleDateChange(sku, newDates);
+                                                                                    }}
+                                                                                    className="text-red-500 hover:bg-red-50 p-1 rounded"
+                                                                                    title="Remove date"
+                                                                                >
+                                                                                    <X size={16} />
+                                                                                </button>
+                                                                            )}
+                                                                        </div>
+                                                                    ))}
+                                                                    <button
+                                                                        onClick={() => {
+                                                                            const newDates = [...dates, ''];
+                                                                            handleDateChange(sku, newDates);
+                                                                        }}
+                                                                        className="text-xs text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1 mt-1 w-fit"
+                                                                    >
+                                                                        + Add Another Date
+                                                                    </button>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    );
+                                                }
+                                                return null;
+                                            })}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div className="border-t border-gray-100 pt-4 mt-4">
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Prepared by (Full Name)</label>
+                                        <input
+                                            type="text"
+                                            className="premium-input w-full"
+                                            placeholder="Enter Full Name"
+                                            value={preparedBy}
+                                            onChange={(e) => setPreparedBy(e.target.value)}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                                        <input
+                                            type="date"
+                                            className="premium-input w-full bg-gray-50"
+                                            value={preparedDate}
+                                            readOnly
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="flex justify-end gap-4">
+                                <button
+                                    className="icon-btn px-4 w-auto"
+                                    onClick={() => setShowCOAModal(false)}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    className="submit-btn"
+                                    onClick={handleGenerateCOA}
+                                >
+                                    Generate PDF
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Document Preview Modal */}
             {showPreviewModal && (
                 <div className="modal-overlay" onClick={() => setShowPreviewModal(false)}>
@@ -292,6 +574,28 @@ const OrderHistory = () => {
                         </div>
                         <div className="modal-body" style={{ flex: 1, padding: 0, overflow: 'hidden' }}>
                             <iframe src={previewUrl} style={{ width: '100%', height: '100%', border: 'none' }} title="Document Preview" />
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Confirmation Modal */}
+            {showConfirmCOA && (
+                <div className="modal-overlay" style={{ zIndex: 1100 }} onClick={() => setShowConfirmCOA(false)}>
+                    <div className="modal-content small-modal" onClick={e => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <h3 className="modal-title">Confirm COA Generation</h3>
+                        </div>
+                        <div className="modal-body text-center">
+                            <p className="mb-6">Are you sure you want to generate the COA? <br /> This will save the encoded data.</p>
+                            <div className="flex justify-center gap-4">
+                                <button className="icon-btn" onClick={() => setShowConfirmCOA(false)}>
+                                    No, Cancel
+                                </button>
+                                <button className="submit-btn" onClick={handleConfirmGenerateCOA}>
+                                    Yes, Generate
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>

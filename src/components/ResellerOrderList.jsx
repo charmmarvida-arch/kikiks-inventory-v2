@@ -29,6 +29,19 @@ const ResellerOrderList = () => {
     const [previewTitle, setPreviewTitle] = useState('');
 
     const handleStatusChange = (id, newStatus) => {
+        if (newStatus === 'Completed') {
+            const order = resellerOrders.find(o => o.id === id);
+            if (order) {
+                if (!order.hasPackingList) {
+                    alert("Order cannot be completed without a Packing List.");
+                    return;
+                }
+                if (!order.hasCOA) {
+                    alert("Order cannot be completed without a COA.");
+                    return;
+                }
+            }
+        }
         updateResellerOrderStatus(id, newStatus);
     };
 
@@ -156,6 +169,24 @@ const ResellerOrderList = () => {
 
     // --- COA Handlers ---
     const handleGenerateCOA = async () => {
+        // Validate that all items have dates filled
+        let missingDates = false;
+        if (selectedCOAOrder && selectedCOAOrder.items) {
+            Object.entries(selectedCOAOrder.items).forEach(([sku, qty]) => {
+                if (qty > 0) {
+                    const dates = bestBeforeDates[sku];
+                    if (!dates || dates.length === 0 || dates.some(d => !d || d.trim() === '')) {
+                        missingDates = true;
+                    }
+                }
+            });
+        }
+
+        if (missingDates) {
+            alert("Please fill in ALL Best Before Dates before generating the COA.");
+            return;
+        }
+
         if (!preparedBy.trim()) {
             alert("Please enter 'Prepared by' name.");
             return;
@@ -510,7 +541,7 @@ const ResellerOrderList = () => {
                         </div>
                         <div className="modal-body">
                             <p className="text-secondary text-sm mb-4">
-                                Please enter the Best Before Date for each item. The Production Date will be automatically calculated (3 months prior).
+                                Please enter the Best Before Date for each item. <strong>All fields are required.</strong> The Production Date will be automatically calculated (3 months prior).
                             </p>
                             <div className="scrollable-table-container mb-6" style={{ maxHeight: '400px' }}>
                                 <table className="w-full">
@@ -659,7 +690,7 @@ const ResellerOrderList = () => {
 
             {/* Confirmation Modal */}
             {showConfirmCOA && (
-                <div className="modal-overlay" style={{ zIndex: 60 }} onClick={() => setShowConfirmCOA(false)}>
+                <div className="modal-overlay" style={{ zIndex: 1100 }} onClick={() => setShowConfirmCOA(false)}>
                     <div className="modal-content small-modal" onClick={e => e.stopPropagation()}>
                         <div className="modal-header">
                             <h3 className="modal-title">Confirm COA Generation</h3>
