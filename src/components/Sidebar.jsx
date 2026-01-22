@@ -12,6 +12,7 @@ import {
   Box,
   Store,
   Layers,
+  Heart,
   Gift,
   BarChart3
 } from 'lucide-react';
@@ -141,9 +142,9 @@ const Sidebar = ({ isOpen, onClose }) => {
                 <span className="nav-icon"><ShoppingCart size={20} /></span>
                 Create Order
               </NavLink>
-              <NavLink to="/new-year-order" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`} onClick={onClose} style={{ color: '#D42426' }}>
-                <span className="nav-icon"><Gift size={20} /></span>
-                Christmas Order
+              <NavLink to="/valentines-order" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`} onClick={onClose} style={{ color: '#D42426' }}>
+                <span className="nav-icon"><Heart size={20} /></span>
+                Valentines Order
               </NavLink>
               <NavLink to="/reseller-orders-list" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`} onClick={onClose}>
                 <span className="nav-icon"><ClipboardList size={20} /></span>

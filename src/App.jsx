@@ -27,14 +27,14 @@ import LegazpiStorage from './components/LegazpiStorage';
 import AdminKey from './components/AdminKey';
 import BranchInventory from './components/BranchInventory';
 
-// Lazy Load Christmas Order for performance
-const ChristmasOrder = React.lazy(() => import('./components/ChristmasOrder'));
+// Lazy Load Valentines Order for performance
+const ValentinesOrder = React.lazy(() => import('./components/ValentinesOrder'));
 
 // Loading Fallback Component
-const ChristmasLoader = () => (
-  <div className="flex flex-col items-center justify-center h-screen bg-[#F5F5DC] text-[#510813]">
-    <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-[#E5562E] mb-4"></div>
-    <h2 className="text-2xl font-black tracking-widest animate-pulse">LOADING NEW YEAR...</h2>
+const ValentinesLoader = () => (
+  <div className="flex flex-col items-center justify-center h-screen bg-[#FFF0F5] text-[#510813]">
+    <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-[#D42426] mb-4"></div>
+    <h2 className="text-2xl font-black tracking-widest animate-pulse text-[#D42426]">LOADING VALENTINES...</h2>
   </div>
 );
 
@@ -88,12 +88,13 @@ function App() {
                 <Route path="/login" element={<Login />} />
                 <Route path="/public-order" element={<ResellerOrderRedesigned isPublic={true} />} />
                 <Route path="/public-transfer" element={<TransferLocation isPublic={true} />} />
-                <Route path="/new-year-order" element={
-                  <React.Suspense fallback={<ChristmasLoader />}>
-                    <ChristmasOrder isPublic={true} />
+                <Route path="/valentines-order" element={
+                  <React.Suspense fallback={<ValentinesLoader />}>
+                    <ValentinesOrder isPublic={true} />
                   </React.Suspense>
                 } />
-                <Route path="/christmas-order" element={<Navigate to="/new-year-order" replace />} />
+                <Route path="/christmas-order" element={<Navigate to="/valentines-order" replace />} />
+                <Route path="/new-year-order" element={<Navigate to="/valentines-order" replace />} />
                 <Route path="/order-pdf/:orderId" element={<OrderPdfView />} />
                 <Route path="/print-stocks/:location" element={
                   <RequireAuth>
