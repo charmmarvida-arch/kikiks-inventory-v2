@@ -312,9 +312,9 @@ const ValentinesOrder = () => {
                 </div>
             </header>
 
-            <div className="flex-1 flex flex-col md:flex-row overflow-hidden relative z-10">
+            <div className="flex-1 flex flex-col md:flex-row md:overflow-hidden relative z-10">
                 {/* Main Content */}
-                <div className="flex-1 p-6 md:p-12 overflow-y-auto pb-40 md:pb-12 scrollbar-none">
+                <div className="flex-1 p-6 md:p-12 md:overflow-y-auto pb-6 md:pb-12 scrollbar-none">
                     {/* Reservation Details Card */}
                     <div className="bg-[#FAEEEF] p-8 md:p-10 rounded-xl shadow-lg border border-white/10 relative mb-12">
                         <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-[#F1DFD1] text-[#99182A] px-6 py-1 text-[10px] font-serif uppercase tracking-[0.2em] rounded-full shadow-md z-10">
@@ -425,13 +425,13 @@ const ValentinesOrder = () => {
                     </div>
                 </div>
                 {/* Right: Premium Sidebar (Cart) */}
-                <div className="w-full md:w-[350px] bg-[#FAEEEF] border-l border-[#99182A]/20 flex flex-col z-20 shadow-2xl">
+                <div className="w-full md:w-[350px] bg-[#FAEEEF] border-t md:border-t-0 md:border-l border-[#99182A]/20 flex flex-col z-20 shadow-2xl">
                     <div className="p-8 pb-6 flex justify-between items-center bg-[#FAEEEF] border-b border-[#99182A]/10">
                         <h2 className="text-xl font-serif text-[#99182A] tracking-wider uppercase">Your Selection</h2>
                         <div className="bg-[#99182A] text-white px-3 py-1 rounded-full text-[10px] font-serif tracking-widest">{Object.keys(cart).length} ITEMS</div>
                     </div>
 
-                    <div className="flex-1 overflow-y-auto px-8 py-4 space-y-4 bg-[#FAEEEF]/50">
+                    <div className="flex-1 overflow-y-auto px-8 py-4 space-y-4 bg-[#FAEEEF]/50 h-64 md:h-auto">
                         {Object.keys(cart).length === 0 ? (
                             <div className="h-full flex flex-col items-center justify-center gap-4 opacity-40 text-[#99182A]">
                                 <img src="https://cdn-icons-png.flaticon.com/512/2218/2218760.png" className="w-16 h-16 opacity-50 grayscale" alt="" />
