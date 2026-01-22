@@ -498,7 +498,7 @@ const ValentinesOrder = () => {
                                             const price = location.includes('Legazpi') ? item.priceLeg : item.priceSor;
                                             const isActive = tempQuantities[item.sku] > 0;
                                             return (
-                                                <div key={item.sku} className={`bg-white/80 backdrop-blur-md p-6 rounded-xl border transition-all flex flex-col gap-4 text-center cursor-pointer relative 
+                                                <div key={item.sku} className={`bg-white/80 backdrop-blur-md p-6 rounded-xl border transition-all flex flex-col gap-4 text-center relative 
                                             ${isActive ? 'border-[#99182A] shadow-md' : 'border-[#99182A]/10 hover:border-[#99182A]/50 hover:shadow-sm'}`}>
 
                                                     {isActive && <div className="absolute top-3 right-3 text-[#99182A]"><CheckCircle size={16} fill="#F8CCD7" /></div>}
@@ -507,10 +507,10 @@ const ValentinesOrder = () => {
                                                         <div className="font-serif text-lg text-[#99182A] mb-1">{item.description}</div>
                                                         <div className="text-xs font-serif text-[#B05C66] tracking-widest">₱{price}</div>
                                                     </div>
-                                                    <div className="flex items-center justify-center gap-4 bg-[#FAEEEF] rounded-full p-2 w-fit mx-auto">
-                                                        <button onClick={() => setTempQuantities(prev => ({ ...prev, [item.sku]: Math.max(0, (prev[item.sku] || 0) - 1) }))} className="w-8 h-8 rounded-full border border-[#99182A]/20 flex items-center justify-center text-[#99182A] hover:bg-white"><Minus size={12} /></button>
+                                                    <div className="flex items-center justify-center gap-4 bg-[#FAEEEF] rounded-full p-2 w-fit mx-auto relative z-20">
+                                                        <button type="button" onClick={() => setTempQuantities(prev => ({ ...prev, [item.sku]: Math.max(0, (prev[item.sku] || 0) - 1) }))} className="w-10 h-10 rounded-full border border-[#99182A]/20 flex items-center justify-center text-[#99182A] hover:bg-white touch-manipulation active:scale-90 transition-transform"><Minus size={14} /></button>
                                                         <span className="w-6 font-serif text-[#99182A]">{tempQuantities[item.sku] || 0}</span>
-                                                        <button onClick={() => setTempQuantities(prev => ({ ...prev, [item.sku]: (prev[item.sku] || 0) + 1 }))} className="w-8 h-8 rounded-full bg-[#99182A] text-white flex items-center justify-center hover:bg-[#8A1525]"><Plus size={12} /></button>
+                                                        <button type="button" onClick={() => setTempQuantities(prev => ({ ...prev, [item.sku]: (prev[item.sku] || 0) + 1 }))} className="w-10 h-10 rounded-full bg-[#99182A] text-white flex items-center justify-center hover:bg-[#8A1525] touch-manipulation active:scale-90 transition-transform"><Plus size={14} /></button>
                                                     </div>
                                                 </div>
                                             );
