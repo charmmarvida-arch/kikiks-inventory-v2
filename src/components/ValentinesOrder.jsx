@@ -286,7 +286,7 @@ const ValentinesOrder = () => {
     };
 
     return (
-        <div className={`min-h-[100dvh] md:h-screen flex flex-col relative font-sans ${THEME.bg} ${THEME.text} overflow-hidden font-serif`}>
+        <div className={`min-h-[100dvh] md:h-screen flex flex-col relative font-sans ${THEME.bg} ${THEME.text} md:overflow-hidden font-serif pb-32 md:pb-0`}>
             <Toast {...toast} onClose={() => setToast({ ...toast, visible: false })} />
             <SakuraPattern />
 
