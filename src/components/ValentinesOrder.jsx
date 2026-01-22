@@ -342,15 +342,16 @@ const ValentinesOrder = () => {
             <header className="relative z-10 p-6 flex justify-between items-center bg-transparent border-b border-[#F1DFD1]/20">
                 <div className="flex gap-4 items-center"></div>
 
-                <div className="text-center absolute left-1/2 transform -translate-x-1/2">
-                    <div className="flex items-center gap-3 justify-center mb-1">
-                        <Heart size={16} className="text-[#F1DFD1] fill-[#F1DFD1]" />
-                        <h1 className="text-4xl md:text-5xl tracking-widest uppercase text-[#F1DFD1]" style={{ fontFamily: '"Abril Fatface", cursive' }}>VALENTINES</h1>
-                        <Heart size={16} className="text-[#F1DFD1] fill-[#F1DFD1]" />
+                {/* Header Title - Left Aligned on Mobile, Centered on Desktop */}
+                <div className="absolute left-6 md:left-1/2 md:transform md:-translate-x-1/2 pointer-events-none md:text-center z-0 md:w-auto">
+                    <div className="flex items-center gap-2 md:gap-3 md:justify-center mb-1">
+                        <Heart size={16} className="text-[#F1DFD1] fill-[#F1DFD1] hidden md:block" />
+                        <h1 className="text-xl md:text-5xl tracking-wide md:tracking-widest uppercase text-[#F1DFD1] whitespace-nowrap" style={{ fontFamily: '"Abril Fatface", cursive' }}>VALENTINES</h1>
+                        <Heart size={16} className="text-[#F1DFD1] fill-[#F1DFD1] hidden md:block" />
                     </div>
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex gap-2 ml-auto z-10">
                     <button onClick={() => { setPinTarget('history'); setIsPinModalOpen(true); }} className="p-3 rounded-full border border-[#F1DFD1]/30 text-[#F1DFD1] hover:bg-[#F1DFD1] hover:text-[#99182A] transition-all">
                         <Clock size={18} strokeWidth={1.5} />
                     </button>
