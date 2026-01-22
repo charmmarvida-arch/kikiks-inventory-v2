@@ -7,6 +7,8 @@ import {
     Coffee, IceCream, Droplet, Box
 } from 'lucide-react';
 import { supabase } from '../supabaseClient';
+import { generatePackingList } from '../utils/pdfGenerator';
+const VALENTINES_CONFIG_ID = '11111111-1111-1111-1111-111111111111';
 import ValentinesHistoryModal from './ValentinesHistoryModal';
 import ValentinesMenuSettings from './ValentinesMenuSettings';
 
@@ -94,6 +96,52 @@ const ValentinesOrder = () => {
             return Array.isArray(parsed) ? parsed : [];
         } catch { return []; }
     });
+
+    // Sync menu from Cloud
+    useEffect(() => {
+        const fetchConfig = async () => {
+            const { data, error } = await supabase
+                .from('reseller_orders')
+                .select('items')
+                .eq('id', VALENTINES_CONFIG_ID)
+                .single();
+
+            if (data && data.items) {
+                // Merge with default ensuring array structure
+                setMenuConfig(Array.isArray(data.items) ? data.items : []); // Use empty array as default if not found
+            }
+        };
+        fetchConfig();
+    }, []);
+
+    // Save menu to Cloud
+    const handleSaveMenu = async (newMenu) => {
+        setMenuConfig(newMenu);
+        localStorage.setItem('kikiks-valentines-menu', JSON.stringify(newMenu));
+
+        try {
+            await supabase
+                .from('reseller_orders')
+                .upsert({
+                    id: VALENTINES_CONFIG_ID,
+                    status: 'SETTINGS',
+                    items: newMenu,
+                    reseller_name: 'SYSTEM_CONFIG', // Changed from resellerName to reseller_name for consistency
+                    location: 'Config',
+                    total_amount: 0, // Changed from totalAmount to total_amount
+                    date: new Date().toISOString()
+                });
+            showToast('Menu synced to cloud!', 'success');
+        } catch (e) {
+            console.error(e);
+            showToast('Saved locally only (Cloud Error)', 'error');
+        }
+    };
+
+    // Removed the old useEffect that only saved to localStorage
+    // useEffect(() => {
+    //     localStorage.setItem('kikiks-valentines-menu', JSON.stringify(menuConfig));
+    // }, [menuConfig]);
 
     const [location, setLocation] = useState('SM Legazpi');
 
@@ -579,7 +627,7 @@ const ValentinesOrder = () => {
             }
 
             <ValentinesHistoryModal isOpen={isHistoryOpen} onClose={() => setIsHistoryOpen(false)} onEdit={handleEditOrder} />
-            <ValentinesMenuSettings isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} menuConfig={menuConfig} onSaveMenu={setMenuConfig} />
+            <ValentinesMenuSettings isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} menuConfig={menuConfig} onSaveMenu={handleSaveMenu} />
         </div >
     );
 };
