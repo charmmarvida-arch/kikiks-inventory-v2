@@ -18,7 +18,8 @@ const FLAVOR_MAPPING = {
     'mango peach pie crust': '002',
     'milky chocolate': '003',
     'suman at mangga': '004',
-    'vanilla langka': '005'
+    'vanilla langka': '005',
+    'strawberry cheesecake': '006'
 };
 
 const SIZE_MAPPING = {
@@ -228,7 +229,8 @@ export const getAvailableSKUs = () => {
         '002': 'Mango Peach Pie Crust',
         '003': 'Milky Chocolate',
         '004': 'Suman at Mangga',
-        '005': 'Vanilla Langka'
+        '005': 'Vanilla Langka',
+        '006': 'Strawberry Cheesecake'
     };
 
     const sizeNames = {
