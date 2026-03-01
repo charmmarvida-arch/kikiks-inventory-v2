@@ -290,7 +290,7 @@ const TransferLocation = ({ isPublic = false }) => {
 
         CATEGORIES.forEach(cat => {
             const items = sourceInventory.filter(item =>
-                item.sku?.startsWith(cat.id) || item.description?.toLowerCase().includes(cat.label.slice(0, -1).toLowerCase())
+                item.sku?.startsWith(cat.id + '-') // strictly enforce the hyphen format
             );
             grouped[cat.id] = items;
             items.forEach(item => matchedSkus.add(item.sku));
