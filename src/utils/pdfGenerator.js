@@ -350,6 +350,19 @@ export const generateTransferPackingList = async (order, inventory = [], locatio
         'Other': []
     };
 
+    // --- NAMITO Specific Flavor Mapping Logic ---
+    const destNameStr = (order.destination || order.to_location || '').toLowerCase();
+    const isNamitoBranch = destNameStr.startsWith('namito');
+
+    const namitoFlavorMap = {
+        'Cafe Mocha': 'Cafe Mocha/Kopi Cream',
+        'Mango Peach Pie Crust': 'Mango Peach Pie Crust /Peach Mango Crumble',
+        'MIlky Chocolate': 'MIlky Chocolate/Choco Milk',
+        'Milky Chocolate': 'MIlky Chocolate/Choco Milk', // Added standard casing just in case
+        'Suman at Mangga': 'Suman at Mangga/Sunny Rice Mango',
+        'Vanilla Langka': 'Vanilla Langka/Nami-Langka Vanilla'
+    };
+
     // Helper function to clean item name (remove "-Default" suffix)
     const cleanItemName = (name) => {
         return name.replace(/-Default$/i, '').trim();
@@ -357,13 +370,28 @@ export const generateTransferPackingList = async (order, inventory = [], locatio
 
     // Helper function to get product description from SKU or item name
     const getDisplayName = (itemName) => {
+        let displayName = cleanItemName(itemName);
+
         // Look up in inventory for ANY item
         const product = inventory.find(p => p.sku === itemName);
         if (product && product.description) {
-            return product.description;
+            displayName = product.description;
         }
-        // Otherwise clean the name and return
-        return cleanItemName(itemName);
+
+        // Apply Namito mapping if applicable
+        if (isNamitoBranch) {
+            // Check if the displayName exactly matches or contains the base flavor name
+            for (const [baseName, mappedName] of Object.entries(namitoFlavorMap)) {
+                // E.g., if displayName is "FGP-002 Cafe Mocha" or just "Cafe Mocha"
+                if (displayName.includes(baseName)) {
+                    // Replace the base name with the mapped name
+                    displayName = displayName.replace(baseName, mappedName);
+                    break; // Only map once per item
+                }
+            }
+        }
+
+        return displayName;
     };
 
     // Categorize items - supports both item names AND SKU codes
