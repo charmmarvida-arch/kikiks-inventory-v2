@@ -129,6 +129,9 @@ const Sidebar = ({ isOpen, onClose }) => {
                 <NavLink to="/transfer" className={({ isActive }) => `submenu-item ${isActive ? 'active' : ''}`} onClick={onClose}>
                   <span>Transfer Location</span>
                 </NavLink>
+                <NavLink to="/distribution-calculator" className={({ isActive }) => `submenu-item ${isActive ? 'active' : ''}`} onClick={onClose}>
+                  <span>Distribution Calculator</span>
+                </NavLink>
                 <NavLink to="/branch-inventory" className={({ isActive }) => `submenu-item ${isActive ? 'active' : ''}`} onClick={onClose}>
                   <span>Branch Inventory</span>
                 </NavLink>

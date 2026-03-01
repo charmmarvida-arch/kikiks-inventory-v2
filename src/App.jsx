@@ -14,6 +14,7 @@ import Dashboard from './components/Dashboard';
 
 import LocationDashboard from './components/LocationDashboard';
 import TransferLocation from './components/TransferLocation';
+import DistributionCalculator from './components/DistributionCalculator';
 import BranchStockPrintView from './components/BranchStockPrintView';
 import ResellerOrderRedesigned from './components/ResellerOrderRedesigned';
 // import ChristmasOrder from './components/ChristmasOrder'; // Lazy loaded below
@@ -116,6 +117,7 @@ function App() {
                   <Route path="dashboard/:location" element={<LocationDashboard />} />
                   <Route path="stock-in" element={<StockIn />} />
                   <Route path="transfer" element={<TransferLocation />} />
+                  <Route path="distribution-calculator" element={<DistributionCalculator />} />
                   <Route path="branch-inventory" element={<BranchInventory />} />
                   <Route path="reseller-order" element={<ResellerOrderRedesigned />} />
                   <Route path="reseller-order/edit/:orderId" element={<ResellerOrderRedesigned />} />
