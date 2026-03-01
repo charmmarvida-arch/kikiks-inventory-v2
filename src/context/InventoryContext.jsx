@@ -12,30 +12,35 @@ const INITIAL_INVENTORY = [
     { sku: 'FGC-003', description: 'Milky Chocolate Cup', uom: 'PCS', quantity: 0 },
     { sku: 'FGC-004', description: 'Suman at Mangga Cup', uom: 'PCS', quantity: 0 },
     { sku: 'FGC-005', description: 'Vanilla Langka Cup', uom: 'PCS', quantity: 0 },
+    { sku: 'FGC-006', description: 'Strawberry Cheesecake Cup', uom: 'PCS', quantity: 0 },
     // Pints (FGP)
     { sku: 'FGP-001', description: 'Cafe Mocha Pint', uom: 'PCS', quantity: 0 },
     { sku: 'FGP-002', description: 'Mango Peach Pie Crust Pint', uom: 'PCS', quantity: 0 },
     { sku: 'FGP-003', description: 'Milky Chocolate Pint', uom: 'PCS', quantity: 0 },
     { sku: 'FGP-004', description: 'Suman at Mangga Pint', uom: 'PCS', quantity: 0 },
     { sku: 'FGP-005', description: 'Vanilla Langka Pint', uom: 'PCS', quantity: 0 },
+    { sku: 'FGP-006', description: 'Strawberry Cheesecake Pint', uom: 'PCS', quantity: 0 },
     // Liters (FGL)
     { sku: 'FGL-001', description: 'Cafe Mocha Liter', uom: 'PCS', quantity: 0 },
     { sku: 'FGL-002', description: 'Mango Peach Pie Crust Liter', uom: 'PCS', quantity: 0 },
     { sku: 'FGL-003', description: 'Milky Chocolate Liter', uom: 'PCS', quantity: 0 },
     { sku: 'FGL-004', description: 'Suman at Mangga Liter', uom: 'PCS', quantity: 0 },
     { sku: 'FGL-005', description: 'Vanilla Langka Liter', uom: 'PCS', quantity: 0 },
+    { sku: 'FGL-006', description: 'Strawberry Cheesecake Liter', uom: 'PCS', quantity: 0 },
     // Gallons (FGG)
     { sku: 'FGG-001', description: 'Cafe Mocha Gallon', uom: 'PCS', quantity: 0 },
     { sku: 'FGG-002', description: 'Mango Peach Pie Crust Gallon', uom: 'PCS', quantity: 0 },
     { sku: 'FGG-003', description: 'Milky Chocolate Gallon', uom: 'PCS', quantity: 0 },
     { sku: 'FGG-004', description: 'Suman at Mangga Gallon', uom: 'PCS', quantity: 0 },
     { sku: 'FGG-005', description: 'Vanilla Langka Gallon', uom: 'PCS', quantity: 0 },
+    { sku: 'FGG-006', description: 'Strawberry Cheesecake Gallon', uom: 'PCS', quantity: 0 },
     // Trays (FGT)
     { sku: 'FGT-001', description: 'Cafe Mocha Tray', uom: 'PCS', quantity: 0 },
     { sku: 'FGT-002', description: 'Mango Peach Pie Crust Tray', uom: 'PCS', quantity: 0 },
     { sku: 'FGT-003', description: 'Milky Chocolate Tray', uom: 'PCS', quantity: 0 },
     { sku: 'FGT-004', description: 'Suman at Mangga Tray', uom: 'PCS', quantity: 0 },
     { sku: 'FGT-005', description: 'Vanilla Langka Tray', uom: 'PCS', quantity: 0 },
+    { sku: 'FGT-006', description: 'Strawberry Cheesecake Tray', uom: 'PCS', quantity: 0 },
 ];
 
 export const InventoryProvider = ({ children }) => {
@@ -46,7 +51,7 @@ export const InventoryProvider = ({ children }) => {
     const [resellerOrders, setResellerOrders] = useState([]);
     const [transferOrders, setTransferOrders] = useState([]);
     const [materials, setMaterials] = useState([]); // FTF Materials (Raw, Packaging, Stickers)
-    const [kikiksLocations, setKikiksLocations] = useState(['SM Sorsogon', 'SM Legazpi', 'SM Daet']); // Removed Legazpi Storage
+    const [kikiksLocations, setKikiksLocations] = useState(['SM Sorsogon', 'SM Legazpi', 'SM Daet', 'Namito SM Daet', 'Namito SM Naga']); // Removed Legazpi Storage
     const [locationSRPs, setLocationSRPs] = useState({});
     const [resellerPrices, setResellerPrices] = useState({});
     const [zonePrices, setZonePrices] = useState({}); // { [zoneId]: { 'FGC': 23, ... } }
