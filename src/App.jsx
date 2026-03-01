@@ -8,6 +8,7 @@ import InventoryTable from './components/InventoryTable';
 import StockIn from './components/StockIn';
 import Login from './components/Login';
 import RegisterAccount from './components/RegisterAccount';
+import SampleComputation from './components/SampleComputation';
 
 import Dashboard from './components/Dashboard';
 
@@ -121,6 +122,7 @@ function App() {
                   <Route path="reseller-orders-list" element={<ResellerOrderList />} />
                   <Route path="order-history" element={<OrderHistory />} />
                   <Route path="reseller-dashboard-final" element={<ResellerDashboard />} />
+                  <Route path="sample-computation" element={<SampleComputation />} />
                   <Route path="settings/sku-addition" element={<SettingsSku />} />
                   <Route path="settings/admin-key" element={<AdminKey />} />
                   <Route path="settings/register" element={<RegisterAccount />} />

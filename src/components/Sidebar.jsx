@@ -14,7 +14,8 @@ import {
   Layers,
   Heart,
   Gift,
-  BarChart3
+  BarChart3,
+  Receipt
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useInventory } from '../context/InventoryContext';
@@ -160,6 +161,14 @@ const Sidebar = ({ isOpen, onClose }) => {
               </NavLink>
             </div>
           )}
+
+          <div className="nav-item">
+            <div className="nav-section-label">Sales Invoice</div>
+            <NavLink to="/sample-computation" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`} onClick={onClose}>
+              <span className="nav-icon"><Receipt size={20} /></span>
+              Sample Computation
+            </NavLink>
+          </div>
 
           <div className="nav-item">
             <div className="nav-section-label">Kikiks Branches</div>
