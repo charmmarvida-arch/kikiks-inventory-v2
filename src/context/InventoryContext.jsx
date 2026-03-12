@@ -46,6 +46,7 @@ const INITIAL_INVENTORY = [
 export const InventoryProvider = ({ children }) => {
     const [inventory, setInventory] = useState([]);
     const [legazpiInventory, setLegazpiInventory] = useState([]); // Legazpi Storage Inventory
+    const [daetInventory, setDaetInventory] = useState([]); // Daet Storage Inventory
     const [history, setHistory] = useState([]); // Stock In History - We might need a table for this later
     const [resellers, setResellers] = useState([]);
     const [resellerOrders, setResellerOrders] = useState([]);
@@ -95,6 +96,18 @@ export const InventoryProvider = ({ children }) => {
                 console.error('Error fetching Legazpi inventory:', legazpiError);
             } else if (legazpiData) {
                 setLegazpiInventory(legazpiData);
+            }
+
+            // 1c. Daet Storage Inventory
+            const { data: daetData, error: daetError } = await supabase
+                .from('daet_storage_inventory')
+                .select('*')
+                .order('product_name', { ascending: true });
+
+            if (daetError) {
+                console.error('Error fetching Daet inventory:', daetError);
+            } else if (daetData) {
+                setDaetInventory(daetData);
             }
 
             // 2. Reseller Zones
@@ -166,7 +179,11 @@ export const InventoryProvider = ({ children }) => {
             // 5. Locations (Optional table, fallback to default if empty or error)
             const { data: locData } = await supabase.from('kikiks_locations').select('*');
             if (locData && locData.length > 0) {
-                setKikiksLocations(locData.map(l => l.name));
+                const fetchedLocations = locData.map(l => l.name);
+                if (!fetchedLocations.includes('Daet Storage')) {
+                    fetchedLocations.push('Daet Storage');
+                }
+                setKikiksLocations(fetchedLocations);
             }
 
             // 6. Location SRPs
@@ -246,9 +263,24 @@ export const InventoryProvider = ({ children }) => {
             })
             .subscribe();
 
+        // Realtime Subscription for Daet Storage Inventory
+        const daetSubscription = supabase
+            .channel('public:daet_storage_inventory')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'daet_storage_inventory' }, (payload) => {
+                if (payload.eventType === 'UPDATE') {
+                    setDaetInventory(prev => prev.map(item => item.id === payload.new.id ? payload.new : item));
+                } else if (payload.eventType === 'INSERT') {
+                    setDaetInventory(prev => [...prev, payload.new]);
+                } else if (payload.eventType === 'DELETE') {
+                    setDaetInventory(prev => prev.filter(item => item.id !== payload.old.id));
+                }
+            })
+            .subscribe();
+
         return () => {
             supabase.removeChannel(ftfSubscription);
             supabase.removeChannel(legazpiSubscription);
+            supabase.removeChannel(daetSubscription);
         };
     }, []);
 
@@ -633,12 +665,64 @@ export const InventoryProvider = ({ children }) => {
         if (error) {
             alert('Error adding SKU to DB: ' + error.message);
             // Revert?
+        } else {
+            // Auto-sync branch storages based on locations array
+            if (newItem.locations && newItem.locations.includes('Daet Storage')) {
+                await supabase.from('daet_storage_inventory').insert({
+                    sku: newItem.sku,
+                    product_name: newItem.description,
+                    quantity: 0,
+                    unit: newItem.uom
+                });
+            }
+            if (newItem.locations && newItem.locations.includes('Legazpi Storage')) {
+                await supabase.from('legazpi_storage_inventory').insert({
+                    sku: newItem.sku,
+                    product_name: newItem.description,
+                    quantity: 0,
+                    unit: newItem.uom
+                });
+            }
+            fetchData(); // Refresh to catch synced storages
         }
     };
 
     const updateSku = async (oldSku, updatedItem) => {
         setInventory(prev => prev.map(item => item.sku === oldSku ? { ...item, ...updatedItem } : item));
-        await supabase.from('inventory').update(updatedItem).eq('sku', oldSku);
+        const { error } = await supabase.from('inventory').update(updatedItem).eq('sku', oldSku);
+
+        if (!error) {
+            // Daet Storage Sync
+            if (updatedItem.locations && updatedItem.locations.includes('Daet Storage')) {
+                const { data: existingDaet } = await supabase.from('daet_storage_inventory').select('id').eq('sku', updatedItem.sku);
+                if (!existingDaet || existingDaet.length === 0) {
+                    await supabase.from('daet_storage_inventory').insert({
+                        sku: updatedItem.sku,
+                        product_name: updatedItem.description,
+                        quantity: 0,
+                        unit: updatedItem.uom
+                    });
+                } else {
+                    await supabase.from('daet_storage_inventory').update({ product_name: updatedItem.description }).eq('sku', updatedItem.sku);
+                }
+            }
+
+            // Legazpi Storage Sync
+            if (updatedItem.locations && updatedItem.locations.includes('Legazpi Storage')) {
+                const { data: existingLegazpi } = await supabase.from('legazpi_storage_inventory').select('id').eq('sku', updatedItem.sku);
+                if (!existingLegazpi || existingLegazpi.length === 0) {
+                    await supabase.from('legazpi_storage_inventory').insert({
+                        sku: updatedItem.sku,
+                        product_name: updatedItem.description,
+                        quantity: 0,
+                        unit: updatedItem.uom
+                    });
+                } else {
+                    await supabase.from('legazpi_storage_inventory').update({ product_name: updatedItem.description }).eq('sku', updatedItem.sku);
+                }
+            }
+            fetchData(); // Refresh to catch synced storages
+        }
     };
 
     const deleteSku = async (sku) => {
@@ -734,6 +818,88 @@ export const InventoryProvider = ({ children }) => {
             const newQty = Number(currentItem.quantity) + Number(quantity);
             await supabase
                 .from('legazpi_storage_inventory')
+                .update({ quantity: newQty })
+                .eq('id', id);
+        }
+    };
+
+    // ============================================================
+    // DAET STORAGE INVENTORY METHODS
+    // ============================================================
+
+    const addDaetProduct = async (product) => {
+        const newProduct = {
+            sku: product.sku,
+            product_name: product.product_name,
+            flavor: product.flavor,
+            quantity: Number(product.quantity) || 0,
+            unit: product.unit
+        };
+
+        const { data, error } = await supabase
+            .from('daet_storage_inventory')
+            .insert(newProduct)
+            .select()
+            .single();
+
+        if (error) {
+            console.error('Error adding Daet product:', error);
+            alert('Failed to add product: ' + error.message);
+            return;
+        }
+
+        setDaetInventory(prev => [...prev, data]);
+    };
+
+    const updateDaetProduct = async (id, updates) => {
+        setDaetInventory(prev => prev.map(item =>
+            item.id === id ? { ...item, ...updates } : item
+        ));
+
+        const { error } = await supabase
+            .from('daet_storage_inventory')
+            .update(updates)
+            .eq('id', id);
+
+        if (error) {
+            console.error('Error updating Daet product:', error);
+            alert('Failed to update product: ' + error.message);
+            await fetchData();
+        }
+    };
+
+    const deleteDaetProduct = async (id) => {
+        setDaetInventory(prev => prev.filter(item => item.id !== id));
+
+        const { error } = await supabase
+            .from('daet_storage_inventory')
+            .delete()
+            .eq('id', id);
+
+        if (error) {
+            console.error('Error deleting Daet product:', error);
+            alert('Failed to delete product: ' + error.message);
+            await fetchData();
+        }
+    };
+
+    const addDaetStock = async (id, quantity) => {
+        setDaetInventory(prev => prev.map(item =>
+            item.id === id
+                ? { ...item, quantity: Number(item.quantity) + Number(quantity) }
+                : item
+        ));
+
+        const { data: currentItem } = await supabase
+            .from('daet_storage_inventory')
+            .select('quantity')
+            .eq('id', id)
+            .single();
+
+        if (currentItem) {
+            const newQty = Number(currentItem.quantity) + Number(quantity);
+            await supabase
+                .from('daet_storage_inventory')
                 .update({ quantity: newQty })
                 .eq('id', id);
         }
@@ -885,6 +1051,7 @@ export const InventoryProvider = ({ children }) => {
         <InventoryContext.Provider value={{
             inventory, addStock,
             legazpiInventory, addLegazpiProduct, updateLegazpiProduct, deleteLegazpiProduct, addLegazpiStock,
+            daetInventory, addDaetProduct, updateDaetProduct, deleteDaetProduct, addDaetStock,
             history, addHistory,
             resellers, addReseller, updateReseller, deleteReseller,
             resellerOrders, addResellerOrder, updateResellerOrderStatus, updateResellerOrder, deleteResellerOrder,

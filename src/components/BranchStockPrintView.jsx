@@ -6,7 +6,7 @@ import { Printer, ArrowLeft } from 'lucide-react';
 
 const BranchStockPrintView = () => {
     const { location } = useParams();
-    const { legazpiInventory } = useInventory();
+    const { legazpiInventory, daetInventory } = useInventory();
     const { getBranchInventory, loading } = useBranchInventory();
     const [inventoryItems, setInventoryItems] = useState([]);
     const [currentDate, setCurrentDate] = useState('');
@@ -28,6 +28,8 @@ const BranchStockPrintView = () => {
         let data = [];
         if (location === 'Legazpi Storage') {
             data = legazpiInventory; // Already loaded in context
+        } else if (location === 'Daet Storage') {
+            data = daetInventory;
         } else {
             data = getBranchInventory(location);
         }
@@ -49,7 +51,7 @@ const BranchStockPrintView = () => {
 
         setInventoryItems(processData);
 
-    }, [location, legazpiInventory, getBranchInventory]);
+    }, [location, legazpiInventory, daetInventory, getBranchInventory]);
 
     // Grouping Logic
     const getSizeCategory = (sku) => {

@@ -1,0 +1,14 @@
+﻿=== DATA CHECK SUMMARY ===
+[SUMMARY] Resellers Count: 16
+[SUMMARY] Recent Orders (Top 10):
+ - Date: 2026-01-06T13:46:57.174+00:00, Status: Pending, Amount: 5100, Encoded: false
+ - Date: 2026-01-06T10:18:15.433+00:00, Status: Pending, Amount: 6940, Encoded: false
+ - Date: 2026-01-05T23:33:49.579+00:00, Status: Pending, Amount: 3990, Encoded: false
+ - Date: 2026-01-04T00:29:57.622+00:00, Status: Pending, Amount: 3235, Encoded: false
+ - Date: 2026-01-03T05:21:15.426+00:00, Status: Pending, Amount: 8000, Encoded: false
+ - Date: 2025-12-30T05:51:04.358+00:00, Status: Pending, Amount: 1300, Encoded: false
+ - Date: 2025-12-29T14:21:25.816+00:00, Status: Pending, Amount: 2600, Encoded: false
+ - Date: 2025-12-29T14:18:56.397+00:00, Status: Pending, Amount: 2600, Encoded: false
+ - Date: 2025-12-29T14:16:50.949+00:00, Status: Pending, Amount: 1300, Encoded: false
+ - Date: 2025-12-29T14:06:23.169+00:00, Status: Pending, Amount: 1300, Encoded: false
+[SUMMARY] Settings Count: 6

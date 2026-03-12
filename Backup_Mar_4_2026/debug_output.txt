@@ -1,0 +1,99 @@
+--- ERROR FOUND AT LINE 13 ---
+129 |                      coaData: order.coa_data,                // Add this
+130 |  
+[39m
+[32m✓[39m 34 modules transformed.
+[31m✗[39m Build failed in 3.71s
+[31merror during build:
+[31m[vite:esbuild] Transform failed with 1 error:
+C:/Users/LENOVO/OneDrive/Desktop/Kikiks Inventory/src/components/ResellerDashboard.jsx:375:10: ERROR: The symbol "criticalAlerts" has already been declared[31m
+file: [36mC:/Users/LENOVO/OneDrive/Desktop/Kikiks Inventory/src/components/ResellerDashboard.jsx:375:10[31m
+[33m
+[33mThe symbol "criticalAlerts" has already been declared[33m
+373 |  
+374 |      // 4. Critical Alerts (Logic moved from UI if needed, but we can reuse monthlyComplianceData)
+375 |      const criticalAlerts = useMemo(() => {
+    |            ^
+376 |          const alerts = [];
+377 |          // A. Compliance 'Not Met' (already calculated in monthlyComplianceData)
+[31m
+    at failureErrorWithLog (C:\Users\LENOVO\OneDrive\Desktop\Kikiks Inventory\node_modules\esbuild\lib\main.js:1467:15)
+    at C:\Users\LENOVO\OneDrive\Desktop\Kikiks Inventory\node_modules\esbuild\lib\main.js:736:50
+    at responseCallbacks.<computed> (C:\Users\LENOVO\OneDrive\Desktop\Kikiks Inventory\node_modules\esbuild\lib\main.js:603:9)
+    at handleIncomingPacket (C:\Users\LENOVO\OneDrive\Desktop\Kikiks Inventory\node_modules\esbuild\lib\main.js:658:12)
+    at Socket.readFromStdout (C:\Users\LENOVO\OneDrive\Desktop\Kikiks Inventory\node_modules\esbuild\lib\main.js:581:7)
+    at Socket.emit (node:events:508:28)
+    at addChunk (node:internal/streams/readable:559:12)
+-------------------------------------------
+--- ERROR FOUND AT LINE 14 ---
+130 |  
+[39m
+[32m✓[39m 34 modules transformed.
+[31m✗[39m Build failed in 3.71s
+[31merror during build:
+[31m[vite:esbuild] Transform failed with 1 error:
+C:/Users/LENOVO/OneDrive/Desktop/Kikiks Inventory/src/components/ResellerDashboard.jsx:375:10: ERROR: The symbol "criticalAlerts" has already been declared[31m
+file: [36mC:/Users/LENOVO/OneDrive/Desktop/Kikiks Inventory/src/components/ResellerDashboard.jsx:375:10[31m
+[33m
+[33mThe symbol "criticalAlerts" has already been declared[33m
+373 |  
+374 |      // 4. Critical Alerts (Logic moved from UI if needed, but we can reuse monthlyComplianceData)
+375 |      const criticalAlerts = useMemo(() => {
+    |            ^
+376 |          const alerts = [];
+377 |          // A. Compliance 'Not Met' (already calculated in monthlyComplianceData)
+[31m
+    at failureErrorWithLog (C:\Users\LENOVO\OneDrive\Desktop\Kikiks Inventory\node_modules\esbuild\lib\main.js:1467:15)
+    at C:\Users\LENOVO\OneDrive\Desktop\Kikiks Inventory\node_modules\esbuild\lib\main.js:736:50
+    at responseCallbacks.<computed> (C:\Users\LENOVO\OneDrive\Desktop\Kikiks Inventory\node_modules\esbuild\lib\main.js:603:9)
+    at handleIncomingPacket (C:\Users\LENOVO\OneDrive\Desktop\Kikiks Inventory\node_modules\esbuild\lib\main.js:658:12)
+    at Socket.readFromStdout (C:\Users\LENOVO\OneDrive\Desktop\Kikiks Inventory\node_modules\esbuild\lib\main.js:581:7)
+    at Socket.emit (node:events:508:28)
+    at addChunk (node:internal/streams/readable:559:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:510:3)
+-------------------------------------------
+--- ERROR FOUND AT LINE 15 ---
+[39m
+[32m✓[39m 34 modules transformed.
+[31m✗[39m Build failed in 3.71s
+[31merror during build:
+[31m[vite:esbuild] Transform failed with 1 error:
+C:/Users/LENOVO/OneDrive/Desktop/Kikiks Inventory/src/components/ResellerDashboard.jsx:375:10: ERROR: The symbol "criticalAlerts" has already been declared[31m
+file: [36mC:/Users/LENOVO/OneDrive/Desktop/Kikiks Inventory/src/components/ResellerDashboard.jsx:375:10[31m
+[33m
+[33mThe symbol "criticalAlerts" has already been declared[33m
+373 |  
+374 |      // 4. Critical Alerts (Logic moved from UI if needed, but we can reuse monthlyComplianceData)
+375 |      const criticalAlerts = useMemo(() => {
+    |            ^
+376 |          const alerts = [];
+377 |          // A. Compliance 'Not Met' (already calculated in monthlyComplianceData)
+[31m
+    at failureErrorWithLog (C:\Users\LENOVO\OneDrive\Desktop\Kikiks Inventory\node_modules\esbuild\lib\main.js:1467:15)
+    at C:\Users\LENOVO\OneDrive\Desktop\Kikiks Inventory\node_modules\esbuild\lib\main.js:736:50
+    at responseCallbacks.<computed> (C:\Users\LENOVO\OneDrive\Desktop\Kikiks Inventory\node_modules\esbuild\lib\main.js:603:9)
+    at handleIncomingPacket (C:\Users\LENOVO\OneDrive\Desktop\Kikiks Inventory\node_modules\esbuild\lib\main.js:658:12)
+    at Socket.readFromStdout (C:\Users\LENOVO\OneDrive\Desktop\Kikiks Inventory\node_modules\esbuild\lib\main.js:581:7)
+    at Socket.emit (node:events:508:28)
+    at addChunk (node:internal/streams/readable:559:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:510:3)
+    at Readable.push (node:internal/streams/readable:390:5)
+-------------------------------------------
+--- ERROR FOUND AT LINE 26 ---
+375 |      const criticalAlerts = useMemo(() => {
+    |            ^
+376 |          const alerts = [];
+377 |          // A. Compliance 'Not Met' (already calculated in monthlyComplianceData)
+[31m
+    at failureErrorWithLog (C:\Users\LENOVO\OneDrive\Desktop\Kikiks Inventory\node_modules\esbuild\lib\main.js:1467:15)
+    at C:\Users\LENOVO\OneDrive\Desktop\Kikiks Inventory\node_modules\esbuild\lib\main.js:736:50
+    at responseCallbacks.<computed> (C:\Users\LENOVO\OneDrive\Desktop\Kikiks Inventory\node_modules\esbuild\lib\main.js:603:9)
+    at handleIncomingPacket (C:\Users\LENOVO\OneDrive\Desktop\Kikiks Inventory\node_modules\esbuild\lib\main.js:658:12)
+    at Socket.readFromStdout (C:\Users\LENOVO\OneDrive\Desktop\Kikiks Inventory\node_modules\esbuild\lib\main.js:581:7)
+    at Socket.emit (node:events:508:28)
+    at addChunk (node:internal/streams/readable:559:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:510:3)
+    at Readable.push (node:internal/streams/readable:390:5)
+    at Pipe.onStreamRead (node:internal/stream_base_commons:189:23)[39m
+
+-------------------------------------------

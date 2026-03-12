@@ -26,6 +26,7 @@ import SettingsSku from './components/SettingsSku';
 import FTFManufacturing from './components/FTFManufacturing';
 import FTFMaterials from './components/FTFMaterials';
 import LegazpiStorage from './components/LegazpiStorage';
+import DaetStorage from './components/DaetStorage';
 import AdminKey from './components/AdminKey';
 import BranchInventory from './components/BranchInventory';
 
@@ -114,6 +115,7 @@ function App() {
                   <Route path="dashboard/ftf-manufacturing" element={<FTFManufacturing />} />
                   <Route path="dashboard/ftf-materials" element={<FTFMaterials />} />
                   <Route path="dashboard/legazpi-storage" element={<LegazpiStorage />} />
+                  <Route path="dashboard/daet-storage" element={<DaetStorage />} />
                   <Route path="dashboard/:location" element={<LocationDashboard />} />
                   <Route path="stock-in" element={<StockIn />} />
                   <Route path="transfer" element={<TransferLocation />} />

@@ -21,6 +21,8 @@ const LocationDashboard = () => {
         addStock,
         addLegazpiStock,
         legazpiInventory,
+        addDaetStock,
+        daetInventory,
         loading // Add loading
     } = useInventory();
     const [selectedOrder, setSelectedOrder] = useState(null);
@@ -94,6 +96,12 @@ const LocationDashboard = () => {
                             await addLegazpiStock(product.id, -qty);
                             console.log(`Deducted ${qty} of ${sku} from Legazpi Storage`);
                         }
+                    } else if (fromLocation === 'Daet Storage') {
+                        const product = daetInventory.find(p => p.sku === sku || `${p.product_name}-${p.flavor || 'Default'}` === sku);
+                        if (product) {
+                            await addDaetStock(product.id, -qty);
+                            console.log(`Deducted ${qty} of ${sku} from Daet Storage`);
+                        }
                     }
 
                     // Add to destination location (for warehouses)
@@ -103,6 +111,12 @@ const LocationDashboard = () => {
                         if (product) {
                             await addLegazpiStock(product.id, qty);
                             console.log(`Added ${qty} of ${sku} to Legazpi Storage`);
+                        }
+                    } else if (toLocation === 'Daet Storage') {
+                        const product = daetInventory.find(p => p.sku === sku || `${p.product_name}-${p.flavor || 'Default'}` === sku);
+                        if (product) {
+                            await addDaetStock(product.id, qty);
+                            console.log(`Added ${qty} of ${sku} to Daet Storage`);
                         }
                     } else if (toLocation === 'FTF Manufacturing') {
                         await addStock(sku, qty);
@@ -152,6 +166,12 @@ const LocationDashboard = () => {
                             await addLegazpiStock(product.id, qty); // Add back (positive)
                             console.log(`Returned ${qty} of ${sku} to Legazpi Storage`);
                         }
+                    } else if (fromLocation === 'Daet Storage') {
+                        const product = daetInventory.find(p => p.sku === sku || `${p.product_name}-${p.flavor || 'Default'}` === sku);
+                        if (product) {
+                            await addDaetStock(product.id, qty); // Add back (positive)
+                            console.log(`Returned ${qty} of ${sku} to Daet Storage`);
+                        }
                     }
 
                     // REMOVE from destination location
@@ -160,6 +180,12 @@ const LocationDashboard = () => {
                         if (product) {
                             await addLegazpiStock(product.id, -qty); // Remove (negative)
                             console.log(`Removed ${qty} of ${sku} from Legazpi Storage (Reversal)`);
+                        }
+                    } else if (toLocation === 'Daet Storage') {
+                        const product = daetInventory.find(p => p.sku === sku || `${p.product_name}-${p.flavor || 'Default'}` === sku);
+                        if (product) {
+                            await addDaetStock(product.id, -qty); // Remove (negative)
+                            console.log(`Removed ${qty} of ${sku} from Daet Storage (Reversal)`);
                         }
                     } else if (toLocation === 'FTF Manufacturing') {
                         await addStock(sku, -qty); // Remove (negative)

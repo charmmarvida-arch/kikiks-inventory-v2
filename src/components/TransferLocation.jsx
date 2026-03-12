@@ -67,14 +67,14 @@ const LEGACY_MAIN_CATEGORIES = [
 
 const OTHERS_CATEGORY = { id: 'OTHERS', name: 'Others', icon: Package, color: '#a8a8a8', label: 'Others', bgClass: 'bg-gray-500 text-white', shadowClass: 'shadow-gray-500/40' };
 
-// Warehouse locations
-const WAREHOUSE_LOCATIONS = ['FTF Manufacturing', 'Legazpi Storage'];
+const WAREHOUSE_LOCATIONS = ['FTF Manufacturing', 'Legazpi Storage', 'Daet Storage'];
 
 const TransferLocation = ({ isPublic = false }) => {
     const location = useLocation();
     const {
         inventory,
         legazpiInventory,
+        daetInventory,
         kikiksLocations,
         locationSRPs,
         updateLocationCategoryPrices,
@@ -83,9 +83,13 @@ const TransferLocation = ({ isPublic = false }) => {
         transferOrders,
         addStock,
         addLegazpiStock,
+        addDaetStock,
         addLegazpiProduct,
+        addDaetProduct,
         addSku,
 
+        updateDaetProduct,
+        deleteDaetProduct,
         updateLegazpiProduct,
         deleteLegazpiProduct,
         updateSku,
@@ -158,6 +162,14 @@ const TransferLocation = ({ isPublic = false }) => {
                         unit: newItem.unit
                     });
                     alert('Item updated successfully');
+                } else if (editingPriceLocation === 'Daet Storage') {
+                    await updateDaetProduct(editingItem.id, {
+                        product_name: newItem.name,
+                        flavor: newItem.flavor,
+                        quantity: newItem.quantity,
+                        unit: newItem.unit
+                    });
+                    alert('Item updated successfully');
                 } else if (editingPriceLocation === 'FTF Manufacturing') {
                     await updateSku(editingItem.sku, {
                         sku: newItem.sku,
@@ -179,6 +191,15 @@ const TransferLocation = ({ isPublic = false }) => {
                         unit: newItem.unit
                     });
                     alert('Item added to Legazpi Storage');
+                } else if (editingPriceLocation === 'Daet Storage') {
+                    if (!newItem.name) return alert('Product Name is required');
+                    await addDaetProduct({
+                        product_name: newItem.name,
+                        flavor: newItem.flavor,
+                        quantity: newItem.quantity,
+                        unit: newItem.unit
+                    });
+                    alert('Item added to Daet Storage');
                 } else if (editingPriceLocation === 'FTF Manufacturing') {
                     if (!newItem.sku || !newItem.description) return alert('SKU and Description are required');
                     await addSku({
@@ -203,7 +224,7 @@ const TransferLocation = ({ isPublic = false }) => {
 
     const handleEditClick = (item) => {
         setEditingItem(item);
-        if (editingPriceLocation === 'Legazpi Storage') {
+        if (editingPriceLocation === 'Legazpi Storage' || editingPriceLocation === 'Daet Storage') {
             setNewItem({
                 name: item.product_name,
                 flavor: item.flavor || '',
@@ -230,6 +251,8 @@ const TransferLocation = ({ isPublic = false }) => {
         try {
             if (editingPriceLocation === 'Legazpi Storage') {
                 await deleteLegazpiProduct(idOrSku);
+            } else if (editingPriceLocation === 'Daet Storage') {
+                await deleteDaetProduct(idOrSku);
             } else {
                 await deleteSku(idOrSku);
             }
@@ -243,12 +266,13 @@ const TransferLocation = ({ isPublic = false }) => {
         if (!editingPriceLocation) return [];
         let items = [];
         if (editingPriceLocation === 'Legazpi Storage') items = legazpiInventory;
+        else if (editingPriceLocation === 'Daet Storage') items = daetInventory;
         else if (editingPriceLocation === 'FTF Manufacturing') items = inventory;
 
         if (!managementSearchTerm) return items;
         const lowerSearch = managementSearchTerm.toLowerCase();
         return items.filter(item => {
-            if (editingPriceLocation === 'Legazpi Storage') {
+            if (editingPriceLocation === 'Legazpi Storage' || editingPriceLocation === 'Daet Storage') {
                 return item.product_name?.toLowerCase().includes(lowerSearch) || item.flavor?.toLowerCase().includes(lowerSearch);
             } else {
                 return item.sku?.toLowerCase().includes(lowerSearch) || item.description?.toLowerCase().includes(lowerSearch);
@@ -264,6 +288,14 @@ const TransferLocation = ({ isPublic = false }) => {
             return inventory;
         } else if (fromLocation === 'Legazpi Storage') {
             return legazpiInventory.map(item => ({
+                sku: item.sku || `${item.product_name}-${item.flavor || 'Default'}`,
+                description: `${item.product_name} ${item.flavor || ''}`.trim(),
+                quantity: item.quantity,
+                uom: item.unit,
+                id: item.id
+            }));
+        } else if (fromLocation === 'Daet Storage') {
+            return daetInventory.map(item => ({
                 sku: item.sku || `${item.product_name}-${item.flavor || 'Default'}`,
                 description: `${item.product_name} ${item.flavor || ''}`.trim(),
                 quantity: item.quantity,
@@ -1192,7 +1224,7 @@ const PricingTab = ({ locations, locationSRPs, updatePrices }) => {
     );
 };
 
-const InventoryTab = ({ warehouses, legazpiInventory, inventory, actions }) => {
+const InventoryTab = ({ warehouses, legazpiInventory, daetInventory, inventory, actions }) => {
     const [selectedWarehouse, setSelectedWarehouse] = useState(warehouses[0]);
     const [searchTerm, setSearchTerm] = useState('');
     const [isAdding, setIsAdding] = useState(false);
@@ -1203,12 +1235,13 @@ const InventoryTab = ({ warehouses, legazpiInventory, inventory, actions }) => {
     const filteredItems = useMemo(() => {
         let items = [];
         if (selectedWarehouse === 'Legazpi Storage') items = legazpiInventory;
+        else if (selectedWarehouse === 'Daet Storage') items = daetInventory;
         else if (selectedWarehouse === 'FTF Manufacturing') items = inventory;
 
         if (!searchTerm) return items;
         return items.filter(i => {
-            if (selectedWarehouse === 'Legazpi Storage') {
-                return i.product_name?.toLowerCase().includes(searchTerm.toLowerCase());
+            if (selectedWarehouse === 'Legazpi Storage' || selectedWarehouse === 'Daet Storage') {
+                return i.product_name?.toLowerCase().includes(searchTerm.toLowerCase()) || i.flavor?.toLowerCase().includes(searchTerm.toLowerCase());
             } else {
                 return i.sku?.toLowerCase().includes(searchTerm.toLowerCase()) || i.description?.toLowerCase().includes(searchTerm.toLowerCase());
             }
@@ -1221,6 +1254,10 @@ const InventoryTab = ({ warehouses, legazpiInventory, inventory, actions }) => {
                 const data = { product_name: newItem.name, flavor: newItem.flavor, quantity: newItem.quantity, unit: newItem.unit };
                 if (editingItem) await actions.updateLegazpiProduct(editingItem.id, data);
                 else await actions.addLegazpiProduct(data);
+            } else if (selectedWarehouse === 'Daet Storage') {
+                const data = { product_name: newItem.name, flavor: newItem.flavor, quantity: newItem.quantity, unit: newItem.unit };
+                if (editingItem) await actions.updateDaetProduct(editingItem.id, data);
+                else await actions.addDaetProduct(data);
             } else {
                 const data = { sku: newItem.sku || editingItem.sku, description: newItem.description, uom: newItem.unit, quantity: newItem.quantity };
                 if (editingItem) await actions.updateSku(editingItem.sku, data);
@@ -1241,7 +1278,7 @@ const InventoryTab = ({ warehouses, legazpiInventory, inventory, actions }) => {
 
     const startEdit = (item) => {
         setEditingItem(item);
-        if (selectedWarehouse === 'Legazpi Storage') {
+        if (selectedWarehouse === 'Legazpi Storage' || selectedWarehouse === 'Daet Storage') {
             setNewItem({ name: item.product_name, flavor: item.flavor, quantity: item.quantity, unit: item.unit });
         } else {
             setNewItem({ sku: item.sku, description: item.description, quantity: item.quantity, unit: item.uom });
@@ -1252,6 +1289,7 @@ const InventoryTab = ({ warehouses, legazpiInventory, inventory, actions }) => {
     const handleDelete = async (item) => {
         if (!window.confirm('Delete item?')) return;
         if (selectedWarehouse === 'Legazpi Storage') await actions.deleteLegazpiProduct(item.id);
+        else if (selectedWarehouse === 'Daet Storage') await actions.deleteDaetProduct(item.id);
         else await actions.deleteSku(item.sku);
     };
 
@@ -1288,7 +1326,7 @@ const InventoryTab = ({ warehouses, legazpiInventory, inventory, actions }) => {
             {isAdding && (
                 <div className="mb-6 p-4 bg-white rounded-xl shadow-sm border border-gray-200 animate-in fade-in slide-in-from-top-2">
                     <div className="grid grid-cols-2 gap-4 mb-4">
-                        {selectedWarehouse === 'Legazpi Storage' ? (
+                        {selectedWarehouse === 'Legazpi Storage' || selectedWarehouse === 'Daet Storage' ? (
                             <>
                                 <div className="space-y-1">
                                     <label className="text-xs font-bold text-gray-500">Product Name</label>
@@ -1353,8 +1391,8 @@ const InventoryTab = ({ warehouses, legazpiInventory, inventory, actions }) => {
                     <tbody className="divide-y divide-gray-100">
                         {filteredItems.map((item, idx) => (
                             <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
-                                <td className="p-4 font-medium text-gray-900">{selectedWarehouse === 'Legazpi Storage' ? `${item.product_name} ${item.flavor || ''}` : item.description}</td>
-                                <td className="p-4 text-gray-500 text-sm">{selectedWarehouse === 'Legazpi Storage' ? item.id : item.sku}</td>
+                                <td className="p-4 font-medium text-gray-900">{selectedWarehouse === 'Legazpi Storage' || selectedWarehouse === 'Daet Storage' ? `${item.product_name} ${item.flavor || ''}` : item.description}</td>
+                                <td className="p-4 text-gray-500 text-sm">{selectedWarehouse === 'Legazpi Storage' || selectedWarehouse === 'Daet Storage' ? item.id : item.sku}</td>
                                 <td className="p-4 font-bold text-[#510813]">{item.quantity} {item.unit || item.uom}</td>
                                 <td className="p-4 text-center">
                                     <div className="flex justify-center gap-2">

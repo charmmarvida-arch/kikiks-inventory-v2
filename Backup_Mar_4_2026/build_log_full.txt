@@ -1,0 +1,119 @@
+﻿[36mvite v7.2.4 [32mbuilding client environment for production...[36m[39m
+transforming...
+[32mΓ£ô[39m 32 modules transformed.
+node.exe : 
+[31mΓ£ù[39m Build 
+failed in 740ms
+At line:1 char:1
++ & "C:\Program Files
+\nodejs/node.exe" 
+"C:\Program 
+Files\nodejs/node_mo 
+...
++ ~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~
+    + CategoryInfo   
+           : NotSpe  
+  cified: ([31mΓ£   
+ ù[39m Build fai    
+led in 740ms:Str    
+ing) [], RemoteE    
+xception
+    + FullyQualified 
+   ErrorId : Native  
+  CommandError
+ 
+[31merror during 
+build:
+[31m[vite:esbuild] 
+Transform failed 
+with 1 error:
+C:/Users/LENOVO/OneDr
+ive/Desktop/Kikiks In
+ventory/src/component
+s/ResellerDashboard.j
+sx:375:10: ERROR: 
+The symbol 
+"criticalAlerts" has 
+already been 
+declared[31m
+file: [36mC:/Users/L
+ENOVO/OneDrive/Deskto
+p/Kikiks Inventory/sr
+c/components/Reseller
+Dashboard.jsx:375:10
+[31m
+[33m
+[33mThe symbol 
+"criticalAlerts" has 
+already been 
+declared[33m
+373 |  
+374 |      // 4. 
+Critical Alerts 
+(Logic moved from UI 
+if needed, but we 
+can reuse monthlyComp
+lianceData)
+375 |      const 
+criticalAlerts = 
+useMemo(() => {
+    |            ^
+376 |          const 
+alerts = [];
+377 |          // A. 
+Compliance 'Not Met' 
+(already calculated 
+in monthlyComplianceD
+ata)
+[31m
+    at 
+failureErrorWithLog (
+C:\Users\LENOVO\OneDr
+ive\Desktop\Kikiks In
+ventory\node_modules\
+esbuild\lib\main.js:1
+467:15)
+    at C:\Users\LENOV
+O\OneDrive\Desktop\Ki
+kiks Inventory\node_m
+odules\esbuild\lib\ma
+in.js:736:50
+    at responseCallba
+cks.<computed> (C:\Us
+ers\LENOVO\OneDrive\D
+esktop\Kikiks Invento
+ry\node_modules\esbui
+ld\lib\main.js:603:9)
+    at 
+handleIncomingPacket 
+(C:\Users\LENOVO\OneD
+rive\Desktop\Kikiks I
+nventory\node_modules
+\esbuild\lib\main.js:
+658:12)
+    at Socket.readFro
+mStdout (C:\Users\LEN
+OVO\OneDrive\Desktop\
+Kikiks Inventory\node
+_modules\esbuild\lib\
+main.js:581:7)
+    at Socket.emit 
+(node:events:508:28)
+    at addChunk (node
+:internal/streams/rea
+dable:559:12)
+    at readableAddChu
+nkPushByteMode (node:
+internal/streams/read
+able:510:3)
+    at Readable.push 
+(node:internal/stream
+s/readable:390:5)
+    at 
+Pipe.onStreamRead (no
+de:internal/stream_ba
+se_commons:189:23)[3
+9m
