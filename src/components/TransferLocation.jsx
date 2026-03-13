@@ -304,7 +304,7 @@ const TransferLocation = ({ isPublic = false }) => {
             }));
         }
         return [];
-    }, [fromLocation, inventory, legazpiInventory]);
+    }, [fromLocation, inventory, legazpiInventory, daetInventory]);
 
     // Get price for a product based on TO location
     const getPrice = (sku) => {
