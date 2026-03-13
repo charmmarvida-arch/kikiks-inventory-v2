@@ -10,16 +10,16 @@ import BranchCapacitySettings from './BranchCapacitySettings';
 const DaetStorage = () => {
     const {
         daetInventory,
-        adddaetProduct,
-        updatedaetProduct,
-        deletedaetProduct,
+        addDaetProduct,
+        updateDaetProduct,
+        deleteDaetProduct,
         transferOrders,
         updateTransferOrderStatus,
         updateTransferOrder,
         inventory,
         locationSRPs,
         addStock,
-        adddaetStock
+        addDaetStock
     } = useInventory();
     const { user } = useAuth();
 
@@ -85,7 +85,7 @@ const DaetStorage = () => {
                         // Support both SKU and Name-Flavor fallback for older records
                         const product = daetInventory.find(p => p.sku === sku || `${p.product_name}-${p.flavor || 'Default'}` === sku);
                         if (product) {
-                            await adddaetStock(product.id, -qty);
+                            await addDaetStock(product.id, -qty);
                             console.log(`Deducted ${qty} of ${sku} from Daet Storage`);
                         }
                     }
@@ -95,7 +95,7 @@ const DaetStorage = () => {
                         // Support both SKU and Name-Flavor fallback for older records
                         const product = daetInventory.find(p => p.sku === sku || `${p.product_name}-${p.flavor || 'Default'}` === sku);
                         if (product) {
-                            await adddaetStock(product.id, qty);
+                            await addDaetStock(product.id, qty);
                             console.log(`Added ${qty} of ${sku} to Daet Storage`);
                         }
                     } else if (toLocation === 'FTF Manufacturing') {
@@ -141,7 +141,7 @@ const DaetStorage = () => {
                     } else if (fromLocation === 'Daet Storage') {
                         const product = daetInventory.find(p => p.sku === sku || `${p.product_name}-${p.flavor || 'Default'}` === sku);
                         if (product) {
-                            await adddaetStock(product.id, qty); // Add back (positive)
+                            await addDaetStock(product.id, qty); // Add back (positive)
                             console.log(`Returned ${qty} of ${sku} to Daet Storage`);
                         }
                     }
@@ -150,7 +150,7 @@ const DaetStorage = () => {
                     if (toLocation === 'Daet Storage') {
                         const product = daetInventory.find(p => p.sku === sku || `${p.product_name}-${p.flavor || 'Default'}` === sku);
                         if (product) {
-                            await adddaetStock(product.id, -qty); // Remove (negative)
+                            await addDaetStock(product.id, -qty); // Remove (negative)
                             console.log(`Removed ${qty} of ${sku} from Daet Storage (Reversal)`);
                         }
                     } else if (toLocation === 'FTF Manufacturing') {
@@ -219,7 +219,7 @@ const DaetStorage = () => {
             return;
         }
 
-        await adddaetProduct(newProduct);
+        await addDaetProduct(newProduct);
         setAddingProduct(false);
         setNewProduct({
             sku: '',
@@ -242,7 +242,7 @@ const DaetStorage = () => {
 
         const { id, sku, product_name, flavor, quantity, unit } = editingProduct;
 
-        await updatedaetProduct(id, {
+        await updateDaetProduct(id, {
             sku, // Added SKU
             product_name,
             flavor,
@@ -264,7 +264,7 @@ const DaetStorage = () => {
 
         if (confirm(`Are you sure you want to delete "${productName}"?`)) {
             try {
-                await deletedaetProduct(id);
+                await deleteDaetProduct(id);
                 // Success alert handled in context or by UI update
             } catch (err) {
                 alert('Delete failed: ' + err.message);
