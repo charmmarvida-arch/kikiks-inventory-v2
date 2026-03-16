@@ -57,6 +57,7 @@ export const detectBranchFromFilename = (filename) => {
     if (lowerFilename.includes('ayala')) return 'Ayala Legazpi';
     if (lowerFilename.includes('sorsogon')) return 'SM Sorsogon';
     if (lowerFilename.includes('legazpi') && lowerFilename.includes('firstthings')) return 'SM Legazpi';
+    if (lowerFilename.includes('daet')) return 'SM Daet';
 
     return null;
 };

@@ -52,7 +52,7 @@ export const InventoryProvider = ({ children }) => {
     const [resellerOrders, setResellerOrders] = useState([]);
     const [transferOrders, setTransferOrders] = useState([]);
     const [materials, setMaterials] = useState([]); // FTF Materials (Raw, Packaging, Stickers)
-    const [kikiksLocations, setKikiksLocations] = useState(['SM Sorsogon', 'SM Legazpi', 'SM Daet', 'Namito SM Daet', 'Namito SM Naga']); // Removed Legazpi Storage
+    const [kikiksLocations, setKikiksLocations] = useState(['SM Sorsogon', 'SM Legazpi', 'Ayala Legazpi', 'SM Daet', 'Namito SM Daet', 'Namito SM Naga']); // Removed Legazpi Storage
     const [locationSRPs, setLocationSRPs] = useState({});
     const [resellerPrices, setResellerPrices] = useState({});
     const [zonePrices, setZonePrices] = useState({}); // { [zoneId]: { 'FGC': 23, ... } }

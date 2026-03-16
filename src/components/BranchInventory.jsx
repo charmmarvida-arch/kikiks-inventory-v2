@@ -39,7 +39,7 @@ const BranchInventory = () => {
     const [capacityEdits, setCapacityEdits] = useState({});
     const [showToast, setShowToast] = useState(false);
 
-    const branches = ['SM Sorsogon', 'SM Legazpi', 'Ayala Legazpi'];
+    const branches = ['SM Sorsogon', 'SM Legazpi', 'Ayala Legazpi', 'SM Daet'];
 
     const branchData = getBranchInventory(selectedBranch);
     const filteredData = branchData.filter(item =>

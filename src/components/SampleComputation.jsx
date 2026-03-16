@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { Calculator, Receipt, Settings, X, Save, Info } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Calculator, Receipt, Settings, X, Save, Info, PlusCircle, Trash2 } from 'lucide-react';
 
 const SampleComputation = () => {
+    const nextId = useRef(5);
+
     // State for invoice items
     const [items, setItems] = useState([
         { id: 1, name: 'Ice Cream, Cup', quantity: '', price: '' },
@@ -9,6 +11,17 @@ const SampleComputation = () => {
         { id: 3, name: 'Ice Cream, Liter', quantity: '', price: '' },
         { id: 4, name: 'Ice Cream, Gallon', quantity: '', price: '' }
     ]);
+
+    // Add a blank item row
+    const addItem = () => {
+        const id = nextId.current++;
+        setItems(prev => [...prev, { id, name: '', quantity: '', price: '' }]);
+    };
+
+    // Remove an item row
+    const removeItem = (id) => {
+        setItems(prev => prev.filter(item => item.id !== id));
+    };
 
     // State for Settings Modal
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -114,7 +127,8 @@ const SampleComputation = () => {
                             <div className="col-span-5">Item Description</div>
                             <div className="col-span-2 text-center">Quantity</div>
                             <div className="col-span-2 text-center">Unit Price</div>
-                            <div className="col-span-3 text-right pr-4">Total</div>
+                            <div className="col-span-2 text-right pr-2">Total</div>
+                            <div className="col-span-1"></div>
                         </div>
 
                         {/* Invoice Rows */}
@@ -164,14 +178,36 @@ const SampleComputation = () => {
                                     </div>
 
                                     {/* Row Total */}
-                                    <div className="col-span-1 md:col-span-3 text-right">
+                                    <div className="col-span-1 md:col-span-2 text-right">
                                         <label className="block text-xs font-bold text-gray-400 mb-1 md:hidden">Subtotal</label>
                                         <div className="font-mono font-bold text-gray-800 bg-white md:bg-transparent px-4 py-2 rounded-lg border border-gray-200 md:border-none">
                                             {formatCurrency(calculateRowTotal(item))}
                                         </div>
                                     </div>
+
+                                    {/* Remove Button */}
+                                    <div className="col-span-1 md:col-span-1 flex justify-end md:justify-center">
+                                        <button
+                                            onClick={() => removeItem(item.id)}
+                                            title="Remove item"
+                                            className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                        >
+                                            <Trash2 size={16} />
+                                        </button>
+                                    </div>
                                 </div>
                             ))}
+                        </div>
+
+                        {/* Add Item Button */}
+                        <div className="mt-4 pt-4 border-t border-dashed border-gray-200">
+                            <button
+                                onClick={addItem}
+                                className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-[#E5562E] border-2 border-dashed border-[#E5562E]/30 hover:border-[#E5562E] hover:bg-[#E5562E]/5 transition-all w-full justify-center"
+                            >
+                                <PlusCircle size={18} />
+                                Add Item
+                            </button>
                         </div>
                     </div>
                 </div>
