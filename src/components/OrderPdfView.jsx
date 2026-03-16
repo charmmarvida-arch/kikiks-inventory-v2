@@ -158,6 +158,7 @@ const OrderPdfView = () => {
                             <thead>
                                 <tr className="border-b-2 border-gray-100">
                                     <th className="py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Description</th>
+                                    <th className="py-3 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">BB Date</th>
                                     <th className="py-3 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Packs</th>
                                     <th className="py-3 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Pcs/Pack</th>
                                     <th className="py-3 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Qty</th>
@@ -193,6 +194,9 @@ const OrderPdfView = () => {
                                             const totalCost = price * qty;
                                             const packSize = prefix === 'FGC' ? 10 : 1; // Simple pack size logic
 
+                                            // Best Before Date - Blank for manual filling
+                                            let bbDateStr = '';
+
                                             return {
                                                 sku,
                                                 description: itemDef ? itemDef.description : sku,
@@ -200,7 +204,8 @@ const OrderPdfView = () => {
                                                 packSize,
                                                 price,
                                                 totalCost,
-                                                numPacks: packSize > 1 ? (qty / packSize).toFixed(1) : ''
+                                                numPacks: packSize > 1 ? (qty / packSize).toFixed(1) : '',
+                                                bbDateStr
                                             };
                                         });
 
@@ -213,6 +218,7 @@ const OrderPdfView = () => {
                                             {itemsInGroup.map(item => (
                                                 <tr key={item.sku}>
                                                     <td className="py-3 text-sm font-medium text-gray-800">{item.description}</td>
+                                                    <td className="py-3 text-sm text-gray-600 text-center font-mono">{item.bbDateStr}</td>
                                                     <td className="py-3 text-sm text-gray-600 text-center">{item.numPacks}</td>
                                                     <td className="py-3 text-sm text-gray-600 text-center">{item.packSize}</td>
                                                     <td className="py-3 text-sm font-bold text-gray-800 text-center">{item.qty}</td>
@@ -222,7 +228,7 @@ const OrderPdfView = () => {
                                             ))}
                                             {/* Group Total Row */}
                                             <tr className="bg-yellow-50/50">
-                                                <td colSpan="3" className="py-2 text-xs font-bold text-gray-500 text-right uppercase pr-4">
+                                                <td colSpan="4" className="py-2 text-xs font-bold text-gray-500 text-right uppercase pr-4">
                                                     Total {prefix === 'FGC' ? 'Cups' : prefix === 'FGP' ? 'Pints' : prefix === 'FGL' ? 'Liters' : prefix === 'FGG' ? 'Gallons' : 'Trays'}
                                                 </td>
                                                 <td className="py-2 text-sm font-bold text-gray-800 text-center">{groupTotalQty}</td>
@@ -234,7 +240,7 @@ const OrderPdfView = () => {
                             </tbody>
                             <tfoot>
                                 <tr className="border-t-2 border-gray-100">
-                                    <td colSpan="5" className="py-6 text-right text-xl font-bold text-gray-800">TOTAL BILL</td>
+                                    <td colSpan="6" className="py-6 text-right text-xl font-bold text-gray-800">TOTAL BILL</td>
                                     <td className="py-6 text-right text-2xl font-black text-[#E5562E]">
                                         ₱{order.totalAmount.toLocaleString()}
                                     </td>

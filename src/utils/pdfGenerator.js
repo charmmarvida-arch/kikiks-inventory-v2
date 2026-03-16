@@ -119,8 +119,13 @@ export const generatePackingList = async (order, inventory, resellerPrices = {})
             // Add items
             itemsInGroup.forEach(item => {
                 const numPacks = item.packSize > 1 ? (item.qty / item.packSize).toFixed(1) : '';
+                
+                // Best Before Date - Blank for manual filling
+                let bbDateStr = ''; 
+
                 tableBody.push([
                     item.description,
+                    bbDateStr, // Best Before Date
                     numPacks, // Number of Packs
                     item.packSize === 1 ? '' : item.packSize, // Pcs/Pack (Hide if 1)
                     item.qty, // Total Quantity
@@ -135,7 +140,7 @@ export const generatePackingList = async (order, inventory, resellerPrices = {})
             tableBody.push([
                 {
                     content: `TOTAL # OF ${CATEGORY_NAMES[prefix]} (IN PCS)`,
-                    colSpan: 3,
+                    colSpan: 4,
                     styles: {
                         fillColor: [255, 248, 220], // Light yellow/beige
                         fontStyle: 'bold',
@@ -170,6 +175,7 @@ export const generatePackingList = async (order, inventory, resellerPrices = {})
             },
             "",
             "",
+            "",
             {
                 content: totalCups,
                 styles: { textColor: [220, 38, 38], fontStyle: 'bold' }
@@ -189,7 +195,7 @@ export const generatePackingList = async (order, inventory, resellerPrices = {})
     tableBody.push([
         {
             content: 'TOTAL BILL',
-            colSpan: 5,
+            colSpan: 6,
             styles: {
                 fillColor: [255, 255, 255],
                 fontStyle: 'bold',
@@ -215,9 +221,10 @@ export const generatePackingList = async (order, inventory, resellerPrices = {})
         startY: 95, // Moved down
         head: [[
             { content: 'DESCRIPTION', styles: { halign: 'left', fillColor: [128, 128, 128], textColor: 255 } },
-            { content: 'NUMBER OF PACKS', styles: { halign: 'center', fillColor: [128, 128, 128], textColor: 255 } },
+            { content: 'BEST BEFORE\n(DDMMYY)', styles: { halign: 'center', fillColor: [128, 128, 128], textColor: 255 } },
+            { content: 'PACKS', styles: { halign: 'center', fillColor: [128, 128, 128], textColor: 255 } },
             { content: 'PCS/PACK', styles: { halign: 'center', fillColor: [128, 128, 128], textColor: 255 } },
-            { content: 'TOTAL QUANTITY (IN PCS)', styles: { halign: 'center', fillColor: [128, 128, 128], textColor: 255 } },
+            { content: 'TOTAL QTY', styles: { halign: 'center', fillColor: [128, 128, 128], textColor: 255 } },
             { content: 'PRICE', styles: { halign: 'center', fillColor: [128, 128, 128], textColor: 255 } },
             { content: 'TOTAL COST', styles: { halign: 'center', fillColor: [128, 128, 128], textColor: 255 } }
         ]],
@@ -231,11 +238,12 @@ export const generatePackingList = async (order, inventory, resellerPrices = {})
         },
         columnStyles: {
             0: { cellWidth: 'auto' },
-            1: { cellWidth: 25, halign: 'center' },
-            2: { cellWidth: 20, halign: 'center' },
-            3: { cellWidth: 30, halign: 'center' },
-            4: { cellWidth: 25, halign: 'center' },
-            5: { cellWidth: 30, halign: 'center' }
+            1: { cellWidth: 22, halign: 'center' },
+            2: { cellWidth: 15, halign: 'center' },
+            3: { cellWidth: 18, halign: 'center' },
+            4: { cellWidth: 20, halign: 'center' },
+            5: { cellWidth: 25, halign: 'center' },
+            6: { cellWidth: 25, halign: 'center' }
         },
         didParseCell: function (data) {
             // Dotted lines logic could go here but grid theme is safer for now
@@ -440,8 +448,12 @@ export const generateTransferPackingList = async (order, inventory = [], locatio
                 const totalCost = itemPrice * item.qty;
                 grandTotalBill += totalCost;
 
+                // Best Before Date - Blank for manual filling
+                let bbDateStr = '';
+
                 tableBody.push([
                     item.name,
+                    bbDateStr,
                     numPacks,
                     config.packSize === 1 ? '' : config.packSize,
                     item.qty,
@@ -455,7 +467,7 @@ export const generateTransferPackingList = async (order, inventory = [], locatio
             tableBody.push([
                 {
                     content: `TOTAL # OF ${config.name} (IN PCS)`,
-                    colSpan: 3,
+                    colSpan: 4,
                     styles: {
                         fillColor: [255, 248, 220],
                         fontStyle: 'bold',
@@ -480,7 +492,7 @@ export const generateTransferPackingList = async (order, inventory = [], locatio
     tableBody.push([
         {
             content: 'TOTAL BILL',
-            colSpan: 5,
+            colSpan: 6,
             styles: {
                 fillColor: [255, 255, 255],
                 fontStyle: 'bold',
@@ -506,9 +518,10 @@ export const generateTransferPackingList = async (order, inventory = [], locatio
         startY: 95,
         head: [[
             { content: 'DESCRIPTION', styles: { halign: 'left', fillColor: [128, 128, 128], textColor: 255 } },
-            { content: 'NUMBER OF PACKS', styles: { halign: 'center', fillColor: [128, 128, 128], textColor: 255 } },
+            { content: 'BEST BEFORE\n(DDMMYY)', styles: { halign: 'center', fillColor: [128, 128, 128], textColor: 255 } },
+            { content: 'PACKS', styles: { halign: 'center', fillColor: [128, 128, 128], textColor: 255 } },
             { content: 'PCS/PACK', styles: { halign: 'center', fillColor: [128, 128, 128], textColor: 255 } },
-            { content: 'TOTAL QUANTITY (IN PCS)', styles: { halign: 'center', fillColor: [128, 128, 128], textColor: 255 } },
+            { content: 'TOTAL QTY', styles: { halign: 'center', fillColor: [128, 128, 128], textColor: 255 } },
             { content: 'PRICE', styles: { halign: 'center', fillColor: [128, 128, 128], textColor: 255 } },
             { content: 'TOTAL COST', styles: { halign: 'center', fillColor: [128, 128, 128], textColor: 255 } }
         ]],
@@ -522,11 +535,12 @@ export const generateTransferPackingList = async (order, inventory = [], locatio
         },
         columnStyles: {
             0: { cellWidth: 'auto' },
-            1: { cellWidth: 25, halign: 'center' },
-            2: { cellWidth: 20, halign: 'center' },
-            3: { cellWidth: 30, halign: 'center' },
-            4: { cellWidth: 25, halign: 'center' },
-            5: { cellWidth: 30, halign: 'center' }
+            1: { cellWidth: 22, halign: 'center' },
+            2: { cellWidth: 15, halign: 'center' },
+            3: { cellWidth: 18, halign: 'center' },
+            4: { cellWidth: 20, halign: 'center' },
+            5: { cellWidth: 25, halign: 'center' },
+            6: { cellWidth: 25, halign: 'center' }
         }
     });
 
