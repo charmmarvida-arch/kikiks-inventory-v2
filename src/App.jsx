@@ -48,14 +48,16 @@ const ValentinesLoader = () => (
 const DomainMiddleware = ({ children }) => {
   const location = useLocation();
   const hostname = window.location.hostname;
+  const searchParams = new URLSearchParams(window.location.search);
+  const enforcedView = searchParams.get('view');
 
-  // 1. kikiks-orders -> Reseller Order Only
-  if (hostname.includes('kikiks-orders') && location.pathname !== '/public-order') {
+  // 1. kikiks-orders OR ?view=orders -> Reseller Order Only
+  if ((hostname.includes('kikiks-orders') || enforcedView === 'orders') && location.pathname !== '/public-order') {
     return <Navigate to="/public-order" replace />;
   }
 
-  // 2. kikiks-transfer -> Transfer Location Only
-  if (hostname.includes('kikiks-transfer') && location.pathname !== '/public-transfer') {
+  // 2. kikiks-transfer OR ?view=transfer -> Transfer Location Only
+  if ((hostname.includes('kikiks-transfer') || enforcedView === 'transfer') && location.pathname !== '/public-transfer') {
     return <Navigate to="/public-transfer" replace />;
   }
 

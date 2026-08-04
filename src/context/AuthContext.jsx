@@ -5,6 +5,26 @@ const AuthContext = createContext();
 
 export const useAuth = () => useContext(AuthContext);
 
+const MOCK_BYPASS_USER = {
+    id: 'bypass-admin-id',
+    email: 'admin@bypass.local',
+    user_metadata: { full_name: 'Bypass Admin' }
+};
+
+const MOCK_BYPASS_PROFILE = {
+    id: 'bypass-admin-id',
+    email: 'admin@bypass.local',
+    full_name: 'Bypass Admin',
+    role: 'admin',
+    permissions: {
+        dashboard: true,
+        ftf_manufacturing: true,
+        stock_movement: true,
+        reseller_orders: true,
+        settings: true
+    }
+};
+
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [session, setSession] = useState(null);
@@ -12,21 +32,46 @@ export const AuthProvider = ({ children }) => {
     const [userProfile, setUserProfile] = useState(null);
 
     useEffect(() => {
-        // Check active sessions and sets the user
-        const getSession = async () => {
-            const { data: { session } } = await supabase.auth.getSession();
-            setSession(session);
-            setUser(session?.user ?? null);
-            if (session?.user) {
-                await fetchProfile(session.user.id);
-            }
+        // Check if emergency bypass mode is enabled
+        if (localStorage.getItem('bypass_auth') === 'true') {
+            setUser(MOCK_BYPASS_USER);
+            setSession({ user: MOCK_BYPASS_USER });
+            setUserProfile(MOCK_BYPASS_PROFILE);
             setLoading(false);
+            return;
+        }
+
+        // Check active sessions and sets the user
+        // Timeout after 5s so the app never hangs forever if Supabase is unreachable
+        const getSession = async () => {
+            try {
+                const timeoutPromise = new Promise((_, reject) =>
+                    setTimeout(() => reject(new Error('Session check timeout')), 5000)
+                );
+                const sessionPromise = supabase.auth.getSession();
+                const { data: { session } } = await Promise.race([sessionPromise, timeoutPromise]);
+                setSession(session);
+                setUser(session?.user ?? null);
+                if (session?.user) {
+                    await fetchProfile(session.user.id);
+                }
+            } catch (err) {
+                console.error('Session check failed or timed out:', err.message);
+                // Still unblock the UI — user will see login page
+                setUser(null);
+                setSession(null);
+            } finally {
+                setLoading(false);
+            }
         };
 
         getSession();
 
         // Listen for changes on auth state (logged in, signed out, etc.)
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+            if (localStorage.getItem('bypass_auth') === 'true') {
+                return;
+            }
             setSession(session);
             setUser(session?.user ?? null);
             if (session?.user) {
@@ -42,7 +87,6 @@ export const AuthProvider = ({ children }) => {
 
     const fetchProfile = async (userId) => {
         try {
-            // Set a timeout for the profile fetch
             const timeoutPromise = new Promise((_, reject) =>
                 setTimeout(() => reject(new Error('Profile fetch timeout')), 5000)
             );
@@ -57,7 +101,6 @@ export const AuthProvider = ({ children }) => {
 
             if (error && error.code !== 'PGRST116') {
                 console.error('Error fetching profile:', error);
-                // Don't throw, just log - allow login to continue
                 return;
             }
 
@@ -66,11 +109,19 @@ export const AuthProvider = ({ children }) => {
             }
         } catch (error) {
             console.error('Unexpected error fetching profile:', error);
-            // Don't throw, just log - allow login to continue
         }
     };
 
+    const bypassLogin = () => {
+        localStorage.setItem('bypass_auth', 'true');
+        setUser(MOCK_BYPASS_USER);
+        setSession({ user: MOCK_BYPASS_USER });
+        setUserProfile(MOCK_BYPASS_PROFILE);
+        setLoading(false);
+    };
+
     const login = async (email, password) => {
+        localStorage.removeItem('bypass_auth');
         const { data, error } = await supabase.auth.signInWithPassword({
             email,
             password,
@@ -80,6 +131,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     const signUp = async (email, password, role = 'staff', permissions = {}, fullName = '') => {
+        localStorage.removeItem('bypass_auth');
         const { data, error } = await supabase.auth.signUp({
             email,
             password,
@@ -117,8 +169,15 @@ export const AuthProvider = ({ children }) => {
     };
 
     const logout = async () => {
-        const { error } = await supabase.auth.signOut();
-        if (error) throw error;
+        localStorage.removeItem('bypass_auth');
+        try {
+            await supabase.auth.signOut();
+        } catch (error) {
+            console.error('Sign out error:', error);
+        }
+        setUser(null);
+        setSession(null);
+        setUserProfile(null);
     };
 
     const value = {
@@ -127,9 +186,11 @@ export const AuthProvider = ({ children }) => {
         userProfile,
         login,
         signUp,
+        bypassLogin,
         logout,
         loading
     };
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
+

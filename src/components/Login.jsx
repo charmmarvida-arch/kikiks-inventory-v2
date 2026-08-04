@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { Package, Lock, Mail, AlertCircle } from 'lucide-react';
+import { Package, Lock, Mail, AlertCircle, CheckCircle, Unlock } from 'lucide-react';
+import { supabase } from '../supabaseClient';
 
 const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [successMsg, setSuccessMsg] = useState(null);
     const [isRegistering, setIsRegistering] = useState(false); // Toggle for first-time setup
-    const { login, signUp } = useAuth();
+    const { login, signUp, bypassLogin } = useAuth();
     const navigate = useNavigate();
 
     // Smart Redirect: If domain contains "order" or "reseller", go to public order form
@@ -22,10 +24,38 @@ const Login = () => {
             navigate('/transfer');
         }
     }, [navigate]);
+
+    const handleForgotPassword = async () => {
+        if (!email) {
+            setError('Please enter your email address first, then click Forgot Password.');
+            return;
+        }
+        setLoading(true);
+        setError(null);
+        setSuccessMsg(null);
+        try {
+            const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                redirectTo: `${window.location.origin}/login`,
+            });
+            if (error) throw error;
+            setSuccessMsg(`Password reset email sent to ${email}. Check your inbox!`);
+        } catch (err) {
+            setError(err.message || 'Failed to send reset email.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleBypass = () => {
+        bypassLogin();
+        navigate('/');
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
         setError(null);
+        setSuccessMsg(null);
 
         try {
             if (isRegistering) {
@@ -75,6 +105,13 @@ const Login = () => {
                     </div>
                 )}
 
+                {successMsg && (
+                    <div className="error-alert" style={{ backgroundColor: '#d1fae5', color: '#065f46', borderColor: '#6ee7b7' }}>
+                        <CheckCircle size={18} />
+                        {successMsg}
+                    </div>
+                )}
+
                 <form onSubmit={handleSubmit}>
                     <div className="form-group" style={{ marginBottom: '1.25rem' }}>
                         <label>Email Address</label>
@@ -93,7 +130,7 @@ const Login = () => {
                         </div>
                     </div>
 
-                    <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+                    <div className="form-group" style={{ marginBottom: '0.5rem' }}>
                         <label>Password</label>
                         <div className="login-input-wrapper">
                             <div className="login-input-icon">
@@ -110,6 +147,19 @@ const Login = () => {
                         </div>
                     </div>
 
+                    {!isRegistering && (
+                        <div style={{ textAlign: 'right', marginBottom: '1.25rem' }}>
+                            <button
+                                type="button"
+                                onClick={handleForgotPassword}
+                                className="login-link"
+                                style={{ fontSize: '0.85rem' }}
+                            >
+                                Forgot Password?
+                            </button>
+                        </div>
+                    )}
+
                     <button
                         type="submit"
                         disabled={loading}
@@ -119,6 +169,27 @@ const Login = () => {
                         {loading ? 'Processing...' : (isRegistering ? 'Create Account' : 'Sign In')}
                     </button>
                 </form>
+
+                <div style={{ marginTop: '1rem' }}>
+                    <button
+                        type="button"
+                        onClick={handleBypass}
+                        className="submit-btn"
+                        style={{
+                            width: '100%',
+                            backgroundColor: '#4f46e5',
+                            color: '#ffffff',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '0.5rem',
+                            fontWeight: '600'
+                        }}
+                    >
+                        <Unlock size={18} />
+                        Bypass Login (Emergency Access)
+                    </button>
+                </div>
 
                 <div style={{ marginTop: '1.5rem', textAlign: 'center' }}>
                     <button
@@ -149,3 +220,4 @@ const Login = () => {
 };
 
 export default Login;
+
